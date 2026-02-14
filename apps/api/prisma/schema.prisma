@@ -1,0 +1,235 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["equivalentes_app"]
+}
+
+model TrackingEvent {
+  id        String   @id @default(uuid())
+  cid       String
+  eventType String   @map("event_type")
+  meta      Json?
+  userAgent String?  @map("user_agent")
+  ip        String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([cid, createdAt], map: "idx_tracking_events_cid_created_at")
+  @@index([eventType, createdAt], map: "idx_tracking_events_event_created_at")
+  @@map("tracking_events")
+  @@schema("equivalentes_app")
+}
+
+model KcalFormula {
+  id          String   @id
+  name        String
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  generatedPlans GeneratedPlan[]
+
+  @@map("kcal_formulas")
+  @@schema("equivalentes_app")
+}
+
+model ExchangeSystem {
+  id          String   @id
+  countryCode String   @map("country_code") @db.Char(2)
+  name        String
+  source      String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  exchangeGroups              ExchangeGroup[]
+  exchangeSubgroups           ExchangeSubgroup[]
+  subgroupSelectionPolicies   SubgroupSelectionPolicy[]
+  subgroupClassificationRules SubgroupClassificationRule[]
+  generatedPlans              GeneratedPlan[]
+
+  @@map("exchange_systems")
+  @@schema("equivalentes_app")
+}
+
+model ExchangeGroup {
+  id            BigInt   @id @default(autoincrement())
+  systemId      String   @map("system_id")
+  groupCode     String   @map("group_code")
+  displayNameEs String   @map("display_name_es")
+  choG          Decimal  @default(0) @map("cho_g") @db.Decimal(10, 2)
+  proG          Decimal  @default(0) @map("pro_g") @db.Decimal(10, 2)
+  fatG          Decimal  @default(0) @map("fat_g") @db.Decimal(10, 2)
+  kcalTarget    Int      @default(0) @map("kcal_target")
+  sortOrder     Int      @default(0) @map("sort_order")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  system ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+
+  exchangeSubgroups     ExchangeSubgroup[]    @relation("GroupToSubgroups")
+  foodExchangeOverrides FoodExchangeOverride[]
+
+  @@unique([systemId, groupCode], map: "uq_exchange_groups_system_group")
+  @@map("exchange_groups")
+  @@schema("equivalentes_app")
+}
+
+model ExchangeSubgroup {
+  id            BigInt   @id @default(autoincrement())
+  systemId      String   @map("system_id")
+  parentGroupId BigInt   @map("parent_group_id")
+  subgroupCode  String   @map("subgroup_code")
+  displayNameEs String   @map("display_name_es")
+  choG          Decimal  @default(0) @map("cho_g") @db.Decimal(10, 2)
+  proG          Decimal  @default(0) @map("pro_g") @db.Decimal(10, 2)
+  fatG          Decimal  @default(0) @map("fat_g") @db.Decimal(10, 2)
+  kcalTarget    Int      @default(0) @map("kcal_target")
+  sortOrder     Int      @default(0) @map("sort_order")
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  system      ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  parentGroup ExchangeGroup  @relation("GroupToSubgroups", fields: [parentGroupId], references: [id], onDelete: Cascade)
+
+  foodExchangeOverrides FoodExchangeOverride[]
+
+  @@unique([systemId, subgroupCode], map: "uq_exchange_subgroups_system_subgroup")
+  @@index([systemId, parentGroupId], map: "idx_exchange_subgroups_system_parent")
+  @@map("exchange_subgroups")
+  @@schema("equivalentes_app")
+}
+
+model CountryState {
+  countryCode String   @map("country_code") @db.Char(2)
+  stateCode   String   @map("state_code")
+  stateName   String   @map("state_name")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([countryCode, stateCode])
+  @@map("country_states")
+  @@schema("equivalentes_app")
+}
+
+model FoodExchangeOverride {
+  foodId               Int      @map("food_id")
+  systemId             String   @map("system_id")
+  exchangeGroupId      BigInt?  @map("exchange_group_id")
+  exchangeSubgroupId   BigInt?  @map("exchange_subgroup_id")
+  equivalentPortionQty Decimal? @map("equivalent_portion_qty") @db.Decimal(10, 2)
+  portionUnit          String?  @map("portion_unit")
+  isActive             Boolean  @default(true) @map("is_active")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  exchangeGroup    ExchangeGroup?    @relation(fields: [exchangeGroupId], references: [id], onDelete: SetNull)
+  exchangeSubgroup ExchangeSubgroup? @relation(fields: [exchangeSubgroupId], references: [id], onDelete: SetNull)
+
+  @@id([foodId, systemId])
+  @@map("food_exchange_overrides")
+  @@schema("equivalentes_app")
+}
+
+model FoodGeoWeight {
+  id          BigInt   @id @default(autoincrement())
+  foodId      Int      @map("food_id")
+  countryCode String   @map("country_code") @db.Char(2)
+  stateCode   String?  @map("state_code")
+  weight      Decimal  @default(0) @db.Decimal(10, 2)
+  source      String?
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([countryCode, stateCode, foodId], map: "idx_food_geo_weights_country_state_food")
+  @@map("food_geo_weights")
+  @@schema("equivalentes_app")
+}
+
+model FoodProfileTag {
+  id        BigInt   @id @default(autoincrement())
+  foodId    Int      @map("food_id")
+  tagType   String   @map("tag_type")
+  tagValue  String   @map("tag_value")
+  weight    Decimal? @db.Decimal(10, 2)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([foodId, tagType], map: "idx_food_profile_tags_food_type")
+  @@map("food_profile_tags")
+  @@schema("equivalentes_app")
+}
+
+model SubgroupSelectionPolicy {
+  id             BigInt   @id @default(autoincrement())
+  systemId       String   @map("system_id")
+  goal           String
+  dietPattern    String   @map("diet_pattern")
+  subgroupCode   String   @map("subgroup_code")
+  targetSharePct Decimal  @map("target_share_pct") @db.Decimal(5, 2)
+  scoreAdjustment Decimal @map("score_adjustment") @db.Decimal(10, 2)
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  system ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+
+  @@unique([systemId, goal, dietPattern, subgroupCode], map: "uq_subgroup_selection_policy")
+  @@index([systemId, goal, dietPattern], map: "idx_subgroup_selection_policy_lookup")
+  @@map("subgroup_selection_policies")
+  @@schema("equivalentes_app")
+}
+
+model SubgroupClassificationRule {
+  id               BigInt   @id @default(autoincrement())
+  systemId         String   @map("system_id")
+  parentGroupCode  String   @map("parent_group_code")
+  subgroupCode     String   @map("subgroup_code")
+  minFatPer7gPro   Decimal  @map("min_fat_per_7g_pro") @db.Decimal(10, 4)
+  maxFatPer7gPro   Decimal? @map("max_fat_per_7g_pro") @db.Decimal(10, 4)
+  priority         Int
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  system ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+
+  @@unique([systemId, parentGroupCode, subgroupCode, priority], map: "uq_subgroup_classification_rule")
+  @@index([systemId, parentGroupCode, priority], map: "idx_subgroup_classification_rule_lookup")
+  @@map("subgroup_classification_rules")
+  @@schema("equivalentes_app")
+}
+
+model GeneratedPlan {
+  id          String   @id @default(uuid())
+  cid         String
+  countryCode String   @map("country_code") @db.Char(2)
+  stateCode   String   @map("state_code")
+  systemId    String   @map("system_id")
+  formulaId   String   @map("formula_id")
+  inputs      Json
+  targets     Json
+  equivalents Json
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  system          ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Restrict)
+  formula         KcalFormula    @relation(fields: [formulaId], references: [id], onDelete: Restrict)
+  recommendations GeneratedPlanRecommendation[]
+
+  @@index([cid, createdAt], map: "idx_generated_plans_cid_created_at")
+  @@map("generated_plans")
+  @@schema("equivalentes_app")
+}
+
+model GeneratedPlanRecommendation {
+  id         BigInt   @id @default(autoincrement())
+  planId     String   @map("plan_id")
+  foodId     Int      @map("food_id")
+  groupCode  String   @map("group_code")
+  rankScore  Decimal  @map("rank_score") @db.Decimal(10, 2)
+  reasons    Json
+  isExtended Boolean  @default(false) @map("is_extended")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  plan GeneratedPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId, groupCode], map: "idx_plan_recommendations_plan_group")
+  @@map("generated_plan_recommendations")
+  @@schema("equivalentes_app")
+}

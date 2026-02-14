@@ -1,0 +1,15 @@
+﻿node_modules
+.pnpm-store
+.pnpm-debug.log*
+dist
+build
+coverage
+*.log
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+apps/api/prisma/generated
+apps/api/prisma/*.js
+apps/api/dev.db
+apps/api/dev.db-journal

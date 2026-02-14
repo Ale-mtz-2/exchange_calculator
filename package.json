@@ -1,0 +1,17 @@
+{
+  "name": "calculadora-smae-monorepo",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "scripts": {
+    "dev": "corepack pnpm --filter @equivalentes/shared build && concurrently -n api,web -c blue,green \"corepack pnpm --filter @equivalentes/api dev\" \"corepack pnpm --filter @equivalentes/web dev\"",
+    "lint": "corepack pnpm --filter @equivalentes/shared build && corepack pnpm -r lint",
+    "test": "corepack pnpm --filter @equivalentes/shared test",
+    "build": "corepack pnpm -r build",
+    "format": "prettier --check .",
+    "format:write": "prettier --write ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "prettier": "^3.4.2"
+  }
+}
