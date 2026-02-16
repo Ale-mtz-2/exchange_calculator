@@ -169,7 +169,21 @@ type RawFoodRow = {
   serving_unit: string | null;
 };
 
-export const loadFoodsForSystem = async (
+/* ── In-memory TTL cache for food catalog ── */
+
+const CATALOG_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+type CatalogCacheEntry = {
+  data: { foods: FoodItem[]; fallbackSystemMap: Map<number, ExchangeGroupCode> };
+  timestamp: number;
+};
+
+const catalogCache = new Map<string, CatalogCacheEntry>();
+
+const catalogCacheKey = (profile: PatientProfile): string =>
+  `${profile.systemId}:${profile.countryCode}:${profile.stateCode ?? '_'}`;
+
+const fetchFoodsForSystem = async (
   profile: PatientProfile,
 ): Promise<{ foods: FoodItem[]; fallbackSystemMap: Map<number, ExchangeGroupCode> }> => {
   const foodsSql = `
@@ -450,4 +464,25 @@ export const loadFoodsForSystem = async (
   });
 
   return { foods, fallbackSystemMap };
+};
+
+/**
+ * Public entry point — caches results by systemId + countryCode + stateCode
+ * for CATALOG_TTL_MS. The nutrition catalog rarely changes, so this avoids
+ * ~7 heavy DB queries on every plan generation.
+ */
+export const loadFoodsForSystem = async (
+  profile: PatientProfile,
+): Promise<{ foods: FoodItem[]; fallbackSystemMap: Map<number, ExchangeGroupCode> }> => {
+  const key = catalogCacheKey(profile);
+  const now = Date.now();
+  const cached = catalogCache.get(key);
+
+  if (cached && now - cached.timestamp < CATALOG_TTL_MS) {
+    return cached.data;
+  }
+
+  const result = await fetchFoodsForSystem(profile);
+  catalogCache.set(key, { data: result, timestamp: now });
+  return result;
 };

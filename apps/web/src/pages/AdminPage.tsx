@@ -188,7 +188,7 @@ export const AdminPage = (): JSX.Element => {
           </label>
 
           <label className="grid gap-1.5 text-sm font-semibold text-sky-950">
-            Contraseña
+            ContraseÃ±a
             <input
               className="w-full rounded-xl border border-sky-200 bg-white/95 px-3 py-2.5 text-sm outline-none transition focus:border-coral focus:ring-4 focus:ring-sky-100"
               type="password"
@@ -229,7 +229,7 @@ export const AdminPage = (): JSX.Element => {
         {summary ? (
           <div className="mb-5 grid gap-3 sm:grid-cols-4">
             <article className="rounded-2xl border border-sky-100 bg-cloud p-3">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">CID únicos</p>
+              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">CID Ãºnicos</p>
               <p className="text-2xl font-extrabold text-ink">{summary.uniqueCids}</p>
             </article>
             <article className="rounded-2xl border border-sky-100 bg-cloud p-3">
@@ -250,8 +250,8 @@ export const AdminPage = (): JSX.Element => {
         <div className="mb-6 rounded-2xl border border-sky-100 bg-white p-4">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-moss">Campañas WhatsApp</p>
-              <h3 className="text-lg font-extrabold text-ink">Embudo por campaña</h3>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-moss">CampaÃ±as WhatsApp</p>
+              <h3 className="text-lg font-extrabold text-ink">Embudo por campaÃ±a</h3>
             </div>
             <div className="flex items-center gap-2 text-sm">
               <span className="text-slate-600">Rango:</span>
@@ -276,11 +276,11 @@ export const AdminPage = (): JSX.Element => {
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="border-b border-sky-100 bg-sky-50/70 text-left">
-                  <th className="py-2 pl-3 pr-3">Campaña</th>
+                  <th className="py-2 pl-3 pr-3">CampaÃ±a</th>
                   <th className="py-2 pr-3">Mensaje</th>
-                  <th className="py-2 pr-3">Open únicos</th>
-                  <th className="py-2 pr-3">Generate únicos</th>
-                  <th className="py-2 pr-3">Conversión</th>
+                  <th className="py-2 pr-3">Open Ãºnicos</th>
+                  <th className="py-2 pr-3">Generate Ãºnicos</th>
+                  <th className="py-2 pr-3">ConversiÃ³n</th>
                   <th className="py-2 pr-3">Eventos</th>
                 </tr>
               </thead>
@@ -320,7 +320,7 @@ export const AdminPage = (): JSX.Element => {
               Anterior
             </button>
             <p className="text-sm text-slate-600">
-              Página {campaignPage} de {campaignTotalPages}
+              PÃ¡gina {campaignPage} de {campaignTotalPages}
             </p>
             <button
               className="rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-50"
@@ -335,7 +335,7 @@ export const AdminPage = (): JSX.Element => {
           {selectedCampaign ? (
             <div className="mt-4 rounded-xl border border-sky-100 bg-cloud p-3">
               <p className="text-sm font-bold text-ink">
-                Detalle campaña: {selectedCampaign.utmCampaign} ({selectedCampaign.mcMsgId ?? '-'})
+                Detalle campaÃ±a: {selectedCampaign.utmCampaign} ({selectedCampaign.mcMsgId ?? '-'})
               </p>
               <div className="mt-2 overflow-x-auto rounded-lg border border-sky-100 bg-white">
                 <table className="min-w-full text-xs">
@@ -343,7 +343,7 @@ export const AdminPage = (): JSX.Element => {
                     <tr className="border-b border-sky-100 bg-sky-50/60 text-left">
                       <th className="px-2 py-2">CID</th>
                       <th className="px-2 py-2">Primer uso</th>
-                      <th className="px-2 py-2">Último uso</th>
+                      <th className="px-2 py-2">Ãšltimo uso</th>
                       <th className="px-2 py-2">Open</th>
                       <th className="px-2 py-2">Generate</th>
                       <th className="px-2 py-2">Export</th>
@@ -373,7 +373,7 @@ export const AdminPage = (): JSX.Element => {
                   Anterior
                 </button>
                 <p className="text-xs text-slate-600">
-                  Página {campaignContactsPage} de {campaignContactsTotalPages}
+                  PÃ¡gina {campaignContactsPage} de {campaignContactsTotalPages}
                 </p>
                 <button
                   className="rounded-lg border border-sky-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-50"
@@ -428,7 +428,7 @@ export const AdminPage = (): JSX.Element => {
                 <th className="py-2 pl-3 pr-3">CID</th>
                 <th className="py-2 pr-3">Fuente</th>
                 <th className="py-2 pr-3">Primer uso</th>
-                <th className="py-2 pr-3">Último uso</th>
+                <th className="py-2 pr-3">Ãšltimo uso</th>
                 <th className="py-2 pr-3">Open</th>
                 <th className="py-2 pr-3">Generate</th>
                 <th className="py-2 pr-3">Export</th>
@@ -464,7 +464,7 @@ export const AdminPage = (): JSX.Element => {
             Anterior
           </button>
           <p className="text-sm text-slate-600">
-            Página {page} de {totalPages}
+            PÃ¡gina {page} de {totalPages}
           </p>
           <button
             className="rounded-xl border border-sky-200 bg-white px-3 py-2 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-50"
