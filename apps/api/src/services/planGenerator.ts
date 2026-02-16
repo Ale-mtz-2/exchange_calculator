@@ -4,9 +4,11 @@ import {
   DEFAULT_SUBGROUPS_BY_SYSTEM,
   buildEquivalentPlan,
   calculateEnergyTargets,
+  clamp,
   distributeMeals,
   groupTopFoods,
   rankFoods,
+  roundHalf,
   type DietPattern,
   type ExchangeBucketCode,
   type ExchangeSubgroupCode,
@@ -52,7 +54,7 @@ type SubgroupSelectionPolicy = {
   scoreAdjustment: number;
 };
 
-const roundHalf = (value: number): number => Math.max(0, Math.round(value * 2) / 2);
+// roundHalf is imported from @equivalentes/shared
 
 const contribution = (
   exchanges: number,
@@ -64,8 +66,7 @@ const contribution = (
   kcal: exchanges * item.kcalTarget,
 });
 
-const clamp = (value: number, minValue: number, maxValue: number): number =>
-  Math.min(maxValue, Math.max(minValue, value));
+// clamp is imported from @equivalentes/shared
 
 const MX_OUTPUT_ORDER: ExchangeBucketCode[] = [
   'vegetable',

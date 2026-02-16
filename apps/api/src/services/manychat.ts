@@ -42,16 +42,18 @@ export const syncManyChatOnGenerate = async (
   }
 
   try {
-    await manychatRequest('/fb/subscriber/addTagByName', {
-      subscriber_id: cid,
-      tag_name: env.MANYCHAT_TAG_NAME,
-    });
-
-    await manychatRequest('/fb/subscriber/setCustomFieldByName', {
-      subscriber_id: cid,
-      field_name: env.MANYCHAT_CUSTOM_FIELD_NAME,
-      field_value: timestampIso,
-    });
+    // Fire tag and field requests in parallel for better latency
+    await Promise.all([
+      manychatRequest('/fb/subscriber/addTagByName', {
+        subscriber_id: cid,
+        tag_name: env.MANYCHAT_TAG_NAME,
+      }),
+      manychatRequest('/fb/subscriber/setCustomFieldByName', {
+        subscriber_id: cid,
+        field_name: env.MANYCHAT_CUSTOM_FIELD_NAME,
+        field_value: timestampIso,
+      }),
+    ]);
 
     let campaignFieldSet = false;
     if (env.MANYCHAT_CUSTOM_FIELD_CAMPAIGN?.trim() && context?.utmCampaign) {

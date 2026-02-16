@@ -62,6 +62,63 @@ export type AppOptions = {
   subgroupPoliciesBySystem?: Record<string, unknown[]>;
 };
 
+/* ── Admin response types ── */
+
+export type AdminSummary = {
+  uniqueCids: number;
+  totals: { open: number; generate: number; export: number };
+  eventsByDay: { date: string; open: number; generate: number; export: number; total: number }[];
+  usageByCountry: { countryCode: string; total: number }[];
+  usageBySystem: { systemId: string; total: number }[];
+  usageByFormula: { formulaId: string; total: number }[];
+  usageBySource: { source: string; total: number }[];
+  rangeDays: number;
+};
+
+type ContactSummary = {
+  cid: string;
+  source: string;
+  firstSeen: string;
+  lastSeen: string;
+  totalEvents: number;
+};
+
+export type AdminContactsResponse = {
+  contacts: ContactSummary[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export type AdminContactDetailResponse = {
+  cid: string;
+  source: string;
+  events: { id: number; eventType: string; createdAt: string; meta: unknown }[];
+  plans: { id: number; createdAt: string; systemId: string; formulaId: string; countryCode: string }[];
+};
+
+type CampaignRow = {
+  utmCampaign: string;
+  mcMsgId: string | null;
+  contacts: number;
+  firstSeen: string;
+  lastSeen: string;
+};
+
+export type AdminCampaignsResponse = {
+  campaigns: CampaignRow[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export type AdminCampaignContactsResponse = {
+  contacts: { cid: string; source: string; firstSeen: string; lastSeen: string; events: number }[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
 export const getOptions = (): Promise<AppOptions> => request('/api/options');
 
 export const postEvent = (payload: CreateEventInput): Promise<{ ok: boolean }> =>
@@ -82,7 +139,7 @@ export const generatePlan = async (
 
 const toAuthHeader = (user: string, pass: string): string => `Basic ${btoa(`${user}:${pass}`)}`;
 
-export const getAdminSummary = (user: string, pass: string): Promise<any> =>
+export const getAdminSummary = (user: string, pass: string): Promise<AdminSummary> =>
   request('/api/admin/summary', { headers: { Authorization: toAuthHeader(user, pass) } });
 
 export const getAdminContacts = (
@@ -91,12 +148,12 @@ export const getAdminContacts = (
   page: number,
   pageSize: number,
   source: 'all' | 'whatsapp' | 'guest' = 'all',
-): Promise<any> =>
+): Promise<AdminContactsResponse> =>
   request(`/api/admin/contacts?page=${page}&pageSize=${pageSize}&source=${source}`, {
     headers: { Authorization: toAuthHeader(user, pass) },
   });
 
-export const getAdminContactDetail = (user: string, pass: string, cid: string): Promise<any> =>
+export const getAdminContactDetail = (user: string, pass: string, cid: string): Promise<AdminContactDetailResponse> =>
   request(`/api/admin/contacts/${encodeURIComponent(cid)}`, {
     headers: { Authorization: toAuthHeader(user, pass) },
   });
@@ -107,7 +164,7 @@ export const getAdminCampaigns = (
   page: number,
   pageSize: number,
   days: number,
-): Promise<any> =>
+): Promise<AdminCampaignsResponse> =>
   request(`/api/admin/campaigns?page=${page}&pageSize=${pageSize}&days=${days}`, {
     headers: { Authorization: toAuthHeader(user, pass) },
   });
@@ -119,10 +176,11 @@ export const getAdminCampaignContacts = (
   mcMsgId: string | null,
   page: number,
   pageSize: number,
-): Promise<any> =>
+): Promise<AdminCampaignContactsResponse> =>
   request(
     `/api/admin/campaigns/contacts?utmCampaign=${encodeURIComponent(utmCampaign)}&mcMsgId=${encodeURIComponent(mcMsgId ?? '')}&page=${page}&pageSize=${pageSize}`,
     {
       headers: { Authorization: toAuthHeader(user, pass) },
     },
   );
+

@@ -1,10 +1,14 @@
-﻿import { useState } from 'react';
+﻿import { Suspense, lazy, useState } from 'react';
 import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
 
 import logo from './assets/FitPilot-Logo.svg';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { ParticlesBackground } from './components/ParticlesBackground';
-import { AdminPage } from './pages/AdminPage';
 import { HomePage } from './pages/HomePage';
+
+const AdminPage = lazy(() =>
+  import('./pages/AdminPage').then((m) => ({ default: m.AdminPage })),
+);
 
 const isAdminHost = (hostname: string): boolean =>
   hostname.startsWith('admin.') || hostname === 'admin.localhost';
@@ -16,6 +20,12 @@ const navClass = ({ isActive }: { isActive: boolean }): string =>
       ? 'bg-gradient-to-r from-[#0f8bff] to-[#2e86c1] text-white shadow-[0_8px_24px_rgba(103,182,223,0.35)]'
       : 'border border-sky-100 bg-white/80 text-ink hover:border-sky/40 hover:bg-white hover:shadow-[0_4px_12px_rgba(103,182,223,0.15)]',
   ].join(' ');
+
+const LoadingSpinner = (): JSX.Element => (
+  <div className="flex min-h-[40vh] items-center justify-center">
+    <div className="h-10 w-10 animate-spin rounded-full border-4 border-sky-200 border-t-sky-500" />
+  </div>
+);
 
 export const App = (): JSX.Element => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -115,10 +125,14 @@ export const App = (): JSX.Element => {
 
         {/* ─── Main ─── */}
         <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/admin" element={<AdminPage />} />
-          </Routes>
+          <ErrorBoundary>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/admin" element={<AdminPage />} />
+              </Routes>
+            </Suspense>
+          </ErrorBoundary>
         </main>
 
         {/* ─── Footer ─── */}
@@ -138,3 +152,4 @@ export const App = (): JSX.Element => {
     </BrowserRouter>
   );
 };
+

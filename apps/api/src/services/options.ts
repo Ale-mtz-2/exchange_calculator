@@ -10,7 +10,13 @@ import {
 
 import { prisma } from '../db/prisma.js';
 
-export const getOptions = async (): Promise<Record<string, unknown>> => {
+/* ── Simple TTL cache ── */
+
+const OPTIONS_TTL_MS = 5 * 60 * 1000; // 5 minutes
+let cachedOptions: Record<string, unknown> | null = null;
+let cacheTimestamp = 0;
+
+const fetchOptions = async (): Promise<Record<string, unknown>> => {
   const [dbFormulas, dbSystems, dbGroups, dbSubgroups, dbPolicies, dbStates] = await Promise.all([
     prisma.kcalFormula.findMany({ where: { isActive: true }, orderBy: { sortOrder: 'asc' } }),
     prisma.exchangeSystem.findMany({ where: { isActive: true }, orderBy: { name: 'asc' } }),
@@ -30,84 +36,84 @@ export const getOptions = async (): Promise<Record<string, unknown>> => {
   const formulas =
     dbFormulas.length > 0
       ? dbFormulas.map((formula) => ({
-          id: formula.id,
-          name: formula.name,
-          description: formula.description,
-        }))
+        id: formula.id,
+        name: formula.name,
+        description: formula.description,
+      }))
       : KCAL_FORMULAS;
 
   const systems =
     dbSystems.length > 0
       ? dbSystems.map((system) => ({
-          id: system.id,
-          countryCode: system.countryCode,
-          name: system.name,
-          source: system.source,
-        }))
+        id: system.id,
+        countryCode: system.countryCode,
+        name: system.name,
+        source: system.source,
+      }))
       : EXCHANGE_SYSTEMS;
 
   const groupsBySystem =
     dbGroups.length > 0
       ? dbGroups.reduce<Record<string, unknown[]>>((acc, group) => {
-          const list = acc[group.systemId] ?? [];
-          list.push({
-            id: group.id.toString(),
-            groupCode: group.groupCode,
-            displayNameEs: group.displayNameEs,
-            choG: Number(group.choG),
-            proG: Number(group.proG),
-            fatG: Number(group.fatG),
-            kcalTarget: group.kcalTarget,
-          });
-          acc[group.systemId] = list;
-          return acc;
-        }, {})
+        const list = acc[group.systemId] ?? [];
+        list.push({
+          id: group.id.toString(),
+          groupCode: group.groupCode,
+          displayNameEs: group.displayNameEs,
+          choG: Number(group.choG),
+          proG: Number(group.proG),
+          fatG: Number(group.fatG),
+          kcalTarget: group.kcalTarget,
+        });
+        acc[group.systemId] = list;
+        return acc;
+      }, {})
       : DEFAULT_GROUPS_BY_SYSTEM;
 
   const subgroupsBySystem =
     dbSubgroups.length > 0
       ? dbSubgroups.reduce<Record<string, unknown[]>>((acc, subgroup) => {
-          const list = acc[subgroup.systemId] ?? [];
-          list.push({
-            id: subgroup.id.toString(),
-            parentGroupCode: subgroup.parentGroup.groupCode,
-            subgroupCode: subgroup.subgroupCode,
-            displayNameEs: subgroup.displayNameEs,
-            choG: Number(subgroup.choG),
-            proG: Number(subgroup.proG),
-            fatG: Number(subgroup.fatG),
-            kcalTarget: subgroup.kcalTarget,
-            sortOrder: subgroup.sortOrder,
-          });
-          acc[subgroup.systemId] = list;
-          return acc;
-        }, {})
+        const list = acc[subgroup.systemId] ?? [];
+        list.push({
+          id: subgroup.id.toString(),
+          parentGroupCode: subgroup.parentGroup.groupCode,
+          subgroupCode: subgroup.subgroupCode,
+          displayNameEs: subgroup.displayNameEs,
+          choG: Number(subgroup.choG),
+          proG: Number(subgroup.proG),
+          fatG: Number(subgroup.fatG),
+          kcalTarget: subgroup.kcalTarget,
+          sortOrder: subgroup.sortOrder,
+        });
+        acc[subgroup.systemId] = list;
+        return acc;
+      }, {})
       : DEFAULT_SUBGROUPS_BY_SYSTEM;
 
   const subgroupPoliciesBySystem =
     dbPolicies.length > 0
       ? dbPolicies.reduce<Record<string, unknown[]>>((acc, policy) => {
-          const list = acc[policy.systemId] ?? [];
-          list.push({
-            goal: policy.goal,
-            dietPattern: policy.dietPattern,
-            subgroupCode: policy.subgroupCode,
-            targetSharePct: Number(policy.targetSharePct),
-            scoreAdjustment: Number(policy.scoreAdjustment),
-          });
-          acc[policy.systemId] = list;
-          return acc;
-        }, {})
+        const list = acc[policy.systemId] ?? [];
+        list.push({
+          goal: policy.goal,
+          dietPattern: policy.dietPattern,
+          subgroupCode: policy.subgroupCode,
+          targetSharePct: Number(policy.targetSharePct),
+          scoreAdjustment: Number(policy.scoreAdjustment),
+        });
+        acc[policy.systemId] = list;
+        return acc;
+      }, {})
       : DEFAULT_SUBGROUP_POLICIES_BY_SYSTEM;
 
   const statesByCountry =
     dbStates.length > 0
       ? dbStates.reduce<Record<string, { code: string; name: string }[]>>((acc, item) => {
-          const list = acc[item.countryCode] ?? [];
-          list.push({ code: item.stateCode, name: item.stateName });
-          acc[item.countryCode] = list;
-          return acc;
-        }, {})
+        const list = acc[item.countryCode] ?? [];
+        list.push({ code: item.stateCode, name: item.stateName });
+        acc[item.countryCode] = list;
+        return acc;
+      }, {})
       : COUNTRY_STATES;
 
   return {
@@ -119,4 +125,22 @@ export const getOptions = async (): Promise<Record<string, unknown>> => {
     subgroupsBySystem,
     subgroupPoliciesBySystem,
   };
+};
+
+/**
+ * Public entry point — caches the response for OPTIONS_TTL_MS.
+ * Configuration data changes infrequently, so this avoids 6 DB queries
+ * on every page load.
+ */
+export const getOptions = async (): Promise<Record<string, unknown>> => {
+  const now = Date.now();
+
+  if (cachedOptions && now - cacheTimestamp < OPTIONS_TTL_MS) {
+    return cachedOptions;
+  }
+
+  const result = await fetchOptions();
+  cachedOptions = result;
+  cacheTimestamp = now;
+  return result;
 };

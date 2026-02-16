@@ -1,6 +1,8 @@
 import type { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
 
+const isProduction = process.env.NODE_ENV === 'production';
+
 const isDbConnectionLimitError = (message: string): boolean => {
   const normalized = message.toLowerCase();
   return (
@@ -36,9 +38,15 @@ export const errorHandler = (
       return;
     }
 
-    res.status(500).json({ error: err.message });
+    // In production, never expose internal error details to the client.
+    console.error('[unhandled-error]', err.message, err.stack);
+    res.status(500).json({
+      error: isProduction ? 'Error interno del servidor' : err.message,
+    });
     return;
   }
 
+  console.error('[unhandled-error]', err);
   res.status(500).json({ error: 'Error inesperado' });
 };
+

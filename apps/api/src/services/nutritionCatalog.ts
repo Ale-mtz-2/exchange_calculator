@@ -3,17 +3,11 @@ import type { FoodItem, FoodTag, PatientProfile } from '@equivalentes/shared';
 
 import { env, isSmaeSubgroupsEnabled } from '../config/env.js';
 import { nutritionPool } from '../db/pg.js';
-
-const safeSchema = (schema: string): string => {
-  if (!/^[a-zA-Z0-9_]+$/.test(schema)) {
-    throw new Error(`Invalid schema name: ${schema}`);
-  }
-
-  return schema;
-};
+import { safeSchema } from '../utils/sql.js';
 
 const nutritionSchema = safeSchema(env.DB_NUTRITION_SCHEMA);
 const appSchema = safeSchema(env.DB_APP_SCHEMA);
+
 
 const LEGUME_KEYWORDS = [
   'frijol',
