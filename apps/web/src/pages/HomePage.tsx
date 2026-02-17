@@ -236,8 +236,12 @@ type ViewPhase = 'form' | 'generating' | 'result';
 
 export const HomePage = (): JSX.Element => {
   const location = useLocation();
-  const trackingIdentity = useMemo(() => resolveTrackingIdentity(location.search), [location.search]);
+  const [trackingIdentity, setTrackingIdentity] = useState(() => resolveTrackingIdentity(location.search));
   const { cid, source, identityMode, isGuest, manychatEligible, attribution } = trackingIdentity;
+
+  useEffect(() => {
+    setTrackingIdentity(resolveTrackingIdentity(location.search));
+  }, [location.search]);
 
   const [options, setOptions] = useState<AppOptions | null>(null);
   const [profile, setProfile] = useState<PatientProfile>(defaultProfile);
