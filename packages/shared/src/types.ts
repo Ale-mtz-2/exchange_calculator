@@ -125,6 +125,7 @@ export type FoodRankReason = {
   | 'group_match'
   | 'goal_support'
   | 'subgroup_goal_fit'
+  | 'kcal_fit'
   | 'budget_match'
   | 'prep_match'
   | 'liked'

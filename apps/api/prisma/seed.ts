@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import {
   COUNTRY_STATES,
+  DEFAULT_KCAL_SELECTION_POLICIES_BY_SYSTEM,
   DEFAULT_GROUPS_BY_SYSTEM,
   DEFAULT_SUBGROUP_POLICIES_BY_SYSTEM,
   DEFAULT_SUBGROUPS_BY_SYSTEM,
@@ -57,9 +58,15 @@ const MX_FOOD_CLASSIFICATION_CTE = `
       COALESCE(fnv.base_serving_size, 100)::float8 AS serving_qty,
       COALESCE(fnv.base_unit, 'g') AS serving_unit
     FROM nutrition.food_nutrition_values fnv
+    LEFT JOIN nutrition.data_sources ds ON ds.id = fnv.data_source_id
     WHERE fnv.deleted_at IS NULL
     ORDER BY fnv.food_id,
       CASE WHEN fnv.state = 'standard' THEN 0 ELSE 1 END,
+      CASE
+        WHEN COALESCE(ds.name, '') ILIKE '%smae%' THEN 0
+        WHEN COALESCE(ds.name, '') ILIKE '%mex%' THEN 1
+        ELSE 2
+      END,
       fnv.id DESC
   ),
   base AS (
@@ -268,6 +275,35 @@ const seed = async (): Promise<void> => {
         },
       });
     }
+  }
+
+  for (const [systemId, policy] of Object.entries(DEFAULT_KCAL_SELECTION_POLICIES_BY_SYSTEM)) {
+    await prisma.kcalSelectionPolicy.upsert({
+      where: { systemId },
+      update: {
+        lowTargetKcal: policy.lowTargetKcal,
+        highTargetKcal: policy.highTargetKcal,
+        minTolerancePct: policy.minTolerancePct,
+        maxTolerancePct: policy.maxTolerancePct,
+        minToleranceKcal: policy.minToleranceKcal,
+        softPenaltyPer10Pct: policy.softPenaltyPer10Pct,
+        hardOutlierMultiplier: policy.hardOutlierMultiplier,
+        excludeHardOutliers: policy.excludeHardOutliers,
+        isActive: true,
+      },
+      create: {
+        systemId,
+        lowTargetKcal: policy.lowTargetKcal,
+        highTargetKcal: policy.highTargetKcal,
+        minTolerancePct: policy.minTolerancePct,
+        maxTolerancePct: policy.maxTolerancePct,
+        minToleranceKcal: policy.minToleranceKcal,
+        softPenaltyPer10Pct: policy.softPenaltyPer10Pct,
+        hardOutlierMultiplier: policy.hardOutlierMultiplier,
+        excludeHardOutliers: policy.excludeHardOutliers,
+        isActive: true,
+      },
+    });
   }
 
   for (const rule of MX_CLASSIFICATION_RULES) {

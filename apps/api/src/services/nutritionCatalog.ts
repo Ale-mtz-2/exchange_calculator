@@ -5,6 +5,7 @@ import { env, isSmaeSubgroupsEnabled } from '../config/env.js';
 import { nutritionPool } from '../db/pg.js';
 import { safeSchema } from '../utils/sql.js';
 import { inferGroupCodeFromText } from './groupCodeMapper.js';
+import { buildSourcePreferenceOrderSql } from './nutritionValuePolicy.js';
 
 const nutritionSchema = safeSchema(env.DB_NUTRITION_SCHEMA);
 const appSchema = safeSchema(env.DB_APP_SCHEMA);
@@ -169,6 +170,8 @@ const catalogCacheKey = (profile: PatientProfile): string =>
 const fetchFoodsForSystem = async (
   profile: PatientProfile,
 ): Promise<{ foods: FoodItem[]; fallbackSystemMap: Map<number, ExchangeGroupCode> }> => {
+  const sourcePreferenceOrderSql = buildSourcePreferenceOrderSql(profile.systemId as ExchangeSystemId);
+
   const foodsSql = `
     SELECT
       f.id,
@@ -188,10 +191,12 @@ const fetchFoodsForSystem = async (
     LEFT JOIN LATERAL (
       SELECT fnv.*
       FROM ${nutritionSchema}.food_nutrition_values fnv
+      LEFT JOIN ${nutritionSchema}.data_sources src ON src.id = fnv.data_source_id
       WHERE fnv.food_id = f.id
         AND fnv.deleted_at IS NULL
       ORDER BY
         CASE WHEN fnv.state = 'standard' THEN 0 ELSE 1 END,
+        ${sourcePreferenceOrderSql},
         fnv.id DESC
       LIMIT 1
     ) fnv ON true

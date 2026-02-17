@@ -24,6 +24,7 @@ import { StepGoal } from '../components/form/steps/StepGoal';
 import { StepHabits } from '../components/form/steps/StepHabits';
 import { StepRegion } from '../components/form/steps/StepRegion';
 import { StepReview } from '../components/form/steps/StepReview';
+import { LeadCaptureModal } from '../components/LeadCaptureModal';
 import {
   WEEKLY_GOAL_SETTINGS,
   clampWeeklyGoalDelta,
@@ -247,6 +248,8 @@ export const HomePage = (): JSX.Element => {
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState<EquivalentPlanResponse | null>(null);
   const [groupAdjustments, setGroupAdjustments] = useState<Record<string, number>>({});
+  const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState<(() => Promise<void>) | null>(null);
   const isGenerating = viewPhase === 'generating';
 
   useEffect(() => {
@@ -630,22 +633,52 @@ export const HomePage = (): JSX.Element => {
     });
   };
 
+  const handleLeadSuccess = async (): Promise<void> => {
+    setIsLeadModalOpen(false);
+    if (pendingAction) {
+      await pendingAction();
+      setPendingAction(null);
+    }
+  };
+
   const exportEquivalentListExcelFile = async (): Promise<void> => {
     if (!cid || !plan) return;
 
-    const generatedAt = new Date();
-    await downloadEquivalentListExcel({
-      cid,
-      generatedAt,
-      groupPlan: adjustedGroupPlan,
-      foods: adjustedExtendedFoods,
-    });
-    trackExport(['excel_equivalents_list'], adjustedExtendedFoods.length);
+    const execute = async () => {
+      const generatedAt = new Date();
+      await downloadEquivalentListExcel({
+        cid,
+        generatedAt,
+        groupPlan: adjustedGroupPlan,
+        foods: adjustedExtendedFoods,
+      });
+      trackExport(['excel_equivalents_list'], adjustedExtendedFoods.length);
+    };
+
+    if (isGuest) {
+      setPendingAction(() => execute);
+      setIsLeadModalOpen(true);
+      return;
+    }
+
+    await execute();
   };
+  if (!cid || !plan) return;
 
-  const exportClinicalPdf = async (): Promise<void> => {
-    if (!cid || !plan) return;
+  const generatedAt = new Date();
+  await downloadEquivalentListExcel({
+    cid,
+    generatedAt,
+    groupPlan: adjustedGroupPlan,
+    foods: adjustedExtendedFoods,
+  });
+  trackExport(['excel_equivalents_list'], adjustedExtendedFoods.length);
+};
 
+const exportClinicalPdf = async (): Promise<void> => {
+  if (!cid || !plan) return;
+
+  const execute = async () => {
     const generatedAt = new Date();
     await downloadClinicalPdf({
       cid,
@@ -661,397 +694,427 @@ export const HomePage = (): JSX.Element => {
     trackExport(['pdf_clinical_report'], adjustedGroupPlan.length + foodsCount);
   };
 
-  const completedMap = FORM_STEPS.map(
-    (_, index) => index < stepIndex && (stepValidations[index]?.valid ?? false),
-  );
+  if (isGuest) {
+    setPendingAction(() => execute);
+    setIsLeadModalOpen(true);
+    return;
+  }
 
-  const renderCurrentStep = (): JSX.Element => {
-    switch (stepIndex) {
-      case 0:
-        return (
-          <StepGoal
-            profile={profile}
-            weeklyGoalSetting={WEEKLY_GOAL_SETTINGS[profile.goal]}
-            formulas={formulaOptions}
-            showErrors={currentStepHasErrors}
-            errors={currentStepValidation.fieldErrors}
-            onGoalChange={onGoalChange}
-            onGoalDeltaChange={onGoalDeltaChange}
-            onFormulaChange={(formulaId) => onProfileChange('formulaId', formulaId)}
-          />
-        );
-      case 1:
-        return (
-          <StepAnthropometry
-            profile={profile}
-            showErrors={currentStepHasErrors}
-            errors={currentStepValidation.fieldErrors}
-            onProfileChange={onProfileChange}
-          />
-        );
-      case 2:
-        return (
-          <StepRegion
-            profile={profile}
-            countries={countryOptions}
-            states={stateOptions}
-            systems={systemOptions}
-            showErrors={currentStepHasErrors}
-            errors={currentStepValidation.fieldErrors}
-            onCountryChange={onCountryChange}
-            onStateChange={(stateCode) => onProfileChange('stateCode', stateCode)}
-            onSystemChange={(systemId) => onProfileChange('systemId', systemId)}
-          />
-        );
-      case 3:
-        return (
-          <StepHabits
-            profile={profile}
-            csvInputs={{
-              likesText: csvInputs.likesText,
-              dislikesText: csvInputs.dislikesText,
-            }}
-            showErrors={currentStepHasErrors}
-            errors={currentStepValidation.fieldErrors}
-            onProfileChange={onProfileChange}
-            onCsvChange={(field, value) => onCsvChange(field, value)}
-          />
-        );
-      default:
-        return (
-          <StepReview
-            profile={profile}
-            csvInputs={csvInputs}
-            onCsvChange={(field, value) => onCsvChange(field, value)}
-            onGoToStep={(targetIndex) => handleStepSelect(targetIndex)}
-          />
-        );
-    }
+  await execute();
+};
+if (!cid || !plan) return;
+
+const generatedAt = new Date();
+await downloadClinicalPdf({
+  cid,
+  generatedAt,
+  profile,
+  targets: plan.targets,
+  adjustedMacroTotals,
+  adjustedGroupPlan,
+  adjustedTopFoodsByGroup,
+  adjustedExtendedFoods,
+});
+const foodsCount = Math.min(adjustedExtendedFoods.length, PDF_EXTENDED_FOODS_LIMIT);
+trackExport(['pdf_clinical_report'], adjustedGroupPlan.length + foodsCount);
   };
 
-  const handleEditPlan = (): void => {
-    setViewPhase('form');
-    setStepIndex(FORM_STEPS.length - 1);
-  };
+const completedMap = FORM_STEPS.map(
+  (_, index) => index < stepIndex && (stepValidations[index]?.valid ?? false),
+);
 
-  return (
-    <div className="space-y-6">
-      {viewPhase === 'form' ? (
-        <section className="animate-fade-in rounded-[2rem] border border-sky/15 bg-gradient-to-br from-white/90 via-white/80 to-sky-50/60 p-6 shadow-[0_16px_48px_rgba(24,47,80,0.08)] backdrop-blur-xl md:p-8 lg:p-10">
-          <div className="grid items-center gap-8 lg:grid-cols-2">
-            <div className="space-y-8">
-              <div className="animate-slide-up">
-                <span className="inline-block rounded-full bg-sky/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-sky">
-                  Nutricion inteligente
+const renderCurrentStep = (): JSX.Element => {
+  switch (stepIndex) {
+    case 0:
+      return (
+        <StepGoal
+          profile={profile}
+          weeklyGoalSetting={WEEKLY_GOAL_SETTINGS[profile.goal]}
+          formulas={formulaOptions}
+          showErrors={currentStepHasErrors}
+          errors={currentStepValidation.fieldErrors}
+          onGoalChange={onGoalChange}
+          onGoalDeltaChange={onGoalDeltaChange}
+          onFormulaChange={(formulaId) => onProfileChange('formulaId', formulaId)}
+        />
+      );
+    case 1:
+      return (
+        <StepAnthropometry
+          profile={profile}
+          showErrors={currentStepHasErrors}
+          errors={currentStepValidation.fieldErrors}
+          onProfileChange={onProfileChange}
+        />
+      );
+    case 2:
+      return (
+        <StepRegion
+          profile={profile}
+          countries={countryOptions}
+          states={stateOptions}
+          systems={systemOptions}
+          showErrors={currentStepHasErrors}
+          errors={currentStepValidation.fieldErrors}
+          onCountryChange={onCountryChange}
+          onStateChange={(stateCode) => onProfileChange('stateCode', stateCode)}
+          onSystemChange={(systemId) => onProfileChange('systemId', systemId)}
+        />
+      );
+    case 3:
+      return (
+        <StepHabits
+          profile={profile}
+          csvInputs={{
+            likesText: csvInputs.likesText,
+            dislikesText: csvInputs.dislikesText,
+          }}
+          showErrors={currentStepHasErrors}
+          errors={currentStepValidation.fieldErrors}
+          onProfileChange={onProfileChange}
+          onCsvChange={(field, value) => onCsvChange(field, value)}
+        />
+      );
+    default:
+      return (
+        <StepReview
+          profile={profile}
+          csvInputs={csvInputs}
+          onCsvChange={(field, value) => onCsvChange(field, value)}
+          onGoToStep={(targetIndex) => handleStepSelect(targetIndex)}
+        />
+      );
+  }
+};
+
+const handleEditPlan = (): void => {
+  setViewPhase('form');
+  setStepIndex(FORM_STEPS.length - 1);
+};
+
+return (
+  <div className="space-y-6">
+    {viewPhase === 'form' ? (
+      <section className="animate-fade-in rounded-[2rem] border border-sky/15 bg-gradient-to-br from-white/90 via-white/80 to-sky-50/60 p-6 shadow-[0_16px_48px_rgba(24,47,80,0.08)] backdrop-blur-xl md:p-8 lg:p-10">
+        <div className="grid items-center gap-8 lg:grid-cols-2">
+          <div className="space-y-8">
+            <div className="animate-slide-up">
+              <span className="inline-block rounded-full bg-sky/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-sky">
+                Nutricion inteligente
+              </span>
+              <h2 className="mt-3 text-3xl font-extrabold leading-tight text-ink md:text-4xl">
+                Genera planes alimenticios{' '}
+                <span className="bg-gradient-to-r from-[#0f8bff] to-[#2e86c1] bg-clip-text text-transparent">
+                  personalizados
                 </span>
-                <h2 className="mt-3 text-3xl font-extrabold leading-tight text-ink md:text-4xl">
-                  Genera planes alimenticios{' '}
-                  <span className="bg-gradient-to-r from-[#0f8bff] to-[#2e86c1] bg-clip-text text-transparent">
-                    personalizados
-                  </span>
-                </h2>
-                <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-600">
-                  Calculadora dinamica basada en sistemas de equivalentes. Ingresa el
-                  perfil del paciente y obten un plan completo con distribucion de
-                  macros, grupos de alimentos y recomendaciones personalizadas.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {FEATURES.map((feature) => (
-                  <div
-                    key={feature.title}
-                    className="group flex gap-3 rounded-2xl border border-sky/10 bg-white/60 p-3.5 shadow-sm transition-all duration-300 hover:border-sky/30 hover:bg-white hover:shadow-md"
-                  >
-                    <FeatureIcon d={feature.icon} color={feature.color} />
-                    <div className="min-w-0">
-                      <p className="text-sm font-bold text-ink">{feature.title}</p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
-                        {feature.desc}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              </h2>
+              <p className="mt-4 max-w-xl text-base leading-relaxed text-slate-600">
+                Calculadora dinamica basada en sistemas de equivalentes. Ingresa el
+                perfil del paciente y obten un plan completo con distribucion de
+                macros, grupos de alimentos y recomendaciones personalizadas.
+              </p>
             </div>
 
-            <div className="hidden h-[460px] lg:block">
-              <HeroIllustration />
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {FEATURES.map((feature) => (
+                <div
+                  key={feature.title}
+                  className="group flex gap-3 rounded-2xl border border-sky/10 bg-white/60 p-3.5 shadow-sm transition-all duration-300 hover:border-sky/30 hover:bg-white hover:shadow-md"
+                >
+                  <FeatureIcon d={feature.icon} color={feature.color} />
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-ink">{feature.title}</p>
+                    <p className="mt-0.5 text-xs leading-relaxed text-slate-500">
+                      {feature.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="hidden h-[460px] lg:block">
+            <HeroIllustration />
+          </div>
+        </div>
+      </section>
+    ) : null}
+
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+      {viewPhase === 'form' ? (
+        <section className="lg:col-span-2 rounded-[1.8rem] border border-sky/12 bg-white/85 p-5 shadow-[0_16px_40px_rgba(24,47,80,0.1)] backdrop-blur-xl md:p-6">
+          <div className="mb-5">
+            <div
+              className={
+                isGuest
+                  ? 'mb-3 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs font-semibold text-amber-900'
+                  : 'mb-3 rounded-xl border border-sky/20 bg-sky-50/60 px-3 py-2 text-xs font-semibold text-sky-900'
+              }
+            >
+              {isGuest ? 'Invitado' : 'Acceso desde enlace personal de WhatsApp.'}
+            </div>
+
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky">
+              Tracking activo
+            </p>
+            <h2 className="mt-1 text-xl font-extrabold text-ink md:text-2xl">
+              Generador dinamico de equivalentes
+            </h2>
+            <p className="mt-1 text-xs text-slate-500">Identidad activa: {cid}</p>
+          </div>
+
+          <StepperHeader
+            steps={FORM_STEPS}
+            activeStep={stepIndex}
+            maxReachableStep={maxReachableStep}
+            completedMap={completedMap}
+            onSelectStep={handleStepSelect}
+          />
+
+          <form className="mt-4 grid gap-4" onSubmit={submit}>
+            <StepContainer
+              title={currentStep.title}
+              description={currentStep.description}
+              errorSummary={currentStepHasErrors ? currentStepValidation.summary : null}
+            >
+              {renderCurrentStep()}
+            </StepContainer>
+
+            <StepperActions
+              stepIndex={stepIndex}
+              totalSteps={FORM_STEPS.length}
+              canProceed={currentStepValidation.valid}
+              allStepsValid={allStepsValid}
+              loading={isGenerating}
+              onBack={handleBackStep}
+              onNext={handleNextStep}
+            />
+          </form>
+
+          {error ? (
+            <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
+              {error}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
+
+      {viewPhase === 'result' && plan ? (
+        <section className="lg:col-span-2 rounded-[1.8rem] border border-sky/12 bg-white/85 p-5 shadow-[0_16px_40px_rgba(24,47,80,0.1)] backdrop-blur-xl md:p-6">
+          <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky">
+                Plan generado
+              </p>
+              <h2 className="mt-1 text-xl font-extrabold text-ink md:text-2xl">
+                Resultado de equivalentes
+              </h2>
+              <p className="mt-1 text-xs text-slate-500">Identidad activa: {cid}</p>
+            </div>
+            <button
+              className="no-print rounded-xl border border-sky/35 bg-white px-4 py-2.5 text-sm font-semibold text-sky transition hover:border-sky hover:bg-sky-50"
+              onClick={handleEditPlan}
+              type="button"
+            >
+              Editar formulario
+            </button>
+          </div>
+
+          <div className="animate-fade-in space-y-5">
+            <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1fr_360px]">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <article className="rounded-2xl border border-sky/12 bg-gradient-to-br from-cloud to-white p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    Kcal objetivo
+                  </p>
+                  <p className="mt-1 text-2xl font-extrabold text-ink">
+                    {adjustedMacroTotals.kcal}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Referencia inicial: {plan.targets.targetCalories} kcal
+                  </p>
+                </article>
+                <article className="rounded-2xl border border-sky/12 bg-gradient-to-br from-cloud to-white p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    Carbohidratos
+                  </p>
+                  <p className="mt-1 text-2xl font-extrabold text-ink">
+                    {adjustedMacroTotals.choG} g
+                  </p>
+                </article>
+                <article className="rounded-2xl border border-sky/12 bg-gradient-to-br from-cloud to-white p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    Proteina
+                  </p>
+                  <p className="mt-1 text-2xl font-extrabold text-ink">
+                    {adjustedMacroTotals.proG} g
+                  </p>
+                </article>
+                <article className="rounded-2xl border border-sky/12 bg-gradient-to-br from-cloud to-white p-4">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    Grasa
+                  </p>
+                  <p className="mt-1 text-2xl font-extrabold text-ink">
+                    {adjustedMacroTotals.fatG} g
+                  </p>
+                </article>
+              </div>
+              <MacroPieChart
+                caloriesKcal={adjustedMacroTotals.kcal}
+                carbsG={adjustedMacroTotals.choG}
+                fatG={adjustedMacroTotals.fatG}
+                proteinG={adjustedMacroTotals.proG}
+              />
+            </div>
+
+            <div className="no-print flex flex-wrap gap-2">
+              <button
+                className="rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-[0_6px_18px_rgba(46,134,193,0.3)] transition hover:brightness-105 hover:shadow-[0_8px_22px_rgba(46,134,193,0.42)]"
+                style={{
+                  background:
+                    'linear-gradient(90deg, #0f8bff 0%, #2e86c1 100%)',
+                }}
+                onClick={() => void exportEquivalentListExcelFile()}
+                type="button"
+              >
+                Descargar lista de equivalentes (Excel)
+              </button>
+              <button
+                className="rounded-xl border border-sky/40 bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-sky/60 hover:shadow-[0_4px_12px_rgba(103,182,223,0.12)]"
+                onClick={() => void exportClinicalPdf()}
+                type="button"
+              >
+                Descargar PDF clinico
+              </button>
+              <button
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                onClick={() => setGroupAdjustments({})}
+                type="button"
+              >
+                Restablecer equivalentes
+              </button>
+            </div>
+
+            {adjustedMealDistribution.length > 0 && (
+              <MealDistributionTable
+                mealDistribution={adjustedMealDistribution}
+                groupPlan={adjustedGroupPlan}
+              />
+            )}
+
+            <p className="text-xs text-slate-500">
+              Ajusta equivalentes con +/- por grupo. La distribucion de macros y la lista
+              de alimentos se actualizan en tiempo real.
+            </p>
+            <div className="overflow-x-auto rounded-2xl border border-sky/12 bg-white">
+              <table className="min-w-full border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-sky/10 bg-gradient-to-r from-sky-50/60 to-white text-left">
+                    <th className="py-3 pl-4 pr-3 font-bold text-ink">Grupo</th>
+                    <th className="py-3 pr-3 font-bold text-ink">Equiv./dia</th>
+                    <th className="py-3 pr-3 font-bold text-ink">Ajuste</th>
+                    <th className="py-3 pr-3 font-bold text-ink">Macros</th>
+                    <th className="py-3 pr-4 font-bold text-ink">Top alimentos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adjustedGroupPlan.map((group) => {
+                    const groupKey = String(group.groupCode);
+                    const hasBaseExchanges =
+                      (baseExchangesByGroup.get(groupKey) ?? 0) > 0;
+                    const topFoods = (adjustedTopFoodsByGroup[groupKey] ?? []).slice(0, 6);
+                    return (
+                      <tr
+                        key={group.groupCode}
+                        className="border-b border-sky/6 align-top transition hover:bg-sky-50/30"
+                      >
+                        <td className="py-3 pl-4 pr-3 font-semibold text-ink">
+                          {group.groupName}
+                        </td>
+                        <td className="py-3 pr-3 tabular-nums">{group.exchangesPerDay}</td>
+                        <td className="py-3 pr-3">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              className="h-7 w-7 rounded-lg border border-sky/25 bg-white text-sm font-bold text-sky transition hover:border-sky hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40"
+                              disabled={group.exchangesPerDay <= 0}
+                              onClick={() => adjustGroupExchanges(groupKey, -0.5)}
+                              type="button"
+                            >
+                              -
+                            </button>
+                            <button
+                              className="h-7 w-7 rounded-lg border border-sky/25 bg-white text-sm font-bold text-sky transition hover:border-sky hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40"
+                              disabled={!hasBaseExchanges}
+                              onClick={() => adjustGroupExchanges(groupKey, 0.5)}
+                              type="button"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-3 pr-3 text-xs text-slate-600">
+                          CHO {group.choG}g / PRO {group.proG}g / FAT {group.fatG}g
+                        </td>
+                        <td className="py-3 pr-4 text-xs text-slate-700">
+                          {topFoods.length > 0
+                            ? topFoods.map((food) => food.name).join(', ')
+                            : 'Sin recomendaciones aun'}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div>
+              <h3 className="mb-2 text-lg font-extrabold text-ink">
+                Lista extensa personalizada
+              </h3>
+              <div className="max-h-[420px] overflow-y-auto rounded-xl border border-sky/12 bg-white">
+                <table className="min-w-full text-sm">
+                  <thead className="sticky top-0 bg-gradient-to-r from-sky-50/80 to-white/90 backdrop-blur-sm">
+                    <tr className="border-b border-sky/10 text-left">
+                      <th className="px-4 py-2.5 font-bold text-ink">Alimento</th>
+                      <th className="px-3 py-2.5 font-bold text-ink">Grupo</th>
+                      <th className="px-3 py-2.5 font-bold text-ink">Score</th>
+                      <th className="px-4 py-2.5 font-bold text-ink">Razones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {adjustedExtendedFoods.map((food) => (
+                      <tr
+                        key={food.id}
+                        className="border-b border-sky/6 align-top transition hover:bg-sky-50/30"
+                      >
+                        <td className="px-4 py-2 font-medium text-ink">{food.name}</td>
+                        <td className="px-3 py-2">{food.subgroupCode ?? food.groupCode}</td>
+                        <td className="px-3 py-2 tabular-nums">{food.score}</td>
+                        <td className="px-4 py-2 text-xs text-slate-600">
+                          {(food.reasons ?? [])
+                            .slice(0, 3)
+                            .map((reason) => reason.label)
+                            .join(' | ')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </section>
       ) : null}
-
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-        {viewPhase === 'form' ? (
-          <section className="lg:col-span-2 rounded-[1.8rem] border border-sky/12 bg-white/85 p-5 shadow-[0_16px_40px_rgba(24,47,80,0.1)] backdrop-blur-xl md:p-6">
-            <div className="mb-5">
-              <div
-                className={
-                  isGuest
-                    ? 'mb-3 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs font-semibold text-amber-900'
-                    : 'mb-3 rounded-xl border border-sky/20 bg-sky-50/60 px-3 py-2 text-xs font-semibold text-sky-900'
-                }
-              >
-                {isGuest ? 'Modo invitado (sin WhatsApp).' : 'Acceso desde enlace personal de WhatsApp.'}
-              </div>
-
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky">
-                Tracking activo
-              </p>
-              <h2 className="mt-1 text-xl font-extrabold text-ink md:text-2xl">
-                Generador dinamico de equivalentes
-              </h2>
-              <p className="mt-1 text-xs text-slate-500">Identidad activa: {cid}</p>
-            </div>
-
-            <StepperHeader
-              steps={FORM_STEPS}
-              activeStep={stepIndex}
-              maxReachableStep={maxReachableStep}
-              completedMap={completedMap}
-              onSelectStep={handleStepSelect}
-            />
-
-            <form className="mt-4 grid gap-4" onSubmit={submit}>
-              <StepContainer
-                title={currentStep.title}
-                description={currentStep.description}
-                errorSummary={currentStepHasErrors ? currentStepValidation.summary : null}
-              >
-                {renderCurrentStep()}
-              </StepContainer>
-
-              <StepperActions
-                stepIndex={stepIndex}
-                totalSteps={FORM_STEPS.length}
-                canProceed={currentStepValidation.valid}
-                allStepsValid={allStepsValid}
-                loading={isGenerating}
-                onBack={handleBackStep}
-                onNext={handleNextStep}
-              />
-            </form>
-
-            {error ? (
-              <p className="mt-4 rounded-xl bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">
-                {error}
-              </p>
-            ) : null}
-          </section>
-        ) : null}
-
-        {viewPhase === 'result' && plan ? (
-          <section className="lg:col-span-2 rounded-[1.8rem] border border-sky/12 bg-white/85 p-5 shadow-[0_16px_40px_rgba(24,47,80,0.1)] backdrop-blur-xl md:p-6">
-            <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sky">
-                  Plan generado
-                </p>
-                <h2 className="mt-1 text-xl font-extrabold text-ink md:text-2xl">
-                  Resultado de equivalentes
-                </h2>
-                <p className="mt-1 text-xs text-slate-500">Identidad activa: {cid}</p>
-              </div>
-              <button
-                className="no-print rounded-xl border border-sky/35 bg-white px-4 py-2.5 text-sm font-semibold text-sky transition hover:border-sky hover:bg-sky-50"
-                onClick={handleEditPlan}
-                type="button"
-              >
-                Editar formulario
-              </button>
-            </div>
-
-            <div className="animate-fade-in space-y-5">
-              <div className="grid grid-cols-1 gap-3 xl:grid-cols-[1fr_360px]">
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <article className="rounded-2xl border border-sky/12 bg-gradient-to-br from-cloud to-white p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                      Kcal objetivo
-                    </p>
-                    <p className="mt-1 text-2xl font-extrabold text-ink">
-                      {adjustedMacroTotals.kcal}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">
-                      Referencia inicial: {plan.targets.targetCalories} kcal
-                    </p>
-                  </article>
-                  <article className="rounded-2xl border border-sky/12 bg-gradient-to-br from-cloud to-white p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                      Carbohidratos
-                    </p>
-                    <p className="mt-1 text-2xl font-extrabold text-ink">
-                      {adjustedMacroTotals.choG} g
-                    </p>
-                  </article>
-                  <article className="rounded-2xl border border-sky/12 bg-gradient-to-br from-cloud to-white p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                      Proteina
-                    </p>
-                    <p className="mt-1 text-2xl font-extrabold text-ink">
-                      {adjustedMacroTotals.proG} g
-                    </p>
-                  </article>
-                  <article className="rounded-2xl border border-sky/12 bg-gradient-to-br from-cloud to-white p-4">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                      Grasa
-                    </p>
-                    <p className="mt-1 text-2xl font-extrabold text-ink">
-                      {adjustedMacroTotals.fatG} g
-                    </p>
-                  </article>
-                </div>
-                <MacroPieChart
-                  caloriesKcal={adjustedMacroTotals.kcal}
-                  carbsG={adjustedMacroTotals.choG}
-                  fatG={adjustedMacroTotals.fatG}
-                  proteinG={adjustedMacroTotals.proG}
-                />
-              </div>
-
-              <div className="no-print flex flex-wrap gap-2">
-                <button
-                  className="rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-[0_6px_18px_rgba(46,134,193,0.3)] transition hover:brightness-105 hover:shadow-[0_8px_22px_rgba(46,134,193,0.42)]"
-                  style={{
-                    background:
-                      'linear-gradient(90deg, #0f8bff 0%, #2e86c1 100%)',
-                  }}
-                  onClick={() => void exportEquivalentListExcelFile()}
-                  type="button"
-                >
-                  Descargar lista de equivalentes (Excel)
-                </button>
-                <button
-                  className="rounded-xl border border-sky/40 bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-sky/60 hover:shadow-[0_4px_12px_rgba(103,182,223,0.12)]"
-                  onClick={() => void exportClinicalPdf()}
-                  type="button"
-                >
-                  Descargar PDF clinico
-                </button>
-                <button
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
-                  onClick={() => setGroupAdjustments({})}
-                  type="button"
-                >
-                  Restablecer equivalentes
-                </button>
-              </div>
-
-              {adjustedMealDistribution.length > 0 && (
-                <MealDistributionTable
-                  mealDistribution={adjustedMealDistribution}
-                  groupPlan={adjustedGroupPlan}
-                />
-              )}
-
-              <p className="text-xs text-slate-500">
-                Ajusta equivalentes con +/- por grupo. La distribucion de macros y la lista
-                de alimentos se actualizan en tiempo real.
-              </p>
-              <div className="overflow-x-auto rounded-2xl border border-sky/12 bg-white">
-                <table className="min-w-full border-collapse text-sm">
-                  <thead>
-                    <tr className="border-b border-sky/10 bg-gradient-to-r from-sky-50/60 to-white text-left">
-                      <th className="py-3 pl-4 pr-3 font-bold text-ink">Grupo</th>
-                      <th className="py-3 pr-3 font-bold text-ink">Equiv./dia</th>
-                      <th className="py-3 pr-3 font-bold text-ink">Ajuste</th>
-                      <th className="py-3 pr-3 font-bold text-ink">Macros</th>
-                      <th className="py-3 pr-4 font-bold text-ink">Top alimentos</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {adjustedGroupPlan.map((group) => {
-                      const groupKey = String(group.groupCode);
-                      const hasBaseExchanges =
-                        (baseExchangesByGroup.get(groupKey) ?? 0) > 0;
-                      const topFoods = (adjustedTopFoodsByGroup[groupKey] ?? []).slice(0, 6);
-                      return (
-                        <tr
-                          key={group.groupCode}
-                          className="border-b border-sky/6 align-top transition hover:bg-sky-50/30"
-                        >
-                          <td className="py-3 pl-4 pr-3 font-semibold text-ink">
-                            {group.groupName}
-                          </td>
-                          <td className="py-3 pr-3 tabular-nums">{group.exchangesPerDay}</td>
-                          <td className="py-3 pr-3">
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                className="h-7 w-7 rounded-lg border border-sky/25 bg-white text-sm font-bold text-sky transition hover:border-sky hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40"
-                                disabled={group.exchangesPerDay <= 0}
-                                onClick={() => adjustGroupExchanges(groupKey, -0.5)}
-                                type="button"
-                              >
-                                -
-                              </button>
-                              <button
-                                className="h-7 w-7 rounded-lg border border-sky/25 bg-white text-sm font-bold text-sky transition hover:border-sky hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40"
-                                disabled={!hasBaseExchanges}
-                                onClick={() => adjustGroupExchanges(groupKey, 0.5)}
-                                type="button"
-                              >
-                                +
-                              </button>
-                            </div>
-                          </td>
-                          <td className="py-3 pr-3 text-xs text-slate-600">
-                            CHO {group.choG}g / PRO {group.proG}g / FAT {group.fatG}g
-                          </td>
-                          <td className="py-3 pr-4 text-xs text-slate-700">
-                            {topFoods.length > 0
-                              ? topFoods.map((food) => food.name).join(', ')
-                              : 'Sin recomendaciones aun'}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              <div>
-                <h3 className="mb-2 text-lg font-extrabold text-ink">
-                  Lista extensa personalizada
-                </h3>
-                <div className="max-h-[420px] overflow-y-auto rounded-xl border border-sky/12 bg-white">
-                  <table className="min-w-full text-sm">
-                    <thead className="sticky top-0 bg-gradient-to-r from-sky-50/80 to-white/90 backdrop-blur-sm">
-                      <tr className="border-b border-sky/10 text-left">
-                        <th className="px-4 py-2.5 font-bold text-ink">Alimento</th>
-                        <th className="px-3 py-2.5 font-bold text-ink">Grupo</th>
-                        <th className="px-3 py-2.5 font-bold text-ink">Score</th>
-                        <th className="px-4 py-2.5 font-bold text-ink">Razones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {adjustedExtendedFoods.map((food) => (
-                        <tr
-                          key={food.id}
-                          className="border-b border-sky/6 align-top transition hover:bg-sky-50/30"
-                        >
-                          <td className="px-4 py-2 font-medium text-ink">{food.name}</td>
-                          <td className="px-3 py-2">{food.subgroupCode ?? food.groupCode}</td>
-                          <td className="px-3 py-2 tabular-nums">{food.score}</td>
-                          <td className="px-4 py-2 text-xs text-slate-600">
-                            {(food.reasons ?? [])
-                              .slice(0, 3)
-                              .map((reason) => reason.label)
-                              .join(' | ')}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </section>
-        ) : null}
-      </div>
-
-      {isGenerating ? (
-        <BootSplash variant="generate" message="Generando plan personalizado..." />
-      ) : null}
     </div>
-  );
+
+    {isGenerating ? (
+      <BootSplash variant="generate" message="Generando plan personalizado..." />
+    ) : null}
+    <LeadCaptureModal
+      isOpen={isLeadModalOpen}
+      onClose={() => setIsLeadModalOpen(false)}
+      onSuccess={handleLeadSuccess}
+    />
+  </div>
+);
 };

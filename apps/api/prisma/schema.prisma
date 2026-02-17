@@ -48,6 +48,7 @@ model ExchangeSystem {
   exchangeGroups              ExchangeGroup[]
   exchangeSubgroups           ExchangeSubgroup[]
   subgroupSelectionPolicies   SubgroupSelectionPolicy[]
+  kcalSelectionPolicies       KcalSelectionPolicy[]
   subgroupClassificationRules SubgroupClassificationRule[]
   generatedPlans              GeneratedPlan[]
 
@@ -177,6 +178,27 @@ model SubgroupSelectionPolicy {
   @@schema("equivalentes_app")
 }
 
+model KcalSelectionPolicy {
+  id                   BigInt   @id @default(autoincrement())
+  systemId             String   @unique(map: "uq_kcal_selection_policy_system") @map("system_id")
+  lowTargetKcal        Int      @default(1600) @map("low_target_kcal")
+  highTargetKcal       Int      @default(3000) @map("high_target_kcal")
+  minTolerancePct      Decimal  @default(0.2) @map("min_tolerance_pct") @db.Decimal(5, 2)
+  maxTolerancePct      Decimal  @default(0.6) @map("max_tolerance_pct") @db.Decimal(5, 2)
+  minToleranceKcal     Int      @default(25) @map("min_tolerance_kcal")
+  softPenaltyPer10Pct  Decimal  @default(2.5) @map("soft_penalty_per_10pct") @db.Decimal(6, 2)
+  hardOutlierMultiplier Decimal @default(2.8) @map("hard_outlier_multiplier") @db.Decimal(6, 2)
+  excludeHardOutliers  Boolean  @default(true) @map("exclude_hard_outliers")
+  isActive             Boolean  @default(true) @map("is_active")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  system ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+
+  @@index([systemId, isActive], map: "idx_kcal_selection_policy_system_active")
+  @@map("kcal_selection_policies")
+  @@schema("equivalentes_app")
+}
+
 model SubgroupClassificationRule {
   id               BigInt   @id @default(autoincrement())
   systemId         String   @map("system_id")
@@ -231,5 +253,16 @@ model GeneratedPlanRecommendation {
 
   @@index([planId, groupCode], map: "idx_plan_recommendations_plan_group")
   @@map("generated_plan_recommendations")
+  @@schema("equivalentes_app")
+}
+
+model Lead {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  whatsapp  String?
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("leads")
   @@schema("equivalentes_app")
 }

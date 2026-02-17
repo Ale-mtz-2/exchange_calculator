@@ -1,5 +1,5 @@
 import type { CountryCode } from '../catalog/geography';
-import type { Goal } from '../catalog/systems';
+import type { Goal, KcalSelectionPolicyDefinition } from '../catalog/systems';
 import type { PatientProfile } from '../types';
 import type { FoodItem, FoodRankReason, RankedFoodItem } from '../types';
 
@@ -37,7 +37,13 @@ const isAoaSubgroup = (subgroupCode: string | undefined): boolean =>
 
 export type RankFoodsOptions = {
   subgroupScoreAdjustments?: Record<string, number>;
+  targetCalories?: number;
+  bucketKcalTargets?: Record<string, number>;
+  kcalPolicy?: KcalSelectionPolicyDefinition;
 };
+
+const clamp = (value: number, minValue: number, maxValue: number): number =>
+  Math.min(maxValue, Math.max(minValue, value));
 
 const evaluateFood = (
   food: FoodItem,
@@ -129,6 +135,46 @@ const evaluateFood = (
       label: 'Ajuste de subgrupo por objetivo/contexto',
       impact: subgroupAdjustment,
     });
+  }
+
+  const refKcal = options?.bucketKcalTargets?.[bucketCode];
+  const targetCalories = options?.targetCalories;
+  const kcalPolicy = options?.kcalPolicy;
+
+  if (
+    typeof refKcal === 'number' &&
+    refKcal > 0 &&
+    typeof targetCalories === 'number' &&
+    Number.isFinite(targetCalories) &&
+    kcalPolicy
+  ) {
+    const span = Math.max(1, kcalPolicy.highTargetKcal - kcalPolicy.lowTargetKcal);
+    const alpha = clamp((targetCalories - kcalPolicy.lowTargetKcal) / span, 0, 1);
+    const tolerancePct =
+      kcalPolicy.minTolerancePct +
+      (kcalPolicy.maxTolerancePct - kcalPolicy.minTolerancePct) * alpha;
+    const allowedAbsDiff = Math.max(kcalPolicy.minToleranceKcal, refKcal * tolerancePct);
+    const hardAbsDiff = allowedAbsDiff * kcalPolicy.hardOutlierMultiplier;
+    const absDiff = Math.abs(food.caloriesKcal - refKcal);
+
+    if (kcalPolicy.excludeHardOutliers && absDiff > hardAbsDiff) {
+      return null;
+    }
+
+    if (absDiff > allowedAbsDiff) {
+      const overPct = (absDiff - allowedAbsDiff) / Math.max(refKcal, 1);
+      const rawPenalty = (overPct / 0.1) * kcalPolicy.softPenaltyPer10Pct;
+      const penalty = -Math.min(24, Math.round(rawPenalty));
+
+      if (penalty !== 0) {
+        score += penalty;
+        reasons.push({
+          code: 'kcal_fit',
+          label: 'Ajuste calorico segun requerimiento energetico',
+          impact: penalty,
+        });
+      }
+    }
   }
 
   return {

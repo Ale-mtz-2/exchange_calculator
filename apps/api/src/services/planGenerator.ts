@@ -1,4 +1,5 @@
 import {
+  DEFAULT_KCAL_SELECTION_POLICIES_BY_SYSTEM,
   DEFAULT_GROUPS_BY_SYSTEM,
   DEFAULT_SUBGROUP_POLICIES_BY_SYSTEM,
   DEFAULT_SUBGROUPS_BY_SYSTEM,
@@ -14,6 +15,7 @@ import {
   type ExchangeSubgroupCode,
   type ExchangeSystemId,
   type Goal,
+  type KcalSelectionPolicyDefinition,
 } from '@equivalentes/shared';
 import type { EquivalentGroupPlan, EquivalentPlanResponse, PatientProfile } from '@equivalentes/shared';
 
@@ -207,6 +209,44 @@ const buildPoliciesFromDb = (
   }
 
   return fromDb;
+};
+
+const resolveKcalSelectionPolicy = (
+  profile: PatientProfile,
+  dbPolicy: Awaited<ReturnType<typeof prisma.kcalSelectionPolicy.findFirst>>,
+): KcalSelectionPolicyDefinition => {
+  if (dbPolicy) {
+    return {
+      systemId: profile.systemId,
+      lowTargetKcal: dbPolicy.lowTargetKcal,
+      highTargetKcal: dbPolicy.highTargetKcal,
+      minTolerancePct: Number(dbPolicy.minTolerancePct),
+      maxTolerancePct: Number(dbPolicy.maxTolerancePct),
+      minToleranceKcal: dbPolicy.minToleranceKcal,
+      softPenaltyPer10Pct: Number(dbPolicy.softPenaltyPer10Pct),
+      hardOutlierMultiplier: Number(dbPolicy.hardOutlierMultiplier),
+      excludeHardOutliers: dbPolicy.excludeHardOutliers,
+    };
+  }
+
+  return DEFAULT_KCAL_SELECTION_POLICIES_BY_SYSTEM[profile.systemId];
+};
+
+const buildBucketKcalTargets = (
+  groups: GroupDefinition[],
+  subgroups: SubgroupDefinition[],
+): Record<string, number> => {
+  const targets: Record<string, number> = {};
+
+  for (const group of groups) {
+    targets[group.groupCode] = group.kcalTarget;
+  }
+
+  for (const subgroup of subgroups) {
+    targets[subgroup.subgroupCode] = subgroup.kcalTarget;
+  }
+
+  return targets;
 };
 
 const selectPolicies = (
@@ -610,7 +650,7 @@ export const generateEquivalentPlan = async (
 ): Promise<EquivalentPlanResponse> => {
   const targets = calculateEnergyTargets(profile);
 
-  const [dbGroups, dbSubgroups, dbPolicies] = await Promise.all([
+  const [dbGroups, dbSubgroups, dbPolicies, dbKcalPolicy] = await Promise.all([
     prisma.exchangeGroup.findMany({
       where: { systemId: profile.systemId },
       orderBy: { sortOrder: 'asc' },
@@ -630,11 +670,20 @@ export const generateEquivalentPlan = async (
       },
       orderBy: [{ goal: 'asc' }, { dietPattern: 'asc' }, { subgroupCode: 'asc' }],
     }),
+    prisma.kcalSelectionPolicy.findFirst({
+      where: {
+        systemId: profile.systemId,
+        isActive: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
   ]);
 
   const groupDefinitions = buildDefinitionsFromDb(profile, dbGroups);
   const subgroupDefinitions = buildSubgroupsFromDb(profile, dbSubgroups);
   const subgroupPolicies = buildPoliciesFromDb(profile, dbPolicies);
+  const kcalPolicy = resolveKcalSelectionPolicy(profile, dbKcalPolicy);
+  const bucketKcalTargets = buildBucketKcalTargets(groupDefinitions, subgroupDefinitions);
 
   const useMxAdvancedFlow =
     isSmaeSubgroupsEnabled &&
@@ -663,9 +712,14 @@ export const generateEquivalentPlan = async (
     );
 
   const { foods } = await loadFoodsForSystem(profile);
-  const rankOptions = advancedResult?.subgroupScoreAdjustments
-    ? { subgroupScoreAdjustments: advancedResult.subgroupScoreAdjustments }
-    : undefined;
+  const rankOptions = {
+    ...(advancedResult?.subgroupScoreAdjustments
+      ? { subgroupScoreAdjustments: advancedResult.subgroupScoreAdjustments }
+      : {}),
+    targetCalories: targets.targetCalories,
+    bucketKcalTargets,
+    kcalPolicy,
+  };
   const rankedFoods = rankFoods(foods, profile, rankOptions);
 
   const topFoodsByGroupDynamic = groupTopFoods(rankedFoods, 6);

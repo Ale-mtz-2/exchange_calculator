@@ -184,3 +184,13 @@ export const getAdminCampaignContacts = (
     },
   );
 
+export type LeadInput = {
+  name: string;
+  email?: string | undefined;
+  whatsapp?: string | undefined;
+};
+
+export const saveLead = (payload: LeadInput): Promise<{ id: string }> =>
+  request('/api/leads', { method: 'POST', body: payload });
+
+

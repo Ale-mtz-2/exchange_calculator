@@ -70,6 +70,18 @@ export type SubgroupSelectionPolicyDefinition = {
   scoreAdjustment: number;
 };
 
+export type KcalSelectionPolicyDefinition = {
+  systemId: ExchangeSystemId;
+  lowTargetKcal: number;
+  highTargetKcal: number;
+  minTolerancePct: number;
+  maxTolerancePct: number;
+  minToleranceKcal: number;
+  softPenaltyPer10Pct: number;
+  hardOutlierMultiplier: number;
+  excludeHardOutliers: boolean;
+};
+
 export type ExchangeSystemDefinition = {
   id: ExchangeSystemId;
   countryCode: CountryCode;
@@ -638,4 +650,54 @@ export const DEFAULT_SUBGROUP_POLICIES_BY_SYSTEM: Partial<
     { systemId: 'mx_smae', goal: 'gain_muscle', dietPattern: 'any', subgroupCode: 'grasa_sin_proteina', targetSharePct: 30, scoreAdjustment: 0 },
     { systemId: 'mx_smae', goal: 'gain_muscle', dietPattern: 'any', subgroupCode: 'grasa_con_proteina', targetSharePct: 70, scoreAdjustment: 4 },
   ],
+};
+
+export const DEFAULT_KCAL_SELECTION_POLICIES_BY_SYSTEM: Record<
+  ExchangeSystemId,
+  KcalSelectionPolicyDefinition
+> = {
+  mx_smae: {
+    systemId: 'mx_smae',
+    lowTargetKcal: 1600,
+    highTargetKcal: 3000,
+    minTolerancePct: 0.2,
+    maxTolerancePct: 0.6,
+    minToleranceKcal: 25,
+    softPenaltyPer10Pct: 2.5,
+    hardOutlierMultiplier: 2.8,
+    excludeHardOutliers: true,
+  },
+  us_usda: {
+    systemId: 'us_usda',
+    lowTargetKcal: 1600,
+    highTargetKcal: 3000,
+    minTolerancePct: 0.2,
+    maxTolerancePct: 0.6,
+    minToleranceKcal: 25,
+    softPenaltyPer10Pct: 2.5,
+    hardOutlierMultiplier: 2.8,
+    excludeHardOutliers: true,
+  },
+  es_exchange: {
+    systemId: 'es_exchange',
+    lowTargetKcal: 1600,
+    highTargetKcal: 3000,
+    minTolerancePct: 0.2,
+    maxTolerancePct: 0.6,
+    minToleranceKcal: 25,
+    softPenaltyPer10Pct: 2.5,
+    hardOutlierMultiplier: 2.8,
+    excludeHardOutliers: true,
+  },
+  ar_exchange: {
+    systemId: 'ar_exchange',
+    lowTargetKcal: 1600,
+    highTargetKcal: 3000,
+    minTolerancePct: 0.2,
+    maxTolerancePct: 0.6,
+    minToleranceKcal: 25,
+    softPenaltyPer10Pct: 2.5,
+    hardOutlierMultiplier: 2.8,
+    excludeHardOutliers: true,
+  },
 };

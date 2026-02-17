@@ -8,6 +8,7 @@ import { adminRouter } from './routes/admin.js';
 import { eventsRouter } from './routes/events.js';
 import { optionsRouter } from './routes/options.js';
 import { plansRouter } from './routes/plans.js';
+import { leadsRouter } from './routes/leads.js';
 
 export const app = express();
 
@@ -26,6 +27,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/events', eventsRouter);
 app.use('/api/options', optionsRouter);
 app.use('/api/plans', plansRouter);
+app.use('/api/leads', leadsRouter);
 app.use('/api/admin', basicAuthMiddleware, adminRouter);
 
 app.use(errorHandler);
