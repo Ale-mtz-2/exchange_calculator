@@ -37,6 +37,11 @@ import {
 } from '../components/form/validators';
 import { generatePlan, getOptions, postEvent, type AppOptions } from '../lib/api';
 import { downloadEquivalentListExcel } from '../lib/exportEquivalentListExcel';
+import {
+  hasLeadPromptBeenHandled,
+  markLeadPromptCompleted,
+  markLeadPromptDismissed,
+} from '../lib/leadCaptureState';
 import { downloadClinicalPdf, PDF_EXTENDED_FOODS_LIMIT } from '../lib/pdfClinicalReport';
 import { resolveTrackingIdentity } from '../lib/trackingIdentity';
 
@@ -249,7 +254,6 @@ export const HomePage = (): JSX.Element => {
   const [plan, setPlan] = useState<EquivalentPlanResponse | null>(null);
   const [groupAdjustments, setGroupAdjustments] = useState<Record<string, number>>({});
   const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
-  const [pendingAction, setPendingAction] = useState<(() => Promise<void>) | null>(null);
   const isGenerating = viewPhase === 'generating';
 
   useEffect(() => {
@@ -586,6 +590,9 @@ export const HomePage = (): JSX.Element => {
       setGroupAdjustments({});
       setProfile(normalizedProfile);
       setViewPhase('result');
+      if (cid && !hasLeadPromptBeenHandled(cid)) {
+        setIsLeadModalOpen(true);
+      }
 
       void postEvent({
         cid,
@@ -633,52 +640,32 @@ export const HomePage = (): JSX.Element => {
     });
   };
 
-  const handleLeadSuccess = async (): Promise<void> => {
+  const handleLeadSuccess = (): void => {
+    markLeadPromptCompleted(cid);
     setIsLeadModalOpen(false);
-    if (pendingAction) {
-      await pendingAction();
-      setPendingAction(null);
-    }
+  };
+
+  const handleLeadClose = (): void => {
+    markLeadPromptDismissed(cid);
+    setIsLeadModalOpen(false);
   };
 
   const exportEquivalentListExcelFile = async (): Promise<void> => {
     if (!cid || !plan) return;
 
-    const execute = async () => {
-      const generatedAt = new Date();
-      await downloadEquivalentListExcel({
-        cid,
-        generatedAt,
-        groupPlan: adjustedGroupPlan,
-        foods: adjustedExtendedFoods,
-      });
-      trackExport(['excel_equivalents_list'], adjustedExtendedFoods.length);
-    };
-
-    if (isGuest) {
-      setPendingAction(() => execute);
-      setIsLeadModalOpen(true);
-      return;
-    }
-
-    await execute();
+    const generatedAt = new Date();
+    await downloadEquivalentListExcel({
+      cid,
+      generatedAt,
+      groupPlan: adjustedGroupPlan,
+      foods: adjustedExtendedFoods,
+    });
+    trackExport(['excel_equivalents_list'], adjustedExtendedFoods.length);
   };
-  if (!cid || !plan) return;
 
-  const generatedAt = new Date();
-  await downloadEquivalentListExcel({
-    cid,
-    generatedAt,
-    groupPlan: adjustedGroupPlan,
-    foods: adjustedExtendedFoods,
-  });
-  trackExport(['excel_equivalents_list'], adjustedExtendedFoods.length);
-};
+  const exportClinicalPdf = async (): Promise<void> => {
+    if (!cid || !plan) return;
 
-const exportClinicalPdf = async (): Promise<void> => {
-  if (!cid || !plan) return;
-
-  const execute = async () => {
     const generatedAt = new Date();
     await downloadClinicalPdf({
       cid,
@@ -692,31 +679,6 @@ const exportClinicalPdf = async (): Promise<void> => {
     });
     const foodsCount = Math.min(adjustedExtendedFoods.length, PDF_EXTENDED_FOODS_LIMIT);
     trackExport(['pdf_clinical_report'], adjustedGroupPlan.length + foodsCount);
-  };
-
-  if (isGuest) {
-    setPendingAction(() => execute);
-    setIsLeadModalOpen(true);
-    return;
-  }
-
-  await execute();
-};
-if (!cid || !plan) return;
-
-const generatedAt = new Date();
-await downloadClinicalPdf({
-  cid,
-  generatedAt,
-  profile,
-  targets: plan.targets,
-  adjustedMacroTotals,
-  adjustedGroupPlan,
-  adjustedTopFoodsByGroup,
-  adjustedExtendedFoods,
-});
-const foodsCount = Math.min(adjustedExtendedFoods.length, PDF_EXTENDED_FOODS_LIMIT);
-trackExport(['pdf_clinical_report'], adjustedGroupPlan.length + foodsCount);
   };
 
 const completedMap = FORM_STEPS.map(
@@ -1112,7 +1074,7 @@ return (
     ) : null}
     <LeadCaptureModal
       isOpen={isLeadModalOpen}
-      onClose={() => setIsLeadModalOpen(false)}
+      onClose={handleLeadClose}
       onSuccess={handleLeadSuccess}
     />
   </div>
