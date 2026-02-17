@@ -79,14 +79,16 @@ const macroPercent = (valueG: number, totalKcal: number, factor: number): number
   return round(((valueG * factor) / totalKcal) * 100, 1);
 };
 
-const loadLogoDataUrl = async (assetUrl: string): Promise<string | null> =>
+const loadLogoDataUrl = async (
+  assetUrl: string,
+): Promise<{ url: string; width: number; height: number } | null> =>
   new Promise((resolve) => {
     const image = new Image();
     image.onload = () => {
       try {
+        const width = image.naturalWidth || image.width;
+        const height = image.naturalHeight || image.height;
         const canvas = document.createElement('canvas');
-        const width = 260;
-        const height = 78;
         canvas.width = width;
         canvas.height = height;
         const context = canvas.getContext('2d');
@@ -96,7 +98,7 @@ const loadLogoDataUrl = async (assetUrl: string): Promise<string | null> =>
         }
         context.clearRect(0, 0, width, height);
         context.drawImage(image, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/png'));
+        resolve({ url: canvas.toDataURL('image/png'), width, height });
       } catch {
         resolve(null);
       }
@@ -104,7 +106,6 @@ const loadLogoDataUrl = async (assetUrl: string): Promise<string | null> =>
     image.onerror = () => resolve(null);
     image.src = assetUrl;
   });
-
 const drawLabelValue = (
   doc: jsPDF,
   x: number,
@@ -210,7 +211,7 @@ export const downloadClinicalPdf = async ({
   const marginX = 36;
   const contentWidth = pageWidth - marginX * 2;
   const generatedLabel = formatGeneratedAtLabel(generatedAt);
-  const logoDataUrl = await loadLogoDataUrl(logoSrc);
+  const logoData = await loadLogoDataUrl(logoSrc);
   const foodsForReport = adjustedExtendedFoods.slice(0, PDF_EXTENDED_FOODS_LIMIT);
 
   let y = 34;
@@ -220,8 +221,13 @@ export const downloadClinicalPdf = async ({
   doc.setDrawColor(214, 228, 240);
   doc.line(0, 128, pageWidth, 128);
 
-  if (logoDataUrl) {
-    doc.addImage(logoDataUrl, 'PNG', marginX, y, 160, 48);
+  if (logoData) {
+    const maxWidth = 160;
+    const maxHeight = 48;
+    const ratio = Math.min(maxWidth / logoData.width, maxHeight / logoData.height);
+    const logoW = logoData.width * ratio;
+    const logoH = logoData.height * ratio;
+    doc.addImage(logoData.url, 'PNG', marginX, y, logoW, logoH);
   }
 
   doc.setFont('helvetica', 'bold');

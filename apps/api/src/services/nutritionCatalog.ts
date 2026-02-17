@@ -4,6 +4,7 @@ import type { FoodItem, FoodTag, PatientProfile } from '@equivalentes/shared';
 import { env, isSmaeSubgroupsEnabled } from '../config/env.js';
 import { nutritionPool } from '../db/pg.js';
 import { safeSchema } from '../utils/sql.js';
+import { inferGroupCodeFromText } from './groupCodeMapper.js';
 
 const nutritionSchema = safeSchema(env.DB_NUTRITION_SCHEMA);
 const appSchema = safeSchema(env.DB_APP_SCHEMA);
@@ -31,24 +32,6 @@ const LEGUME_KEYWORDS = [
 ];
 
 const normalizeText = (value: string | null | undefined): string => (value ?? '').trim().toLowerCase();
-
-const normalizeGroupCode = (value: string | null | undefined): ExchangeGroupCode => {
-  const text = normalizeText(value);
-  if (text.includes('verdura') || text.includes('vegetable')) return 'vegetable';
-  if (text.includes('fruta') || text.includes('fruit')) return 'fruit';
-  if (text.includes('legum')) return 'legume';
-  if (text.includes('leche') || text.includes('milk') || text.includes('lacteo') || text.includes('dairy')) return 'milk';
-  if (text.includes('azucar') || text.includes('sugar') || text.includes('dulce') || text.includes('sweet')) return 'sugar';
-  if (text.includes('grasa') || text.includes('fat') || text.includes('aceite') || text.includes('oil')) return 'fat';
-  if (
-    text.includes('prote') ||
-    text.includes('animal') ||
-    text.includes('protein')
-  ) {
-    return 'protein';
-  }
-  return 'carb';
-};
 
 const normalizeSubgroupCode = (value: string | null | undefined): ExchangeSubgroupCode | undefined => {
   const normalized = normalizeText(value);
@@ -319,7 +302,7 @@ const fetchFoodsForSystem = async (
     .sort((a, b) => a.priority - b.priority);
 
   const groupCodeById = new Map<string, ExchangeGroupCode>(
-    groupResult.rows.map((item) => [item.id, normalizeGroupCode(item.group_code)]),
+    groupResult.rows.map((item) => [item.id, inferGroupCodeFromText(item.group_code)]),
   );
 
   const subgroupById = new Map<string, { subgroupCode: ExchangeSubgroupCode; parentGroupCode: ExchangeGroupCode }>();
@@ -329,7 +312,7 @@ const fetchFoodsForSystem = async (
 
     subgroupById.set(row.id, {
       subgroupCode,
-      parentGroupCode: normalizeGroupCode(row.parent_group_code),
+      parentGroupCode: inferGroupCodeFromText(row.parent_group_code),
     });
   }
 
@@ -391,7 +374,7 @@ const fetchFoodsForSystem = async (
   const fallbackSystemMap = new Map<number, ExchangeGroupCode>();
 
   const foods: FoodItem[] = foodsResult.rows.map((row) => {
-    const fallbackGroupCode = normalizeGroupCode(row.exchange_group_name ?? row.category_name ?? '');
+    const fallbackGroupCode = inferGroupCodeFromText(row.exchange_group_name ?? row.category_name ?? '');
     const override = overrideByFood.get(row.id);
 
     let groupCode = override?.groupCode ?? fallbackGroupCode;
