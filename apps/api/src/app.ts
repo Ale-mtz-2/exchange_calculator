@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 
+import { buildInfo } from './config/buildInfo.js';
 import { env } from './config/env.js';
 import { basicAuthMiddleware } from './middleware/basicAuth.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -21,7 +22,10 @@ app.use(
 app.use(express.json({ limit: '1mb' }));
 
 app.get('/health', (_req, res) => {
-  res.json({ ok: true });
+  res.json({
+    ok: true,
+    commitSha: buildInfo.commitSha,
+  });
 });
 
 app.use('/api/events', eventsRouter);

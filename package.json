@@ -6,7 +6,8 @@
     "dev": "corepack pnpm --filter @equivalentes/shared build && concurrently -n api,web -c blue,green \"corepack pnpm --filter @equivalentes/api dev\" \"corepack pnpm --filter @equivalentes/web dev\"",
     "lint": "corepack pnpm --filter @equivalentes/shared build && corepack pnpm -r lint",
     "test": "corepack pnpm --filter @equivalentes/shared test",
-    "build": "corepack pnpm -r --workspace-concurrency=1 build",
+    "verify:release-sha": "node scripts/verify-release-sha.mjs",
+    "build": "corepack pnpm verify:release-sha && corepack pnpm -r --workspace-concurrency=1 build",
     "format": "prettier --check .",
     "format:write": "prettier --write ."
   },

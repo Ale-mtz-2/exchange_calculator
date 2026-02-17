@@ -71,7 +71,6 @@ type OverrideRow = {
 
 type ClassificationRuleRow = {
   subgroup_id: number | null;
-  subgroup_code: string | null;
   min_fat_per_7g_pro: number;
   max_fat_per_7g_pro: number | null;
   priority: number;
@@ -217,18 +216,10 @@ const buildSubgroupMaps = (
   return { subgroupsById, subgroupIdByLegacyCode };
 };
 
-const buildClassificationRules = (
-  rows: ClassificationRuleRow[],
-  subgroupIdByLegacyCode: Map<ExchangeSubgroupCode, number>,
-): ClassificationRule[] =>
+const buildClassificationRules = (rows: ClassificationRuleRow[]): ClassificationRule[] =>
   rows
     .map((row) => {
-      const subgroupId =
-        row.subgroup_id ??
-        (() => {
-          const legacyCode = inferSubgroupCodeFromText(row.subgroup_code ?? undefined);
-          return legacyCode ? subgroupIdByLegacyCode.get(legacyCode) ?? null : null;
-        })();
+      const subgroupId = row.subgroup_id;
 
       if (!subgroupId) return null;
 
@@ -300,7 +291,6 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
           `
             SELECT
               subgroup_id,
-              subgroup_code,
               min_fat_per_7g_pro::float8,
               max_fat_per_7g_pro::float8,
               priority
@@ -342,7 +332,7 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
   }
 
   const { subgroupsById, subgroupIdByLegacyCode } = buildSubgroupMaps(subgroupsResult.rows);
-  const classificationRules = buildClassificationRules(rulesResult.rows, subgroupIdByLegacyCode);
+  const classificationRules = buildClassificationRules(rulesResult.rows);
 
   const overrideByFood = new Map<number, OverrideRow>(
     overridesResult.rows.map((row) => [row.food_id, row]),

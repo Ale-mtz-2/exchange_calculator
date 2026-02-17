@@ -83,6 +83,7 @@ Esto crea y usa el schema `equivalentes_app` sin modificar estructura de `nutrit
 - `corepack pnpm dev`: levanta API + Web
 - `corepack pnpm lint`: lint workspace
 - `corepack pnpm test`: tests unitarios (`packages/shared`)
+- `corepack pnpm verify:release-sha`: valida que el commit checkout coincida con SHA esperado del entorno
 - `corepack pnpm build`: build de todos los paquetes
 
 ## Flujo funcional
@@ -187,6 +188,7 @@ Se validó en este entorno:
 - Recomendado por visibilidad:
   - `app.tudominio.com` con `VITE_SHOW_ADMIN_LINK=false`.
   - `admin.tudominio.com` con `VITE_SHOW_ADMIN_LINK=false` (el botón aparece por host `admin.*`).
+- Runbook recomendado de producción: `docs/DEPLOY-RUNBOOK-RENDER.md`.
 
 ### Opción B (único servidor)
 
@@ -197,6 +199,7 @@ Se validó en este entorno:
 
 - No se guardan datos sensibles de salud por defecto en `meta`.
 - API mantiene `cid` obligatorio; frontend resuelve identidad automáticamente: `whatsapp` usa `cid` de querystring y `guest` genera/reutiliza `guest_*` en `localStorage`.
+- `GET /health` expone `commitSha` para verificar que el despliegue y el commit esperado estén alineados.
 - Las tablas nuevas viven en `equivalentes_app`.
 - Se reutiliza catálogo en `nutrition`.
 - Rotar credenciales/contraseñas compartidas en canales no seguros.

@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify Release SHA
+        run: pnpm verify:release-sha
+
       - name: Build shared package
         run: pnpm --filter @equivalentes/shared build
 
