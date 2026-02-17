@@ -1,5 +1,4 @@
 import type {
-  CountryCode,
   ExchangeGroupCode,
   ExchangeSubgroupCode,
   ExchangeSystemId,
@@ -71,8 +70,8 @@ type OverrideRow = {
 };
 
 type ClassificationRuleRow = {
-  parent_group_id: number | null;
   subgroup_id: number | null;
+  subgroup_code: string | null;
   min_fat_per_7g_pro: number;
   max_fat_per_7g_pro: number | null;
   priority: number;
@@ -88,12 +87,6 @@ type ClassificationRule = {
 type GeoWeightRow = {
   food_id: number;
   weight: number;
-};
-
-type GeoAvailabilityRow = {
-  food_id: number;
-  country_codes: string[] | null;
-  state_codes: string[] | null;
 };
 
 type TagRow = {
@@ -226,21 +219,33 @@ const buildSubgroupMaps = (
 
 const buildClassificationRules = (
   rows: ClassificationRuleRow[],
+  subgroupIdByLegacyCode: Map<ExchangeSubgroupCode, number>,
 ): ClassificationRule[] =>
   rows
-    .filter((row) => row.parent_group_id !== null && row.subgroup_id !== null)
-    .map((row) => ({
-      subgroupId: row.subgroup_id as number,
-      minFatPer7gPro: row.min_fat_per_7g_pro,
-      maxFatPer7gPro: row.max_fat_per_7g_pro,
-      priority: row.priority,
-    }))
+    .map((row) => {
+      const subgroupId =
+        row.subgroup_id ??
+        (() => {
+          const legacyCode = inferSubgroupCodeFromText(row.subgroup_code ?? undefined);
+          return legacyCode ? subgroupIdByLegacyCode.get(legacyCode) ?? null : null;
+        })();
+
+      if (!subgroupId) return null;
+
+      return {
+        subgroupId,
+        minFatPer7gPro: row.min_fat_per_7g_pro,
+        maxFatPer7gPro: row.max_fat_per_7g_pro,
+        priority: row.priority,
+      };
+    })
+    .filter((row): row is ClassificationRule => row !== null)
     .sort((a, b) => a.priority - b.priority);
 
 const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<CatalogV2Result> => {
   const shouldClassifyMx = isSmaeSubgroupsEnabled && options.systemId === 'mx_smae';
 
-  const [canonicalValues, foodsResult, groupsResult, subgroupsResult, overridesResult, rulesResult, tagsResult, geoWeightsResult, geoAvailabilityResult] =
+  const [canonicalValues, foodsResult, groupsResult, subgroupsResult, overridesResult, rulesResult, tagsResult, geoWeightsResult] =
     await Promise.all([
       resolveCanonicalNutritionValues(options.systemId),
       nutritionPool.query<RawFoodRow>(
@@ -294,16 +299,14 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
         ? nutritionPool.query<ClassificationRuleRow>(
           `
             SELECT
-              parent_group_id,
               subgroup_id,
+              subgroup_code,
               min_fat_per_7g_pro::float8,
               max_fat_per_7g_pro::float8,
               priority
             FROM ${appSchema}.subgroup_classification_rules
             WHERE system_id = $1
               AND is_active = true
-              AND parent_group_id IS NOT NULL
-              AND subgroup_id IS NOT NULL
             ORDER BY priority ASC;
           `,
           [options.systemId],
@@ -327,16 +330,6 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
           [options.countryCode, options.stateCode ?? null],
         )
         : Promise.resolve({ rows: [] as GeoWeightRow[] }),
-      nutritionPool.query<GeoAvailabilityRow>(
-        `
-          SELECT
-            food_id,
-            ARRAY_REMOVE(ARRAY_AGG(DISTINCT country_code), NULL)::text[] AS country_codes,
-            ARRAY_REMOVE(ARRAY_AGG(DISTINCT state_code), NULL)::text[] AS state_codes
-          FROM ${appSchema}.food_geo_weights
-          GROUP BY food_id;
-        `,
-      ),
     ]);
 
   const groupsById = new Map<number, GroupMeta>();
@@ -349,7 +342,7 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
   }
 
   const { subgroupsById, subgroupIdByLegacyCode } = buildSubgroupMaps(subgroupsResult.rows);
-  const classificationRules = buildClassificationRules(rulesResult.rows);
+  const classificationRules = buildClassificationRules(rulesResult.rows, subgroupIdByLegacyCode);
 
   const overrideByFood = new Map<number, OverrideRow>(
     overridesResult.rows.map((row) => [row.food_id, row]),
@@ -357,23 +350,6 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
   const geoWeightByFood = new Map<number, number>(
     geoWeightsResult.rows.map((row) => [row.food_id, row.weight]),
   );
-  const countryAvailabilityByFood = new Map<number, CountryCode[]>();
-  const stateAvailabilityByFood = new Map<number, string[]>();
-  for (const row of geoAvailabilityResult.rows) {
-    const countryAvailability = (row.country_codes ?? [])
-      .map((countryCode) => countryCode.trim().toUpperCase())
-      .filter((countryCode): countryCode is CountryCode => countryCode.length === 2);
-    const stateAvailability = (row.state_codes ?? [])
-      .map((stateCode) => stateCode.trim().toUpperCase())
-      .filter((stateCode) => stateCode.length > 0);
-
-    if (countryAvailability.length > 0) {
-      countryAvailabilityByFood.set(row.food_id, countryAvailability);
-    }
-    if (stateAvailability.length > 0) {
-      stateAvailabilityByFood.set(row.food_id, stateAvailability);
-    }
-  }
   const tagsByFood = mapTagsByFood(tagsResult.rows);
 
   const foods: FoodItemV2[] = [];
@@ -460,16 +436,6 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
     const geoWeight = geoWeightByFood.get(row.id);
     if (typeof geoWeight === 'number') {
       next.geoWeight = geoWeight;
-    }
-
-    const countryAvailability = countryAvailabilityByFood.get(row.id);
-    if (countryAvailability && countryAvailability.length > 0) {
-      next.countryAvailability = countryAvailability;
-    }
-
-    const stateAvailability = stateAvailabilityByFood.get(row.id);
-    if (stateAvailability && stateAvailability.length > 0) {
-      next.stateAvailability = stateAvailability;
     }
 
     foods.push(next);

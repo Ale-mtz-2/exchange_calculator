@@ -27,6 +27,7 @@ import { resolveTrackingIdentity } from '../../../lib/trackingIdentity';
 import {
     buildBaseExchangesByBucket,
     buildEditableBucketRows,
+    buildEffectiveEditableBucketRows,
     buildTopFoodsByBucket,
     isNonRebalanceBucket,
     roundHalf,
@@ -180,9 +181,14 @@ export function useHomeLogic() {
         [plan, bucketAdjustments],
     );
 
+    const effectiveEditableBucketRows = useMemo(
+        () => buildEffectiveEditableBucketRows(editableBucketRows),
+        [editableBucketRows],
+    );
+
     const adjustedBucketPlan = useMemo<EquivalentBucketPlanV2[]>(
         () =>
-            editableBucketRows.map((bucket) => ({
+            effectiveEditableBucketRows.map((bucket) => ({
                 bucketType: bucket.bucketType,
                 bucketId: bucket.bucketId,
                 bucketKey: bucket.bucketKey,
@@ -194,12 +200,12 @@ export function useHomeLogic() {
                 fatG: bucket.fatG,
                 kcal: bucket.kcal,
             })),
-        [editableBucketRows],
+        [effectiveEditableBucketRows],
     );
 
     const baseExchangesByBucket = useMemo(
-        () => buildBaseExchangesByBucket(editableBucketRows),
-        [editableBucketRows],
+        () => buildBaseExchangesByBucket(effectiveEditableBucketRows),
+        [effectiveEditableBucketRows],
     );
 
     const bucketLabelIndex = useMemo(
@@ -209,7 +215,7 @@ export function useHomeLogic() {
 
     const adjustedMacroTotals = useMemo(
         () =>
-            editableBucketRows.reduce(
+            effectiveEditableBucketRows.reduce(
                 (totals, bucket) => ({
                     choG: round(totals.choG + bucket.choG),
                     proG: round(totals.proG + bucket.proG),
@@ -218,13 +224,13 @@ export function useHomeLogic() {
                 }),
                 { choG: 0, proG: 0, fatG: 0, kcal: 0 },
             ),
-        [editableBucketRows],
+        [effectiveEditableBucketRows],
     );
 
     const bucketScoreBias = useMemo(() => {
         const biasMap: Record<string, number> = {};
 
-        for (const bucket of editableBucketRows) {
+        for (const bucket of effectiveEditableBucketRows) {
             const key = bucket.bucketKey;
             const baseExchanges = baseExchangesByBucket.get(key) ?? 0;
             const deltaExchanges = roundHalfSigned(bucket.exchangesPerDay - baseExchanges);
@@ -233,7 +239,7 @@ export function useHomeLogic() {
         }
 
         return biasMap;
-    }, [editableBucketRows, baseExchangesByBucket]);
+    }, [effectiveEditableBucketRows, baseExchangesByBucket]);
 
     const adjustedExtendedFoods = useMemo(() => {
         if (!plan) return [] as RankedFoodItemV2[];
@@ -275,14 +281,17 @@ export function useHomeLogic() {
     const adjustedMealDistribution = useMemo(() => {
         if (!plan) return [];
         return distributeMeals(
-            editableBucketRows.map((bucket) => ({
+            effectiveEditableBucketRows.map((bucket) => ({
                 bucketKey: bucket.bucketKey,
                 ...(bucket.legacyCode ? { legacyCode: bucket.legacyCode } : {}),
+                bucketType: bucket.bucketType,
+                bucketId: bucket.bucketId,
+                ...(typeof bucket.parentGroupId === 'number' ? { parentGroupId: bucket.parentGroupId } : {}),
                 exchangesPerDay: bucket.exchangesPerDay,
             })),
             plan.profile,
         );
-    }, [editableBucketRows, plan]);
+    }, [effectiveEditableBucketRows, plan]);
 
     const onProfileChange = <K extends keyof PatientProfile>(
         field: K,
@@ -364,8 +373,13 @@ export function useHomeLogic() {
                 next[bucketKey] = nextDelta;
             }
 
-            const beforeRows = buildEditableBucketRows(plan.bucketCatalog, plan.bucketPlan, prev);
-            const afterRows = buildEditableBucketRows(plan.bucketCatalog, plan.bucketPlan, next);
+            const beforeRows = buildEffectiveEditableBucketRows(
+                buildEditableBucketRows(plan.bucketCatalog, plan.bucketPlan, prev),
+            );
+            const afterRows = buildEffectiveEditableBucketRows(
+                buildEditableBucketRows(plan.bucketCatalog, plan.bucketPlan, next),
+            );
+            const effectiveBaseExchangesByBucket = buildBaseExchangesByBucket(afterRows);
             const beforeTarget = beforeRows.find((bucket) => bucket.bucketKey === bucketKey);
             const afterTarget = afterRows.find((bucket) => bucket.bucketKey === bucketKey);
             if (!beforeTarget || !afterTarget || afterTarget.kcalPerExchange <= 0) return next;
@@ -390,7 +404,7 @@ export function useHomeLogic() {
                 const compensationKcal = -kcalDelta * share;
                 const compensationExchanges = roundHalfSigned(compensationKcal / bucket.kcalPerExchange);
 
-                const rowBase = baseExchangesByBucket.get(bucket.bucketKey) ?? 0;
+                const rowBase = effectiveBaseExchangesByBucket.get(bucket.bucketKey) ?? 0;
                 const existingDelta = next[bucket.bucketKey] ?? 0;
                 const rowCurrentExchanges = roundHalf(rowBase + existingDelta);
                 const rowNextExchanges = roundHalf(
@@ -578,7 +592,7 @@ export function useHomeLogic() {
             allStepsValid,
         },
         results: {
-            editableBucketRows,
+            editableBucketRows: effectiveEditableBucketRows,
             adjustedBucketPlan,
             adjustedMacroTotals,
             adjustedExtendedFoods,

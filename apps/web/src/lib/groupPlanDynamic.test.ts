@@ -4,6 +4,7 @@ import type { EquivalentBucketCatalogItem, EquivalentBucketPlanV2 } from '@equiv
 
 import {
   buildEditableBucketRows,
+  buildEffectiveEditableBucketRows,
   buildBaseExchangesByBucket,
   buildBucketRowIndex,
   canIncrease,
@@ -87,6 +88,26 @@ describe('buildEditableBucketRows', () => {
 
     expect(base.get('group:8')).toBe(0);
     expect(canIncrease(index.get('group:8')!)).toBe(true);
+  });
+});
+
+describe('buildEffectiveEditableBucketRows', () => {
+  it('removes parent group rows when subgroup rows exist for the same parent', () => {
+    const rows = buildEditableBucketRows(bucketCatalog, bucketPlan, {});
+    const effective = buildEffectiveEditableBucketRows(rows);
+
+    expect(effective.map((row) => row.bucketKey)).toEqual(['group:8', 'subgroup:7']);
+  });
+
+  it('keeps groups when no subgroup exists for that parent', () => {
+    const rows = buildEditableBucketRows(
+      bucketCatalog.filter((bucket) => bucket.bucketType === 'group'),
+      bucketPlan,
+      {},
+    );
+    const effective = buildEffectiveEditableBucketRows(rows);
+
+    expect(effective.map((row) => row.bucketKey)).toEqual(['group:6', 'group:8']);
   });
 });
 

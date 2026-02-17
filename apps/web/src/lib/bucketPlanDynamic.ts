@@ -152,6 +152,24 @@ export const buildEditableBucketRows = (
   return rows;
 };
 
+export const buildEffectiveEditableBucketRows = (
+  bucketRows: EditableBucketRow[],
+): EditableBucketRow[] => {
+  const parentGroupIdsWithSubgroups = new Set<number>();
+  for (const bucket of bucketRows) {
+    if (bucket.bucketType === 'subgroup' && typeof bucket.parentGroupId === 'number') {
+      parentGroupIdsWithSubgroups.add(bucket.parentGroupId);
+    }
+  }
+
+  if (parentGroupIdsWithSubgroups.size === 0) {
+    return bucketRows;
+  }
+
+  return bucketRows.filter((bucket) =>
+    bucket.bucketType !== 'group' || !parentGroupIdsWithSubgroups.has(bucket.bucketId));
+};
+
 export const canIncrease = (bucket: EditableBucketRow): boolean =>
   bucket.kcalPerExchange > 0 ||
   bucket.choPerExchange > 0 ||

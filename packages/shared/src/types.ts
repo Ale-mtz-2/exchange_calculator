@@ -179,6 +179,9 @@ export type EquivalentBucketCatalogItem = {
 export type MealDistributionBucketInput = {
   bucketKey: string;
   legacyCode?: string;
+  bucketType?: BucketType;
+  bucketId?: number;
+  parentGroupId?: number;
   exchangesPerDay: number;
 };
 

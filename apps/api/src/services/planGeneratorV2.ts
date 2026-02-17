@@ -430,6 +430,9 @@ export const generateEquivalentPlanV2 = async (
   const subgroupProfiles = profiles.filter((profileRow) => profileRow.bucketType === 'subgroup');
   const groupNameById = new Map<number, string>(groupProfiles.map((group) => [group.bucketId, group.bucketName]));
   const bucketCatalog = buildBucketCatalog(profiles, groupNameById);
+  const bucketCatalogByKey = new Map<string, EquivalentBucketCatalogItem>(
+    bucketCatalog.map((bucket) => [bucket.bucketKey, bucket]),
+  );
 
   const subgroupPolicies = await loadSubgroupPolicies(profile, subgroupProfiles);
   const groupPlan = buildGroupPlan(targets, groupProfiles);
@@ -510,11 +513,19 @@ export const generateEquivalentPlanV2 = async (
   });
 
   const mealDistribution = distributeMeals(
-    bucketPlan.map((bucket) => ({
-      bucketKey: bucket.bucketKey,
-      ...(bucket.legacyCode ? { legacyCode: bucket.legacyCode } : {}),
-      exchangesPerDay: bucket.exchangesPerDay,
-    })),
+    bucketPlan.map((bucket) => {
+      const catalogBucket = bucketCatalogByKey.get(bucket.bucketKey);
+      return {
+        bucketKey: bucket.bucketKey,
+        ...(bucket.legacyCode ? { legacyCode: bucket.legacyCode } : {}),
+        bucketType: bucket.bucketType,
+        bucketId: bucket.bucketId,
+        ...(catalogBucket?.bucketType === 'subgroup' && typeof catalogBucket.parentGroupId === 'number'
+          ? { parentGroupId: catalogBucket.parentGroupId }
+          : {}),
+        exchangesPerDay: bucket.exchangesPerDay,
+      };
+    }),
     profile,
   );
 
