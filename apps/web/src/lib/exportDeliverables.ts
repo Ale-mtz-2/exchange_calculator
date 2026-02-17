@@ -1,8 +1,8 @@
 import type {
   EnergyTargets,
-  EquivalentGroupPlan,
+  EquivalentBucketPlanV2,
   PatientProfile,
-  RankedFoodItem,
+  RankedFoodItemV2,
 } from '@equivalentes/shared';
 
 export type MacroTotals = {
@@ -144,30 +144,36 @@ export const buildSummaryCsvRows = ({
 ];
 
 type EquivalentsCsvParams = {
-  groupPlan: EquivalentGroupPlan[];
+  bucketPlan: EquivalentBucketPlanV2[];
+  resolveBucketLabel?: (bucket: EquivalentBucketPlanV2) => string;
 };
 
 export const buildEquivalentsCsvRows = ({
-  groupPlan,
+  bucketPlan,
+  resolveBucketLabel,
 }: EquivalentsCsvParams): Record<string, string | number>[] =>
-  groupPlan.map((group) => ({
-    grupo: group.groupName,
-    codigo_grupo: String(group.groupCode),
-    equivalentes_dia: group.exchangesPerDay,
-    cho_g: group.choG,
-    pro_g: group.proG,
-    fat_g: group.fatG,
-    kcal: group.kcal,
+  bucketPlan.map((bucket) => ({
+    grupo: resolveBucketLabel ? resolveBucketLabel(bucket) : bucket.bucketName,
+    codigo_grupo: bucket.bucketKey,
+    equivalentes_dia: bucket.exchangesPerDay,
+    cho_g: bucket.choG,
+    pro_g: bucket.proG,
+    fat_g: bucket.fatG,
+    kcal: bucket.kcal,
   }));
 
 type FoodsCsvParams = {
-  foods: RankedFoodItem[];
+  foods: RankedFoodItemV2[];
+  resolveFoodBucketLabel?: (food: RankedFoodItemV2) => string;
 };
 
-export const buildFoodsCsvRows = ({ foods }: FoodsCsvParams): Record<string, string | number>[] =>
+export const buildFoodsCsvRows = ({
+  foods,
+  resolveFoodBucketLabel,
+}: FoodsCsvParams): Record<string, string | number>[] =>
   foods.map((food) => ({
     alimento: sanitizeValue(food.name),
-    grupo: String(food.subgroupCode ?? food.groupCode),
+    grupo: resolveFoodBucketLabel ? resolveFoodBucketLabel(food) : String(food.bucketKey),
     score: food.score,
     kcal: food.caloriesKcal,
     proteina_g: food.proteinG,

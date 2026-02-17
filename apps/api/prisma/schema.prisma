@@ -45,61 +45,12 @@ model ExchangeSystem {
   isActive    Boolean  @default(true) @map("is_active")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  exchangeGroups              ExchangeGroup[]
-  exchangeSubgroups           ExchangeSubgroup[]
   subgroupSelectionPolicies   SubgroupSelectionPolicy[]
   kcalSelectionPolicies       KcalSelectionPolicy[]
   subgroupClassificationRules SubgroupClassificationRule[]
   generatedPlans              GeneratedPlan[]
 
   @@map("exchange_systems")
-  @@schema("equivalentes_app")
-}
-
-model ExchangeGroup {
-  id            BigInt   @id @default(autoincrement())
-  systemId      String   @map("system_id")
-  groupCode     String   @map("group_code")
-  displayNameEs String   @map("display_name_es")
-  choG          Decimal  @default(0) @map("cho_g") @db.Decimal(10, 2)
-  proG          Decimal  @default(0) @map("pro_g") @db.Decimal(10, 2)
-  fatG          Decimal  @default(0) @map("fat_g") @db.Decimal(10, 2)
-  kcalTarget    Int      @default(0) @map("kcal_target")
-  sortOrder     Int      @default(0) @map("sort_order")
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  system ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
-
-  exchangeSubgroups     ExchangeSubgroup[]    @relation("GroupToSubgroups")
-  foodExchangeOverrides FoodExchangeOverride[]
-
-  @@unique([systemId, groupCode], map: "uq_exchange_groups_system_group")
-  @@map("exchange_groups")
-  @@schema("equivalentes_app")
-}
-
-model ExchangeSubgroup {
-  id            BigInt   @id @default(autoincrement())
-  systemId      String   @map("system_id")
-  parentGroupId BigInt   @map("parent_group_id")
-  subgroupCode  String   @map("subgroup_code")
-  displayNameEs String   @map("display_name_es")
-  choG          Decimal  @default(0) @map("cho_g") @db.Decimal(10, 2)
-  proG          Decimal  @default(0) @map("pro_g") @db.Decimal(10, 2)
-  fatG          Decimal  @default(0) @map("fat_g") @db.Decimal(10, 2)
-  kcalTarget    Int      @default(0) @map("kcal_target")
-  sortOrder     Int      @default(0) @map("sort_order")
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  system      ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
-  parentGroup ExchangeGroup  @relation("GroupToSubgroups", fields: [parentGroupId], references: [id], onDelete: Cascade)
-
-  foodExchangeOverrides FoodExchangeOverride[]
-
-  @@unique([systemId, subgroupCode], map: "uq_exchange_subgroups_system_subgroup")
-  @@index([systemId, parentGroupId], map: "idx_exchange_subgroups_system_parent")
-  @@map("exchange_subgroups")
   @@schema("equivalentes_app")
 }
 
@@ -117,15 +68,12 @@ model CountryState {
 model FoodExchangeOverride {
   foodId               Int      @map("food_id")
   systemId             String   @map("system_id")
-  exchangeGroupId      BigInt?  @map("exchange_group_id")
-  exchangeSubgroupId   BigInt?  @map("exchange_subgroup_id")
+  groupId              Int?     @map("group_id")
+  subgroupId           Int?     @map("subgroup_id")
   equivalentPortionQty Decimal? @map("equivalent_portion_qty") @db.Decimal(10, 2)
   portionUnit          String?  @map("portion_unit")
   isActive             Boolean  @default(true) @map("is_active")
   createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  exchangeGroup    ExchangeGroup?    @relation(fields: [exchangeGroupId], references: [id], onDelete: SetNull)
-  exchangeSubgroup ExchangeSubgroup? @relation(fields: [exchangeSubgroupId], references: [id], onDelete: SetNull)
 
   @@id([foodId, systemId])
   @@map("food_exchange_overrides")
@@ -164,7 +112,7 @@ model SubgroupSelectionPolicy {
   systemId       String   @map("system_id")
   goal           String
   dietPattern    String   @map("diet_pattern")
-  subgroupCode   String   @map("subgroup_code")
+  subgroupId     Int?     @map("subgroup_id")
   targetSharePct Decimal  @map("target_share_pct") @db.Decimal(5, 2)
   scoreAdjustment Decimal @map("score_adjustment") @db.Decimal(10, 2)
   isActive       Boolean  @default(true) @map("is_active")
@@ -172,7 +120,7 @@ model SubgroupSelectionPolicy {
 
   system ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
 
-  @@unique([systemId, goal, dietPattern, subgroupCode], map: "uq_subgroup_selection_policy")
+  @@unique([systemId, goal, dietPattern, subgroupId], map: "uq_subgroup_selection_policy_subgroup_id")
   @@index([systemId, goal, dietPattern], map: "idx_subgroup_selection_policy_lookup")
   @@map("subgroup_selection_policies")
   @@schema("equivalentes_app")
@@ -202,8 +150,8 @@ model KcalSelectionPolicy {
 model SubgroupClassificationRule {
   id               BigInt   @id @default(autoincrement())
   systemId         String   @map("system_id")
-  parentGroupCode  String   @map("parent_group_code")
-  subgroupCode     String   @map("subgroup_code")
+  parentGroupId    Int?     @map("parent_group_id")
+  subgroupId       Int?     @map("subgroup_id")
   minFatPer7gPro   Decimal  @map("min_fat_per_7g_pro") @db.Decimal(10, 4)
   maxFatPer7gPro   Decimal? @map("max_fat_per_7g_pro") @db.Decimal(10, 4)
   priority         Int
@@ -212,9 +160,43 @@ model SubgroupClassificationRule {
 
   system ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
 
-  @@unique([systemId, parentGroupCode, subgroupCode, priority], map: "uq_subgroup_classification_rule")
-  @@index([systemId, parentGroupCode, priority], map: "idx_subgroup_classification_rule_lookup")
+  @@unique([systemId, parentGroupId, subgroupId, priority], map: "uq_subgroup_classification_rule_by_ids")
+  @@index([systemId, parentGroupId, priority], map: "idx_subgroup_classification_rule_by_parent_id")
   @@map("subgroup_classification_rules")
+  @@schema("equivalentes_app")
+}
+
+model ExchangeSourcePriority {
+  id           BigInt   @id @default(autoincrement())
+  systemId     String   @map("system_id")
+  dataSourceId Int      @map("data_source_id")
+  priority     Int      @default(100)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([systemId, dataSourceId], map: "uq_exchange_source_priorities_system_source")
+  @@index([systemId, isActive, priority], map: "idx_exchange_source_priorities_lookup")
+  @@map("exchange_source_priorities")
+  @@schema("equivalentes_app")
+}
+
+model ExchangeBucketProfile {
+  id             BigInt   @id @default(autoincrement())
+  profileVersion String   @map("profile_version")
+  systemId       String   @map("system_id")
+  bucketType     String   @map("bucket_type")
+  bucketId       Int      @map("bucket_id")
+  parentGroupId  Int?     @map("parent_group_id")
+  choG           Decimal  @map("cho_g") @db.Decimal(10, 2)
+  proG           Decimal  @map("pro_g") @db.Decimal(10, 2)
+  fatG           Decimal  @map("fat_g") @db.Decimal(10, 2)
+  kcal           Int
+  sampleSize     Int      @map("sample_size")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@unique([profileVersion, systemId, bucketType, bucketId], map: "uq_exchange_bucket_profiles_version_system_bucket")
+  @@index([systemId, profileVersion, bucketType, bucketId], map: "idx_exchange_bucket_profiles_lookup")
+  @@map("exchange_bucket_profiles")
   @@schema("equivalentes_app")
 }
 
@@ -261,7 +243,8 @@ model Lead {
   name      String
   email     String?
   whatsapp  String?
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  termsAccepted Boolean  @default(false) @map("terms_accepted")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@map("leads")
   @@schema("equivalentes_app")

@@ -11,6 +11,7 @@ export const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: Props): JSX.Ele
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
+    const [termsAccepted, setTermsAccepted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -30,6 +31,11 @@ export const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: Props): JSX.Ele
             return;
         }
 
+        if (!termsAccepted) {
+            setError('Debes aceptar los terminos y condiciones para continuar.');
+            return;
+        }
+
         setIsLoading(true);
 
         try {
@@ -37,6 +43,7 @@ export const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: Props): JSX.Ele
                 name,
                 email: email || undefined,
                 whatsapp: whatsapp || undefined,
+                termsAccepted,
             });
             onSuccess();
         } catch (err) {
@@ -54,7 +61,7 @@ export const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: Props): JSX.Ele
                         Completar perfil
                     </h3>
                     <p className="text-sm text-sky-700 mt-1">
-                        Déjanos tus datos para enviarte tu plan y novedades.
+                        Dejanos tus datos para enviarte tu plan y novedades.
                     </p>
                 </div>
 
@@ -97,7 +104,7 @@ export const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: Props): JSX.Ele
 
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">
-                            Correo electrónico
+                            Correo electronico
                         </label>
                         <input
                             id="email"
@@ -113,6 +120,30 @@ export const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: Props): JSX.Ele
                         </p>
                     </div>
 
+                    <div className="flex items-start gap-2 pt-2">
+                        <div className="flex h-5 items-center">
+                            <input
+                                id="terms"
+                                type="checkbox"
+                                checked={termsAccepted}
+                                onChange={(e) => setTermsAccepted(e.target.checked)}
+                                disabled={isLoading}
+                                className="h-4 w-4 rounded border-slate-300 text-sky-600 focus:ring-sky-500"
+                            />
+                        </div>
+                        <label htmlFor="terms" className="text-xs text-slate-600">
+                            Acepto los{' '}
+                            <a href="#" className="font-medium text-sky-600 hover:underline">
+                                terminos y condiciones
+                            </a>{' '}
+                            y la{' '}
+                            <a href="#" className="font-medium text-sky-600 hover:underline">
+                                politica de privacidad
+                            </a>
+                            .
+                        </label>
+                    </div>
+
                     <div className="mt-6 flex justify-end gap-3 pt-2">
                         <button
                             type="button"
@@ -124,7 +155,7 @@ export const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: Props): JSX.Ele
                         </button>
                         <button
                             type="submit"
-                            disabled={isLoading}
+                            disabled={isLoading || !termsAccepted}
                             className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-sky-700 disabled:opacity-50 flex items-center gap-2"
                         >
                             {isLoading ? (
@@ -133,7 +164,7 @@ export const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: Props): JSX.Ele
                                     Guardando...
                                 </>
                             ) : (
-                                'Continuar descarga'
+                                'Guardar datos'
                             )}
                         </button>
                     </div>
@@ -142,3 +173,4 @@ export const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: Props): JSX.Ele
         </div>
     );
 };
+

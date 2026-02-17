@@ -1,8 +1,8 @@
 import type {
   EnergyTargets,
-  EquivalentGroupPlan,
+  EquivalentBucketPlanV2,
   PatientProfile,
-  RankedFoodItem,
+  RankedFoodItemV2,
 } from '@equivalentes/shared';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -22,9 +22,11 @@ type ClinicalPdfParams = {
   profile: PatientProfile;
   targets: EnergyTargets;
   adjustedMacroTotals: MacroTotals;
-  adjustedGroupPlan: EquivalentGroupPlan[];
-  adjustedTopFoodsByGroup: Record<string, RankedFoodItem[]>;
-  adjustedExtendedFoods: RankedFoodItem[];
+  adjustedBucketPlan: EquivalentBucketPlanV2[];
+  adjustedTopFoodsByBucket: Record<string, RankedFoodItemV2[]>;
+  adjustedExtendedFoods: RankedFoodItemV2[];
+  resolveBucketLabel?: (bucketKey: string) => string;
+  resolveFoodBucketLabel?: (food: RankedFoodItemV2) => string;
 };
 
 const round = (value: number, digits = 1): number => {
@@ -196,9 +198,11 @@ export const downloadClinicalPdf = async ({
   profile,
   targets,
   adjustedMacroTotals,
-  adjustedGroupPlan,
-  adjustedTopFoodsByGroup,
+  adjustedBucketPlan,
+  adjustedTopFoodsByBucket,
   adjustedExtendedFoods,
+  resolveBucketLabel,
+  resolveFoodBucketLabel,
 }: ClinicalPdfParams): Promise<void> => {
   const doc = new jsPDF({
     orientation: 'p',
@@ -342,13 +346,13 @@ export const downloadClinicalPdf = async ({
     startY: y,
     margin: { left: marginX, right: marginX },
     head: [['Grupo', 'Equiv./dia', 'CHO (g)', 'PRO (g)', 'FAT (g)', 'KCAL']],
-    body: adjustedGroupPlan.map((group) => [
-      group.groupName,
-      String(group.exchangesPerDay),
-      String(group.choG),
-      String(group.proG),
-      String(group.fatG),
-      String(group.kcal),
+    body: adjustedBucketPlan.map((bucket) => [
+      resolveBucketLabel ? resolveBucketLabel(bucket.bucketKey) : bucket.bucketName,
+      String(bucket.exchangesPerDay),
+      String(bucket.choG),
+      String(bucket.proG),
+      String(bucket.fatG),
+      String(bucket.kcal),
     ]),
     theme: 'striped',
     styles: {
@@ -377,13 +381,15 @@ export const downloadClinicalPdf = async ({
   drawSectionTitle(doc, marginX, y, 'Top alimentos por grupo');
   y += 8;
 
-  const topRows = adjustedGroupPlan.map((group) => {
-    const key = String(group.groupCode);
-    const foods = (adjustedTopFoodsByGroup[key] ?? [])
+  const topRows = adjustedBucketPlan.map((bucket) => {
+    const foods = (adjustedTopFoodsByBucket[bucket.bucketKey] ?? [])
       .slice(0, 6)
       .map((food) => safeText(food.name))
       .join(', ');
-    return [group.groupName, foods || 'Sin recomendaciones disponibles'];
+    return [
+      resolveBucketLabel ? resolveBucketLabel(bucket.bucketKey) : bucket.bucketName,
+      foods || 'Sin recomendaciones disponibles',
+    ];
   });
 
   autoTable(doc, {
@@ -426,7 +432,7 @@ export const downloadClinicalPdf = async ({
     head: [['Alimento', 'Grupo', 'Score', 'Kcal', 'P/C/F (g)', 'Porcion', 'Razones']],
     body: foodsForReport.map((food) => [
       safeText(food.name),
-      String(food.subgroupCode ?? food.groupCode),
+      resolveFoodBucketLabel ? resolveFoodBucketLabel(food) : String(food.bucketKey),
       String(round(food.score, 1)),
       String(round(food.caloriesKcal, 0)),
       `${round(food.proteinG, 1)}/${round(food.carbsG, 1)}/${round(food.fatG, 1)}`,

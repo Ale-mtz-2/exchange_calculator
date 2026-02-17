@@ -32,20 +32,15 @@ const round = (value: number, digits = 2): number => {
 const normalizeWeeklyGoalDelta = (
   goal: 'maintain' | 'lose_fat' | 'gain_muscle',
   weeklyRaw?: number,
-  legacyRaw?: number,
 ): number => {
   if (goal === 'maintain') return 0;
 
   const weeklyCandidate =
     typeof weeklyRaw === 'number'
       ? weeklyRaw
-      : typeof legacyRaw === 'number'
-        ? legacyRaw <= 1
-          ? legacyRaw
-          : legacyRaw / 12
-        : goal === 'lose_fat'
-          ? 0.5
-          : 0.25;
+      : goal === 'lose_fat'
+        ? 0.5
+        : 0.25;
 
   const weeklyBase = clamp(weeklyCandidate, 0, 1);
 
@@ -59,7 +54,6 @@ const normalizeWeeklyGoalDelta = (
 const rawPatientProfileSchema = z.object({
   goal: goalSchema,
   goalDeltaKgPerWeek: z.number().min(0).max(1).optional(),
-  goalDeltaKg: z.number().min(0).max(12).optional(),
   sex: z.enum(['male', 'female']),
   age: z.number().int().min(15).max(90),
   weightKg: z.number().min(35).max(350),
@@ -77,14 +71,13 @@ const rawPatientProfileSchema = z.object({
   dislikes: z.array(z.string().min(1)).default([]),
   budgetLevel: z.enum(['low', 'medium', 'high']),
   prepTimeLevel: z.enum(['short', 'medium', 'long']),
-});
+}).strict();
 
 export const patientProfileSchema = rawPatientProfileSchema.transform((profile) => ({
   goal: profile.goal,
   goalDeltaKgPerWeek: normalizeWeeklyGoalDelta(
     profile.goal,
     profile.goalDeltaKgPerWeek,
-    profile.goalDeltaKg,
   ),
   sex: profile.sex,
   age: profile.age,

@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "corepack pnpm --filter @equivalentes/shared build && tsx watch src/index.ts",
-    "build": "prisma generate --schema prisma/schema.prisma && tsc -p tsconfig.json",
+    "build": "corepack pnpm --filter @equivalentes/shared build && prisma generate --schema prisma/schema.prisma && tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "lint": "eslint \"src/**/*.ts\"",
     "test": "vitest run --passWithNoTests",
@@ -13,7 +13,10 @@
     "prisma:migrate": "prisma migrate deploy --schema prisma/schema.prisma",
     "prisma:baseline": "prisma db execute --schema prisma/schema.prisma --file prisma/migrations/20260212120000_init/migration.sql && (prisma migrate resolve --schema prisma/schema.prisma --applied 20260212120000_init || echo baseline already applied)",
     "prisma:seed": "corepack pnpm --filter @equivalentes/shared build && tsx prisma/seed.ts",
-    "db:setup": "corepack pnpm prisma:baseline && corepack pnpm prisma:migrate && corepack pnpm prisma:seed"
+    "db:setup": "corepack pnpm prisma:baseline && corepack pnpm prisma:migrate && corepack pnpm prisma:seed",
+    "sync:bucket-profiles": "tsx src/scripts/syncBucketProfiles.ts",
+    "backfill:nutrition-ids": "tsx src/scripts/backfillNutritionIds.ts",
+    "sync:geo-metadata": "tsx src/scripts/backfillGeoMetadata.ts"
   },
   "dependencies": {
     "@equivalentes/shared": "workspace:*",

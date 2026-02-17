@@ -119,3 +119,45 @@ describe('rankFoods kcal policy', () => {
     expect(ranked).toHaveLength(0);
   });
 });
+
+describe('rankFoods geo metadata fallback', () => {
+  it('uses country match and does not add fallback when country availability exists', () => {
+    const ranked = rankFoods(
+      [
+        {
+          ...baseFood,
+          id: 10,
+          countryAvailability: ['MX'],
+        },
+      ],
+      baseProfile,
+    );
+
+    expect(ranked).toHaveLength(1);
+    expect(ranked[0]?.reasons.some((reason) => reason.code === 'country_match')).toBe(true);
+    expect(ranked[0]?.reasons.some((reason) => reason.code === 'fallback_neutral')).toBe(false);
+  });
+
+  it('keeps fallback when no geo metadata is present', () => {
+    const ranked = rankFoods([{ ...baseFood, id: 11 }], baseProfile);
+
+    expect(ranked).toHaveLength(1);
+    expect(ranked[0]?.reasons.some((reason) => reason.code === 'fallback_neutral')).toBe(true);
+  });
+
+  it('does not add fallback when geoWeight exists without country/state lists', () => {
+    const ranked = rankFoods(
+      [
+        {
+          ...baseFood,
+          id: 12,
+          geoWeight: 1,
+        },
+      ],
+      baseProfile,
+    );
+
+    expect(ranked).toHaveLength(1);
+    expect(ranked[0]?.reasons.some((reason) => reason.code === 'fallback_neutral')).toBe(false);
+  });
+});

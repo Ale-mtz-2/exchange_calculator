@@ -96,14 +96,19 @@ https://TU-DOMINIO.com/?cid={{subscriber_id}}&utm_source=manychat&utm_medium=wha
 2. Entrada sin WhatsApp (guest): si no hay `cid` en URL, frontend crea/reutiliza `guest_*` en `localStorage`.
 3. Frontend registra `open` en `POST /api/events` con `meta.source` (`whatsapp` o `guest`).
 4. Usuario llena formulario (país, estado, fórmula kcal, sistema, perfil).
-5. Backend genera plan dinámico:
+5. Backend genera plan dinámico por buckets (v2):
 - Fórmulas: Mifflin, Harris revisada, Schofield.
 - Equivalentes por sistema (SMAE MX + US/ES/AR graduales).
 - Ranking de alimentos por geografía y perfil.
+- Endpoint canónico: `POST /api/plans/generate`.
 6. Se registra `generate` en `POST /api/events`.
-7. Exportación CSV/PDF registra `export`.
-8. `/admin` muestra métricas, contactos y timeline por `cid`, con desglose por fuente.
-9. `/admin` incluye resumen por campaña (`utm_campaign` + `mc_msg_id`) con métricas de eventos y únicos por CID.
+7. **Lead Capture (Guest y WhatsApp):** Después de generar plan, se muestra el modal de captura de datos una sola vez por `cid` (opcional; se puede cerrar).
+   - Datos: Nombre (requerido), Email, WhatsApp.
+   - Se guarda en `leads` (`POST /api/leads`).
+   - Cerrar o guardar marca el prompt como atendido para ese `cid`.
+8. Exportación CSV/PDF registra `export`.
+9. `/admin` muestra métricas, contactos y timeline por `cid`, con desglose por fuente.
+10. `/admin` incluye resumen por campaña (`utm_campaign` + `mc_msg_id`) con métricas de eventos y únicos por CID.
 
 ## Dashboard admin
 

@@ -1,4 +1,4 @@
-import type { EquivalentGroupPlan, RankedFoodItem } from '@equivalentes/shared';
+import type { EquivalentBucketPlanV2, RankedFoodItemV2 } from '@equivalentes/shared';
 import { Workbook, type FillPattern } from 'exceljs';
 
 import { buildDeliverableFilename, formatGeneratedAtLabel } from './exportDeliverables';
@@ -6,13 +6,14 @@ import { buildDeliverableFilename, formatGeneratedAtLabel } from './exportDelive
 type EquivalentListExcelParams = {
   cid: string;
   generatedAt: Date;
-  groupPlan: EquivalentGroupPlan[];
-  foods: RankedFoodItem[];
+  bucketPlan: EquivalentBucketPlanV2[];
+  foods: RankedFoodItemV2[];
+  resolveBucketLabel?: (bucketKey: string) => string;
 };
 
 type FoodRow = {
-  groupCode: string;
-  groupName: string;
+  bucketKey: string;
+  bucketName: string;
   foodName: string;
   serving: string;
   score: number;
@@ -35,31 +36,33 @@ const toNumber = (value: number, digits = 1): number => {
   return Math.round(value * power) / power;
 };
 
-const buildFoodRows = (groupPlan: EquivalentGroupPlan[], foods: RankedFoodItem[]): FoodRow[] => {
-  const groupOrderIndex = new Map<string, number>();
-  const groupNameByCode = new Map<string, string>();
+const buildFoodRows = (
+  bucketPlan: EquivalentBucketPlanV2[],
+  foods: RankedFoodItemV2[],
+  resolveBucketLabel?: (bucketKey: string) => string,
+): FoodRow[] => {
+  const bucketOrderIndex = new Map<string, number>();
+  const bucketNameByKey = new Map<string, string>();
 
-  groupPlan.forEach((group, index) => {
-    const code = String(group.groupCode);
-    groupOrderIndex.set(code, index);
-    groupNameByCode.set(code, group.groupName);
+  bucketPlan.forEach((bucket, index) => {
+    bucketOrderIndex.set(bucket.bucketKey, index);
+    bucketNameByKey.set(bucket.bucketKey, resolveBucketLabel ? resolveBucketLabel(bucket.bucketKey) : bucket.bucketName);
   });
 
   const buckets = new Map<
     string,
-    { groupCode: string; groupName: string; parentOrder: number; foods: RankedFoodItem[] }
+    { bucketKey: string; bucketName: string; parentOrder: number; foods: RankedFoodItemV2[] }
   >();
 
   for (const food of foods) {
-    const rawCode = String(food.subgroupCode ?? food.groupCode);
-    const parentCode = String(food.groupCode);
-    const baseOrder = groupOrderIndex.get(rawCode) ?? groupOrderIndex.get(parentCode) ?? 9_999;
-    const groupName = groupNameByCode.get(rawCode) ?? groupNameByCode.get(parentCode) ?? rawCode;
-    const bucket = buckets.get(rawCode);
+    const bucketKey = String(food.bucketKey);
+    const baseOrder = bucketOrderIndex.get(bucketKey) ?? 9_999;
+    const bucketName = bucketNameByKey.get(bucketKey) ?? (resolveBucketLabel ? resolveBucketLabel(bucketKey) : bucketKey);
+    const bucket = buckets.get(bucketKey);
     if (!bucket) {
-      buckets.set(rawCode, {
-        groupCode: rawCode,
-        groupName,
+      buckets.set(bucketKey, {
+        bucketKey,
+        bucketName,
         parentOrder: baseOrder,
         foods: [food],
       });
@@ -70,7 +73,7 @@ const buildFoodRows = (groupPlan: EquivalentGroupPlan[], foods: RankedFoodItem[]
 
   const orderedBuckets = [...buckets.values()].sort((a, b) => {
     if (a.parentOrder !== b.parentOrder) return a.parentOrder - b.parentOrder;
-    return a.groupName.localeCompare(b.groupName);
+    return a.bucketName.localeCompare(b.bucketName);
   });
 
   const rows: FoodRow[] = [];
@@ -81,8 +84,8 @@ const buildFoodRows = (groupPlan: EquivalentGroupPlan[], foods: RankedFoodItem[]
 
     for (const food of sortedFoods) {
       rows.push({
-        groupCode: bucket.groupCode,
-        groupName: bucket.groupName,
+        bucketKey: bucket.bucketKey,
+        bucketName: bucket.bucketName,
         foodName: sanitizeText(food.name),
         serving: `${food.servingQty} ${sanitizeText(food.servingUnit)}`,
         score: toNumber(food.score, 1),
@@ -118,8 +121,9 @@ const groupFill = (bucketIndex: number): FillPattern => ({
 export const downloadEquivalentListExcel = async ({
   cid,
   generatedAt,
-  groupPlan,
+  bucketPlan,
   foods,
+  resolveBucketLabel,
 }: EquivalentListExcelParams): Promise<void> => {
   const workbook = new Workbook();
   workbook.creator = 'FitPilot';
@@ -164,7 +168,7 @@ export const downloadEquivalentListExcel = async ({
   metaCell.alignment = { vertical: 'middle', horizontal: 'left' };
 
   const summaryCell = worksheet.getCell('A5');
-  summaryCell.value = `Grupos en plan: ${groupPlan.length}  |  Alimentos recomendados: ${foods.length}`;
+  summaryCell.value = `Buckets en plan: ${bucketPlan.length}  |  Alimentos recomendados: ${foods.length}`;
   summaryCell.font = { name: 'Calibri', size: 10, bold: true, color: { argb: 'FF1E466E' } };
   summaryCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEAF4FF' } };
   summaryCell.alignment = { vertical: 'middle', horizontal: 'left' };
@@ -190,12 +194,12 @@ export const downloadEquivalentListExcel = async ({
     cell.border = thinBorder;
   });
 
-  const rows = buildFoodRows(groupPlan, foods);
+  const rows = buildFoodRows(bucketPlan, foods, resolveBucketLabel);
   let rowIndex = 7;
   for (const row of rows) {
     const excelRow = worksheet.getRow(rowIndex);
     excelRow.values = [
-      row.groupName,
+      row.bucketName,
       row.foodName,
       row.serving,
       row.score,

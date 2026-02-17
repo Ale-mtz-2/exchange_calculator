@@ -1,6 +1,6 @@
 import type {
   CreateEventInput,
-  EquivalentPlanResponse,
+  EquivalentPlanResponseV2,
   GeneratePlanInput,
   KcalFormulaId,
   PatientProfile,
@@ -52,17 +52,39 @@ const request = async <T>(path: string, options?: RequestOptions): Promise<T> =>
   return (await response.json()) as T;
 };
 
+export type ExchangeGroupOption = {
+  id: string;
+  groupCode: string;
+  displayNameEs: string;
+  choG: number;
+  proG: number;
+  fatG: number;
+  kcalTarget: number;
+};
+
+export type ExchangeSubgroupOption = {
+  id: string;
+  parentGroupCode: string;
+  subgroupCode: string;
+  displayNameEs: string;
+  choG: number;
+  proG: number;
+  fatG: number;
+  kcalTarget: number;
+  sortOrder: number;
+};
+
 export type AppOptions = {
   countries: { code: string; name: string }[];
   statesByCountry: Record<string, { code: string; name: string }[]>;
   formulas: { id: KcalFormulaId; name: string; description: string }[];
   systems: { id: string; countryCode: string; name: string }[];
-  groupsBySystem: Record<string, unknown[]>;
-  subgroupsBySystem?: Record<string, unknown[]>;
+  groupsBySystem: Record<string, ExchangeGroupOption[]>;
+  subgroupsBySystem?: Record<string, ExchangeSubgroupOption[]>;
   subgroupPoliciesBySystem?: Record<string, unknown[]>;
 };
 
-/* ── Admin response types ── */
+/* Admin response types */
 
 export type AdminSummary = {
   uniqueCids: number;
@@ -127,13 +149,12 @@ export const postEvent = (payload: CreateEventInput): Promise<{ ok: boolean }> =
 export const generatePlan = async (
   cid: string,
   profile: PatientProfile,
-): Promise<EquivalentPlanResponse> => {
+): Promise<EquivalentPlanResponseV2> => {
   const payload: GeneratePlanInput = { cid, profile };
-  const response = await request<{ ok: boolean; data: EquivalentPlanResponse }>('/api/plans/generate', {
+  const response = await request<{ ok: boolean; data: EquivalentPlanResponseV2 }>('/api/plans/generate', {
     method: 'POST',
     body: payload,
   });
-
   return response.data;
 };
 
@@ -188,9 +209,8 @@ export type LeadInput = {
   name: string;
   email?: string | undefined;
   whatsapp?: string | undefined;
+  termsAccepted: boolean;
 };
 
 export const saveLead = (payload: LeadInput): Promise<{ id: string }> =>
   request('/api/leads', { method: 'POST', body: payload });
-
-

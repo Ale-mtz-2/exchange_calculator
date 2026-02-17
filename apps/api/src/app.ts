@@ -1,4 +1,4 @@
-﻿import cors from 'cors';
+import cors from 'cors';
 import express from 'express';
 
 import { env } from './config/env.js';
@@ -6,9 +6,9 @@ import { basicAuthMiddleware } from './middleware/basicAuth.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { adminRouter } from './routes/admin.js';
 import { eventsRouter } from './routes/events.js';
+import { leadsRouter } from './routes/leads.js';
 import { optionsRouter } from './routes/options.js';
 import { plansRouter } from './routes/plans.js';
-import { leadsRouter } from './routes/leads.js';
 
 export const app = express();
 

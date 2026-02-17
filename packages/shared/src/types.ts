@@ -2,7 +2,6 @@ import type {
   ActivityLevel,
   BudgetLevel,
   DietPattern,
-  ExchangeBucketCode,
   ExchangeGroupCode,
   ExchangeSubgroupCode,
   ExchangeSystemId,
@@ -84,16 +83,6 @@ export type EnergyTargets = {
   fatG: number;
 };
 
-export type EquivalentGroupPlan = {
-  groupCode: ExchangeBucketCode | string;
-  groupName: string;
-  exchangesPerDay: number;
-  choG: number;
-  proG: number;
-  fatG: number;
-  kcal: number;
-};
-
 export type FoodTag = {
   type: 'allergen' | 'intolerance' | 'diet' | 'prep_time' | 'budget' | 'keyword';
   value: string;
@@ -143,21 +132,74 @@ export type RankedFoodItem = FoodItem & {
   reasons: FoodRankReason[];
 };
 
+export type BucketType = 'group' | 'subgroup';
+
+export type FoodItemV2 = FoodItem & {
+  nutritionValueId: number;
+  dataSourceId: number | null;
+  groupId: number;
+  subgroupId?: number;
+  bucketType: BucketType;
+  bucketId: number;
+  bucketKey: string;
+};
+
+export type RankedFoodItemV2 = FoodItemV2 & {
+  score: number;
+  reasons: FoodRankReason[];
+};
+
+export type EquivalentBucketPlanV2 = {
+  bucketType: BucketType;
+  bucketId: number;
+  bucketKey: string;
+  bucketName: string;
+  legacyCode?: string;
+  exchangesPerDay: number;
+  choG: number;
+  proG: number;
+  fatG: number;
+  kcal: number;
+};
+
+export type EquivalentBucketCatalogItem = {
+  bucketType: BucketType;
+  bucketId: number;
+  bucketKey: string;
+  bucketName: string;
+  parentGroupId?: number;
+  parentGroupName?: string;
+  legacyCode?: string;
+  choPerExchange: number;
+  proPerExchange: number;
+  fatPerExchange: number;
+  kcalPerExchange: number;
+};
+
+export type MealDistributionBucketInput = {
+  bucketKey: string;
+  legacyCode?: string;
+  exchangesPerDay: number;
+};
+
 /** A single meal slot with its name and per-group exchange distribution */
 export type MealSlot = {
   name: string;
   distribution: Record<string, number>;
 };
 
-/** Full meal distribution plan — one slot per meal */
+/** Full meal distribution plan - one slot per meal */
 export type MealDistributionPlan = MealSlot[];
 
-export type EquivalentPlanResponse = {
+export type EquivalentPlanResponseV2 = {
+  version: 'v2';
+  profileVersion: string;
   profile: PatientProfile;
   targets: EnergyTargets;
-  groupPlan: EquivalentGroupPlan[];
-  subgroupPlan?: EquivalentGroupPlan[];
-  topFoodsByGroup: Record<string, RankedFoodItem[]>;
-  extendedFoods: RankedFoodItem[];
+  bucketCatalog: EquivalentBucketCatalogItem[];
+  bucketPlan: EquivalentBucketPlanV2[];
+  topFoodsByBucket: Record<string, RankedFoodItemV2[]>;
+  extendedFoods: RankedFoodItemV2[];
   mealDistribution?: MealDistributionPlan;
 };
+

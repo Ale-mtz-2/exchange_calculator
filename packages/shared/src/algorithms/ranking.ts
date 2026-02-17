@@ -35,6 +35,14 @@ const collectTextMatches = (textValues: string[], targetValues: string[]): boole
 const isAoaSubgroup = (subgroupCode: string | undefined): boolean =>
   Boolean(subgroupCode?.toLowerCase().startsWith('aoa_'));
 
+const hasGeoMetadata = (food: FoodItem): boolean => {
+  const hasCountryAvailability = Array.isArray(food.countryAvailability) && food.countryAvailability.length > 0;
+  const hasStateAvailability = Array.isArray(food.stateAvailability) && food.stateAvailability.length > 0;
+  const hasGeoWeight = typeof food.geoWeight === 'number' && Number.isFinite(food.geoWeight);
+
+  return hasCountryAvailability || hasStateAvailability || hasGeoWeight;
+};
+
 export type RankFoodsOptions = {
   subgroupScoreAdjustments?: Record<string, number>;
   targetCalories?: number;
@@ -79,9 +87,6 @@ const evaluateFood = (
       score += 25;
       reasons.push({ code: 'country_match', label: 'Disponible en el pais seleccionado', impact: 25 });
     }
-  } else {
-    score += 5;
-    reasons.push({ code: 'fallback_neutral', label: 'Sin metadata geografica, se aplica fallback', impact: 5 });
   }
 
   if (food.stateAvailability?.includes(profile.stateCode)) {
@@ -91,6 +96,11 @@ const evaluateFood = (
 
   if (food.geoWeight) {
     score += food.geoWeight;
+  }
+
+  if (!hasGeoMetadata(food)) {
+    score += 5;
+    reasons.push({ code: 'fallback_neutral', label: 'Sin metadata geografica, se aplica fallback', impact: 5 });
   }
 
   const goalScore = goalCompatibilityScore(profile.goal, food);

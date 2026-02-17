@@ -9,9 +9,12 @@ const LeadSchema = z.object({
     name: z.string().min(1, 'El nombre es requerido'),
     email: z.string().email('Email inválido').optional().or(z.literal('')),
     whatsapp: z.string().optional().or(z.literal('')),
+    termsAccepted: z.literal(true, {
+        errorMap: () => ({ message: 'Debes aceptar los términos y condiciones' })
+    }),
 }).refine((data) => data.email || data.whatsapp, {
     message: 'Debes proporcionar al menos un método de contacto (Email o WhatsApp)',
-    path: ['email'], // Attach error to email field
+    path: ['email'],
 });
 
 leadsRouter.post('/', async (req, res) => {
@@ -23,6 +26,7 @@ leadsRouter.post('/', async (req, res) => {
                 name: data.name,
                 email: data.email || null,
                 whatsapp: data.whatsapp || null,
+                termsAccepted: data.termsAccepted,
             },
         });
 

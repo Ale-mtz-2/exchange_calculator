@@ -24,15 +24,14 @@ const basePayload = {
 };
 
 describe('patientProfileSchema', () => {
-  it('normalizes legacy goalDeltaKg into weekly field', () => {
-    const parsed = patientProfileSchema.parse({
-      ...basePayload,
-      goal: 'lose_fat',
-      goalDeltaKg: 6,
-    });
-
-    expect(parsed.goalDeltaKgPerWeek).toBeGreaterThanOrEqual(0.25);
-    expect(parsed.goalDeltaKgPerWeek).toBeLessThanOrEqual(0.75);
+  it('rejects legacy goalDeltaKg field', () => {
+    expect(() =>
+      patientProfileSchema.parse({
+        ...basePayload,
+        goal: 'lose_fat',
+        goalDeltaKg: 6,
+      }),
+    ).toThrow();
   });
 
   it('uses weekly field when provided', () => {
