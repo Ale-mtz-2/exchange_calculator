@@ -19,6 +19,8 @@ import {
   mandatorySubgroupGroupCodes,
   mapExternalAliasToBucket,
   normalizeText,
+  parseCsv,
+  parseNumber,
   round2,
   sourceNameIsSmae,
   writeCsv,
@@ -284,14 +286,24 @@ const main = async (): Promise<void> => {
   const root = path.resolve(process.cwd(), '..', '..');
   const tmpDir = path.join(root, 'apps', 'api', 'tmp');
   const guidePath = path.join(root, 'ejemplos_grupos_smae_am_fitness.md');
+  const approvedCuratedPath = path.join(root, 'apps', 'api', 'prisma', 'data', 'smae_food_curated.approved.csv');
 
   await ensureDirectory(tmpDir);
 
-  const [mxMappings, externalFoods, guideTokens] = await Promise.all([
+  const [mxMappings, externalFoods, guideTokens, approvedRows] = await Promise.all([
     loadMxMappings(),
     fetchExternalSmaeFoods(),
     loadGuideTokens(guidePath),
+    parseCsv(approvedCuratedPath).catch(() => []),
   ]);
+
+  const approvedFoodIds = new Set<number>();
+  for (const approvedRow of approvedRows) {
+    const parsedFoodId = parseNumber(approvedRow.food_id);
+    if (parsedFoodId && parsedFoodId > 0) {
+      approvedFoodIds.add(Math.trunc(parsedFoodId));
+    }
+  }
 
   const foodRowsResult = await nutritionPool.query<FoodAuditBaseRow>(
     `
@@ -569,6 +581,11 @@ const main = async (): Promise<void> => {
 
     if (action === 'keep' && differs) {
       action = 'update';
+    }
+
+    if (action === 'review_required' && approvedFoodIds.has(row.food_id)) {
+      action = differs ? 'update' : 'keep';
+      notes.push('Previously approved in curated CSV');
     }
 
     if (action === 'review_required') {
