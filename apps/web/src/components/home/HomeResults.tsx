@@ -30,7 +30,7 @@ interface HomeResultsProps {
     onExportExcel: () => void;
     onExportPdf: () => void;
     onReset: () => void;
-    onAdjustBucket: (bucketKey: string, step: number) => void;
+    onAdjustMealCell: (bucketKey: string, mealName: string, step: number) => void;
 }
 
 export const HomeResults = ({
@@ -47,7 +47,7 @@ export const HomeResults = ({
     onExportExcel,
     onExportPdf,
     onReset,
-    onAdjustBucket,
+    onAdjustMealCell,
 }: HomeResultsProps): JSX.Element => {
     const canIncreaseByBucket = editableBucketRows.reduce<Record<string, boolean>>((acc, bucket) => {
         acc[bucket.bucketKey] = canIncrease(bucket);
@@ -145,13 +145,13 @@ export const HomeResults = ({
                     <MealDistributionTable
                         canIncreaseByBucket={canIncreaseByBucket}
                         mealDistribution={adjustedMealDistribution}
-                        onAdjustBucket={onAdjustBucket}
+                        onAdjustMealCell={onAdjustMealCell}
                         bucketPlan={adjustedBucketPlan}
                     />
                 )}
 
                 <p className="text-xs text-slate-500">
-                    Ajusta equivalentes con +/- en la tabla de distribucion por comida. La distribucion de macros y equivalentes se
+                    Ajusta equivalentes con +/- en cada comida. La distribucion de macros y equivalentes se
                     actualiza en tiempo real. La lista de alimentos corresponde al plan generado.
                 </p>
                 <p className="text-[11px] font-semibold text-slate-500">Desliza horizontalmente para ver todas las columnas.</p>

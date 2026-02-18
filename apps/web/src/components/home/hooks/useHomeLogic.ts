@@ -28,11 +28,19 @@ import {
     buildBaseExchangesByBucket,
     buildEditableBucketRows,
     buildEffectiveEditableBucketRows,
+    canIncrease,
     isNonRebalanceBucket,
     roundHalf,
     roundHalfSigned,
 } from '../../../lib/bucketPlanDynamic';
 import { buildBucketLabelIndex, resolveFoodBucketLabel } from '../../../lib/bucketLabels';
+import {
+    applyMealCellStep,
+    filterRebalanceCandidates,
+    mergeMealOverrides,
+    normalizeBucketMealRow,
+    type MealCellOverridesByBucket,
+} from '../../../lib/mealCellAdjustments';
 import {
     hasLeadPromptBeenHandled,
     markLeadPromptCompleted,
@@ -77,6 +85,8 @@ export function useHomeLogic() {
     const [error, setError] = useState<string | null>(null);
     const [plan, setPlan] = useState<EquivalentPlanResponseV2 | null>(null);
     const [bucketAdjustments, setBucketAdjustments] = useState<Record<string, number>>({});
+    const [mealCellOverridesByBucket, setMealCellOverridesByBucket] = useState<MealCellOverridesByBucket>({});
+    const [lastEditedMealByBucket, setLastEditedMealByBucket] = useState<Record<string, string>>({});
     const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
     const isGenerating = viewPhase === 'generating';
 
@@ -236,7 +246,7 @@ export function useHomeLogic() {
         return plan.topFoodsByBucket;
     }, [plan]);
 
-    const adjustedMealDistribution = useMemo(() => {
+    const baselineMealDistribution = useMemo(() => {
         if (!plan) return [];
         return distributeMeals(
             effectiveEditableBucketRows.map((bucket) => ({
@@ -250,6 +260,48 @@ export function useHomeLogic() {
             plan.profile,
         );
     }, [effectiveEditableBucketRows, plan]);
+
+    const adjustedMealDistribution = useMemo(() => {
+        if (!plan) return [];
+        if (baselineMealDistribution.length === 0) return baselineMealDistribution;
+
+        const mealOrder = baselineMealDistribution.map((slot) => slot.name);
+        const slots = baselineMealDistribution.map((slot) => ({
+            ...slot,
+            distribution: { ...slot.distribution },
+        }));
+        const slotByName = new Map(slots.map((slot) => [slot.name, slot]));
+        const bucketByKey = new Map(
+            adjustedBucketPlan.map((bucket) => [bucket.bucketKey, bucket]),
+        );
+
+        for (const [bucketKey, overrideRow] of Object.entries(mealCellOverridesByBucket)) {
+            const bucket = bucketByKey.get(bucketKey);
+            if (!bucket) continue;
+
+            const preferredMeal = lastEditedMealByBucket[bucketKey] ?? mealOrder[0] ?? '';
+            const normalizedRow = normalizeBucketMealRow(
+                overrideRow,
+                bucket.exchangesPerDay,
+                preferredMeal,
+                mealOrder,
+            );
+
+            for (const mealName of mealOrder) {
+                const slot = slotByName.get(mealName);
+                if (!slot) continue;
+                slot.distribution[bucketKey] = normalizedRow[mealName] ?? 0;
+            }
+        }
+
+        return slots;
+    }, [
+        adjustedBucketPlan,
+        baselineMealDistribution,
+        lastEditedMealByBucket,
+        mealCellOverridesByBucket,
+        plan,
+    ]);
 
     const onProfileChange = <K extends keyof PatientProfile>(
         field: K,
@@ -314,71 +366,116 @@ export function useHomeLogic() {
         setStepIndex((prev) => Math.min(prev + 1, FORM_STEPS.length - 1));
     };
 
-    const adjustBucketExchanges = (bucketKey: string, step: number): void => {
-        if (!plan) return;
+    const applyBucketExchangeStep = (
+        previousAdjustments: Record<string, number>,
+        bucketKey: string,
+        step: number,
+        lockedBucketKeys: ReadonlySet<string> = new Set(),
+    ): Record<string, number> => {
+        if (!plan) return previousAdjustments;
 
         const base = baseExchangesByBucket.get(bucketKey) ?? 0;
-        setBucketAdjustments((prev) => {
-            const currentDelta = prev[bucketKey] ?? 0;
-            const currentExchanges = roundHalf(base + currentDelta);
-            const nextExchanges = roundHalf(clamp(currentExchanges + step, 0, MAX_DYNAMIC_EXCHANGES));
-            const nextDelta = roundHalfSigned(nextExchanges - base);
+        const currentDelta = previousAdjustments[bucketKey] ?? 0;
+        const currentExchanges = roundHalf(base + currentDelta);
+        const nextExchanges = roundHalf(clamp(currentExchanges + step, 0, MAX_DYNAMIC_EXCHANGES));
+        const nextDelta = roundHalfSigned(nextExchanges - base);
 
-            const next: Record<string, number> = { ...prev };
-            if (nextDelta === 0) {
-                delete next[bucketKey];
+        const next: Record<string, number> = { ...previousAdjustments };
+        if (nextDelta === 0) {
+            delete next[bucketKey];
+        } else {
+            next[bucketKey] = nextDelta;
+        }
+
+        const beforeRows = buildEffectiveEditableBucketRows(
+            buildEditableBucketRows(plan.bucketCatalog, plan.bucketPlan, previousAdjustments),
+        );
+        const afterRows = buildEffectiveEditableBucketRows(
+            buildEditableBucketRows(plan.bucketCatalog, plan.bucketPlan, next),
+        );
+        const effectiveBaseExchangesByBucket = buildBaseExchangesByBucket(afterRows);
+        const beforeTarget = beforeRows.find((bucket) => bucket.bucketKey === bucketKey);
+        const afterTarget = afterRows.find((bucket) => bucket.bucketKey === bucketKey);
+        if (!beforeTarget || !afterTarget || afterTarget.kcalPerExchange <= 0) return next;
+
+        const kcalDelta =
+            (afterTarget.exchangesPerDay - beforeTarget.exchangesPerDay) * afterTarget.kcalPerExchange;
+        if (Math.abs(kcalDelta) < 10) return next;
+
+        const eligible = filterRebalanceCandidates(afterRows, bucketKey, lockedBucketKeys).filter(
+            (bucket) =>
+                !isNonRebalanceBucket(bucket) &&
+                bucket.exchangesPerDay > 0 &&
+                bucket.kcalPerExchange > 0,
+        );
+
+        const totalEligibleKcal = eligible.reduce((sum, bucket) => sum + bucket.kcal, 0);
+        if (totalEligibleKcal <= 0) return next;
+
+        for (const bucket of eligible) {
+            const share = bucket.kcal / totalEligibleKcal;
+            const compensationKcal = -kcalDelta * share;
+            const compensationExchanges = roundHalfSigned(compensationKcal / bucket.kcalPerExchange);
+
+            const rowBase = effectiveBaseExchangesByBucket.get(bucket.bucketKey) ?? 0;
+            const existingDelta = next[bucket.bucketKey] ?? 0;
+            const rowCurrentExchanges = roundHalf(rowBase + existingDelta);
+            const rowNextExchanges = roundHalf(
+                clamp(rowCurrentExchanges + compensationExchanges, 0, MAX_DYNAMIC_EXCHANGES),
+            );
+            const rowNewDelta = roundHalfSigned(rowNextExchanges - rowBase);
+
+            if (rowNewDelta === 0) {
+                delete next[bucket.bucketKey];
             } else {
-                next[bucketKey] = nextDelta;
+                next[bucket.bucketKey] = rowNewDelta;
             }
+        }
 
-            const beforeRows = buildEffectiveEditableBucketRows(
-                buildEditableBucketRows(plan.bucketCatalog, plan.bucketPlan, prev),
-            );
-            const afterRows = buildEffectiveEditableBucketRows(
-                buildEditableBucketRows(plan.bucketCatalog, plan.bucketPlan, next),
-            );
-            const effectiveBaseExchangesByBucket = buildBaseExchangesByBucket(afterRows);
-            const beforeTarget = beforeRows.find((bucket) => bucket.bucketKey === bucketKey);
-            const afterTarget = afterRows.find((bucket) => bucket.bucketKey === bucketKey);
-            if (!beforeTarget || !afterTarget || afterTarget.kcalPerExchange <= 0) return next;
+        return next;
+    };
 
-            const kcalDelta =
-                (afterTarget.exchangesPerDay - beforeTarget.exchangesPerDay) * afterTarget.kcalPerExchange;
-            if (Math.abs(kcalDelta) < 10) return next;
+    const adjustMealCellExchanges = (bucketKey: string, mealName: string, step: number): void => {
+        if (!plan) return;
 
-            const eligible = afterRows.filter(
-                (bucket) =>
-                    bucket.bucketKey !== bucketKey &&
-                    !isNonRebalanceBucket(bucket) &&
-                    bucket.exchangesPerDay > 0 &&
-                    bucket.kcalPerExchange > 0,
-            );
+        const mealOrder = adjustedMealDistribution.map((slot) => slot.name);
+        if (!mealOrder.includes(mealName)) return;
 
-            const totalEligibleKcal = eligible.reduce((sum, bucket) => sum + bucket.kcal, 0);
-            if (totalEligibleKcal <= 0) return next;
+        const targetBucket = effectiveEditableBucketRows.find((bucket) => bucket.bucketKey === bucketKey);
+        if (!targetBucket) return;
 
-            for (const bucket of eligible) {
-                const share = bucket.kcal / totalEligibleKcal;
-                const compensationKcal = -kcalDelta * share;
-                const compensationExchanges = roundHalfSigned(compensationKcal / bucket.kcalPerExchange);
+        if (step > 0 && !canIncrease(targetBucket)) return;
 
-                const rowBase = effectiveBaseExchangesByBucket.get(bucket.bucketKey) ?? 0;
-                const existingDelta = next[bucket.bucketKey] ?? 0;
-                const rowCurrentExchanges = roundHalf(rowBase + existingDelta);
-                const rowNextExchanges = roundHalf(
-                    clamp(rowCurrentExchanges + compensationExchanges, 0, MAX_DYNAMIC_EXCHANGES),
-                );
-                const rowNewDelta = roundHalfSigned(rowNextExchanges - rowBase);
+        const currentRow = mealOrder.reduce<Record<string, number>>((acc, name) => {
+            const slot = adjustedMealDistribution.find((entry) => entry.name === name);
+            acc[name] = slot?.distribution[bucketKey] ?? 0;
+            return acc;
+        }, {});
 
-                if (rowNewDelta === 0) {
-                    delete next[bucket.bucketKey];
-                } else {
-                    next[bucket.bucketKey] = rowNewDelta;
-                }
-            }
+        const currentCell = currentRow[mealName] ?? 0;
+        if (step < 0 && currentCell <= 0) return;
 
-            return next;
-        });
+        const currentTotal = targetBucket.exchangesPerDay;
+        const nextTotal = roundHalf(clamp(currentTotal + step, 0, MAX_DYNAMIC_EXCHANGES));
+        const actualStep = roundHalfSigned(nextTotal - currentTotal);
+        if (actualStep === 0) return;
+
+        const nextRow = applyMealCellStep(
+            currentRow,
+            mealName,
+            actualStep,
+            nextTotal,
+            mealOrder,
+        );
+        const lockedBucketKeys = new Set(
+            Object.keys(mealCellOverridesByBucket).filter((key) => key !== bucketKey),
+        );
+
+        setBucketAdjustments((prev) =>
+            applyBucketExchangeStep(prev, bucketKey, actualStep, lockedBucketKeys));
+        setMealCellOverridesByBucket((prev) =>
+            mergeMealOverrides(prev, bucketKey, nextRow, baselineMealDistribution, mealOrder));
+        setLastEditedMealByBucket((prev) => ({ ...prev, [bucketKey]: mealName }));
     };
 
     const submit = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
@@ -405,6 +502,8 @@ export function useHomeLogic() {
             const generated = await generatePlan(cid, normalizedProfile);
             setPlan(generated);
             setBucketAdjustments({});
+            setMealCellOverridesByBucket({});
+            setLastEditedMealByBucket({});
             setProfile(normalizedProfile);
             setViewPhase('result');
             if (cid && !hasLeadPromptBeenHandled(cid)) {
@@ -523,6 +622,8 @@ export function useHomeLogic() {
 
     const resetBucketAdjustments = (): void => {
         setBucketAdjustments({});
+        setMealCellOverridesByBucket({});
+        setLastEditedMealByBucket({});
     };
 
     return {
@@ -567,7 +668,7 @@ export function useHomeLogic() {
             handleStepSelect,
             handleBackStep,
             handleNextStep,
-            adjustBucketExchanges,
+            adjustMealCellExchanges,
             submit,
             handleLeadSuccess,
             handleLeadClose,

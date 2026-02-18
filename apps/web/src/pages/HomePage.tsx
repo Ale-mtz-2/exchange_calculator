@@ -51,7 +51,7 @@ export const HomePage = (): JSX.Element => {
     handleStepSelect,
     handleBackStep,
     handleNextStep,
-    adjustBucketExchanges,
+    adjustMealCellExchanges,
     submit,
     handleLeadSuccess,
     handleLeadClose,
@@ -110,7 +110,7 @@ export const HomePage = (): JSX.Element => {
             onExportExcel={exportEquivalentListExcelFile}
             onExportPdf={exportClinicalPdf}
             onReset={resetBucketAdjustments}
-            onAdjustBucket={adjustBucketExchanges}
+            onAdjustMealCell={adjustMealCellExchanges}
           />
         ) : null}
       </div>
