@@ -59,6 +59,8 @@ type RawFoodRow = {
   exchange_group_id: number | null;
   exchange_group_name: string | null;
   category_name: string | null;
+  base_serving_size: number | null;
+  base_unit: string | null;
 };
 
 type OverrideRow = {
@@ -115,6 +117,19 @@ type CatalogV2CacheEntry = {
 const v2Cache = new Map<string, CatalogV2CacheEntry>();
 
 const normalizeText = (value: string | null | undefined): string => (value ?? '').trim().toLowerCase();
+
+const normalizePortionQty = (value: number | null | undefined): number | null => {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    return null;
+  }
+
+  return value;
+};
+
+const normalizePortionUnit = (value: string | null | undefined): string | null => {
+  const trimmed = (value ?? '').trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
 
 const isLikelyLegume = (
   foodName: string,
@@ -246,7 +261,13 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
             f.name,
             f.exchange_group_id,
             ng.name AS exchange_group_name,
-            fc.name AS category_name
+            fc.name AS category_name,
+            CASE
+              WHEN f.base_serving_size IS NOT NULL AND f.base_serving_size > 0
+                THEN f.base_serving_size::float8
+              ELSE NULL
+            END AS base_serving_size,
+            NULLIF(BTRIM(f.base_unit), '') AS base_unit
           FROM ${nutritionSchema}.foods f
           LEFT JOIN ${nutritionSchema}.food_categories fc ON fc.id = f.category_id
           LEFT JOIN ${nutritionSchema}.exchange_groups ng ON ng.id = f.exchange_group_id
@@ -396,6 +417,16 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
     const bucketKey = `${bucketType}:${bucketId}`;
     const groupKey = `group:${groupId}`;
     const subgroupKey = subgroupId ? `subgroup:${subgroupId}` : undefined;
+    const servingQty =
+      normalizePortionQty(override?.equivalent_portion_qty) ??
+      normalizePortionQty(row.base_serving_size) ??
+      normalizePortionQty(canonical.servingQty) ??
+      100;
+    const servingUnit =
+      normalizePortionUnit(override?.portion_unit) ??
+      normalizePortionUnit(row.base_unit) ??
+      normalizePortionUnit(canonical.servingUnit) ??
+      'g';
 
     const next: FoodItemV2 = {
       id: row.id,
@@ -405,8 +436,8 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
       proteinG,
       fatG,
       caloriesKcal: canonical.caloriesKcal,
-      servingQty: override?.equivalent_portion_qty ?? canonical.servingQty ?? 100,
-      servingUnit: override?.portion_unit ?? canonical.servingUnit ?? 'g',
+      servingQty,
+      servingUnit,
       sourceSystemId: options.systemId,
       nutritionValueId: canonical.nutritionValueId,
       dataSourceId: canonical.dataSourceId,

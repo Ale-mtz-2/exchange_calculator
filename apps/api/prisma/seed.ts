@@ -86,7 +86,8 @@ type MxClassificationRow = {
   food_id: number;
   group_code: string;
   subgroup_code: string | null;
-  serving_unit: string;
+  serving_qty: number | null;
+  serving_unit: string | null;
 };
 
 type NutritionMappings = {
@@ -239,8 +240,12 @@ const seedMxDefaultOverrides = async (
         COALESCE(ln.protein_g, f.protein_g, 0)::float8 AS protein_g,
         COALESCE(ln.carbs_g, f.carbs_g, 0)::float8 AS carbs_g,
         COALESCE(ln.fat_g, f.fat_g, 0)::float8 AS fat_g,
-        COALESCE(ln.serving_qty, f.base_serving_size, 100)::float8 AS serving_qty,
-        COALESCE(ln.serving_unit, f.base_unit, 'g') AS serving_unit
+        CASE
+          WHEN f.base_serving_size IS NOT NULL AND f.base_serving_size > 0
+            THEN f.base_serving_size::float8
+          ELSE NULL
+        END AS serving_qty,
+        NULLIF(BTRIM(f.base_unit), '') AS serving_unit
       FROM nutrition.foods f
       LEFT JOIN nutrition.food_categories fc ON fc.id = f.category_id
       LEFT JOIN nutrition.exchange_groups ng ON ng.id = f.exchange_group_id
@@ -249,6 +254,7 @@ const seedMxDefaultOverrides = async (
     classified AS (
       SELECT
         b.food_id,
+        b.serving_qty,
         b.serving_unit,
         CASE
           WHEN (b.exchange_group_name LIKE '%grasa%' OR b.category_name LIKE '%grasa%') THEN 'fat'
@@ -299,7 +305,7 @@ const seedMxDefaultOverrides = async (
         END AS subgroup_code
       FROM base b
     )
-    SELECT food_id, group_code, subgroup_code, serving_unit
+    SELECT food_id, group_code, subgroup_code, serving_qty, serving_unit
     FROM classified;
   `);
 
@@ -325,7 +331,7 @@ const seedMxDefaultOverrides = async (
       update: {
         groupId,
         subgroupId,
-        equivalentPortionQty: 1,
+        equivalentPortionQty: row.serving_qty,
         portionUnit: row.serving_unit,
         isActive: true,
       },
@@ -334,7 +340,7 @@ const seedMxDefaultOverrides = async (
         systemId: 'mx_smae',
         groupId,
         subgroupId,
-        equivalentPortionQty: 1,
+        equivalentPortionQty: row.serving_qty,
         portionUnit: row.serving_unit,
         isActive: true,
       },
