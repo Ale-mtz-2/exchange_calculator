@@ -90,6 +90,14 @@ const MILK_HINTS = [
   'yakult',
 ];
 
+const MILK_DESSERT_HINTS = [
+  'cajeta',
+  'chocolate',
+  'caramelo',
+  'tableta',
+  'dulce',
+];
+
 const SUGAR_HINTS = [
   'azucar',
   'miel',
@@ -159,8 +167,12 @@ const inferGroupByHeuristics = (
   const containsAny = (keywords: string[]): boolean =>
     keywords.some((keyword) => normalizedName.includes(keyword));
 
+  if (normalizedName.includes('tlacoyo')) return 'carb';
   if (containsAny(LEGUME_HINTS)) return 'legume';
-  if (containsAny(MILK_HINTS)) return 'milk';
+
+  const hasMilkKeyword = containsAny(MILK_HINTS);
+  const hasMilkDessertKeyword = containsAny(MILK_DESSERT_HINTS);
+  if (hasMilkKeyword && !hasMilkDessertKeyword) return 'milk';
 
   const hasSugarKeyword = containsAny(SUGAR_HINTS);
   const hasCerealKeyword =
@@ -176,7 +188,9 @@ const inferGroupByHeuristics = (
     normalizedName.includes('tostada');
   const saysSugarFree = normalizedName.includes('sin azucar');
 
-  if (hasSugarKeyword && !hasCerealKeyword && !saysSugarFree) return 'sugar';
+  if ((hasSugarKeyword || hasMilkDessertKeyword) && !hasCerealKeyword && !saysSugarFree) return 'sugar';
+
+  if (normalizedName.includes('pepita') || normalizedName.includes('semilla')) return 'fat';
   if (containsAny(FAT_HINTS)) return 'fat';
   if (containsAny(PROTEIN_HINTS)) return 'protein';
   if (containsAny(VEGETABLE_HINTS)) return 'vegetable';
