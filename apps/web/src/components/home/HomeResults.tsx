@@ -111,7 +111,7 @@ export const HomeResults = ({
 
                 <div className="no-print flex flex-wrap gap-2">
                     <button
-                        className="rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-[0_6px_18px_rgba(46,134,193,0.3)] transition hover:brightness-105 hover:shadow-[0_8px_22px_rgba(46,134,193,0.42)]"
+                        className="w-full rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-[0_6px_18px_rgba(46,134,193,0.3)] transition hover:brightness-105 hover:shadow-[0_8px_22px_rgba(46,134,193,0.42)] sm:w-auto"
                         style={{
                             background: 'linear-gradient(90deg, #0f8bff 0%, #2e86c1 100%)',
                         }}
@@ -121,14 +121,14 @@ export const HomeResults = ({
                         Descargar lista de equivalentes (Excel)
                     </button>
                     <button
-                        className="rounded-xl border border-sky/40 bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-sky/60 hover:shadow-[0_4px_12px_rgba(103,182,223,0.12)]"
+                        className="w-full rounded-xl border border-sky/40 bg-white px-4 py-2.5 text-sm font-bold text-ink transition hover:border-sky/60 hover:shadow-[0_4px_12px_rgba(103,182,223,0.12)] sm:w-auto"
                         onClick={() => void onExportPdf()}
                         type="button"
                     >
                         Descargar PDF clinico
                     </button>
                     <button
-                        className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50"
+                        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
                         onClick={onReset}
                         type="button"
                     >
@@ -147,7 +147,8 @@ export const HomeResults = ({
                     Ajusta equivalentes con +/- por bucket. La distribucion de macros y la lista de alimentos
                     se actualizan en tiempo real.
                 </p>
-                <div className="overflow-x-auto rounded-2xl border border-sky/12 bg-white">
+                <p className="text-[11px] font-semibold text-slate-500">Desliza horizontalmente para ver todas las columnas.</p>
+                <div className="no-scrollbar touch-pan-x overflow-x-auto rounded-2xl border border-sky/12 bg-white">
                     <table className="min-w-full border-collapse text-sm">
                         <thead>
                             <tr className="border-b border-sky/10 bg-gradient-to-r from-sky-50/60 to-white text-left">
@@ -207,7 +208,8 @@ export const HomeResults = ({
 
                 <div>
                     <h3 className="mb-2 text-lg font-extrabold text-ink">Lista extensa personalizada</h3>
-                    <div className="max-h-[420px] overflow-y-auto rounded-xl border border-sky/12 bg-white">
+                    <p className="mb-2 text-[11px] font-semibold text-slate-500">Desliza horizontalmente para revisar la tabla completa.</p>
+                    <div className="no-scrollbar touch-pan-x max-h-[420px] overflow-x-auto overflow-y-auto rounded-xl border border-sky/12 bg-white">
                         <table className="min-w-full text-sm">
                             <thead className="sticky top-0 bg-gradient-to-r from-sky-50/80 to-white/90 backdrop-blur-sm">
                                 <tr className="border-b border-sky/10 text-left">

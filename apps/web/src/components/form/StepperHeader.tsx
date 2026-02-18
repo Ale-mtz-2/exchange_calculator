@@ -24,7 +24,7 @@ export const StepperHeader = ({
         />
       </div>
 
-      <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+      <div className="no-scrollbar touch-pan-x flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory">
         {steps.map((step, index) => {
           const isActive = index === activeStep;
           const isCompleted = completedMap[index] ?? false;
@@ -35,7 +35,7 @@ export const StepperHeader = ({
             <button
               key={step.title}
               className={[
-                'min-w-[140px] shrink-0 rounded-xl border px-3 py-2 text-left text-xs font-semibold transition md:min-w-[170px]',
+                'min-w-[140px] shrink-0 snap-start rounded-xl border px-3 py-2 text-left text-xs font-semibold transition md:min-w-[170px]',
                 isActive
                   ? 'border-transparent bg-gradient-to-r from-[#0f8bff] to-[#2e86c1] text-white shadow-[0_8px_20px_rgba(15,139,255,0.35)]'
                   : isCompleted
@@ -57,7 +57,7 @@ export const StepperHeader = ({
                         : 'bg-sky-100 text-sky-700',
                   ].join(' ')}
                 >
-                  {isCompleted ? '✓' : index + 1}
+                  {isCompleted ? '\u2713' : index + 1}
                 </span>
                 <span className="uppercase tracking-[0.08em]">
                   Paso {index + 1}

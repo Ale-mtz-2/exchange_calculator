@@ -11,6 +11,16 @@ type GoalDeltaHoldBarProps = {
   recommended?: number;
 };
 
+type TouchLike = {
+  identifier: number;
+  clientX: number;
+};
+
+type TouchListLike = {
+  length: number;
+  item: (index: number) => TouchLike | null;
+};
+
 const clamp = (value: number, minValue: number, maxValue: number): number =>
   Math.min(maxValue, Math.max(minValue, value));
 
@@ -47,7 +57,10 @@ export const GoalDeltaHoldBar = ({
   const isMaintain = goal === 'maintain';
   const isDisabled = isMaintain || max <= min;
   const trackRef = useRef<HTMLDivElement | null>(null);
+  const activePointerIdRef = useRef<number | null>(null);
+  const activeTouchIdRef = useRef<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const supportsPointerEvents = typeof window !== 'undefined' && 'PointerEvent' in window;
 
   const normalizedValue = isMaintain ? 0 : clamp(value, min, max);
   const visualMin = isMaintain ? 0 : min;
@@ -74,20 +87,112 @@ export const GoalDeltaHoldBar = ({
     onChange(round(rawValue));
   };
 
-  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>): void => {
-    if (isDisabled) return;
+  const stopDragging = (): void => {
+    setIsDragging(false);
+    activePointerIdRef.current = null;
+    activeTouchIdRef.current = null;
+  };
 
+  const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>): void => {
+    if (isDisabled || !supportsPointerEvents) return;
+
+    activePointerIdRef.current = event.pointerId;
     setIsDragging(true);
-    event.currentTarget.setPointerCapture(event.pointerId);
+    if ('setPointerCapture' in event.currentTarget) {
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch {
+        // Safari may throw if capture is not available for the active pointer.
+      }
+    }
     updateFromClientX(event.clientX);
   };
 
   const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>): void => {
-    if (!isDragging) return;
+    if (!supportsPointerEvents || !isDragging) return;
+    if (activePointerIdRef.current !== event.pointerId) return;
     updateFromClientX(event.clientX);
   };
 
-  const stopDragging = (): void => setIsDragging(false);
+  const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>): void => {
+    if (!supportsPointerEvents) return;
+    if (activePointerIdRef.current !== null && activePointerIdRef.current !== event.pointerId) return;
+    stopDragging();
+  };
+
+  const handlePointerCancel = (event: React.PointerEvent<HTMLDivElement>): void => {
+    if (!supportsPointerEvents) return;
+    if (activePointerIdRef.current !== null && activePointerIdRef.current !== event.pointerId) return;
+    stopDragging();
+  };
+
+  const handlePointerLeave = (event: React.PointerEvent<HTMLDivElement>): void => {
+    if (!supportsPointerEvents || !isDragging) return;
+    if (activePointerIdRef.current !== null && activePointerIdRef.current !== event.pointerId) return;
+
+    if (
+      'hasPointerCapture' in event.currentTarget &&
+      event.currentTarget.hasPointerCapture(event.pointerId)
+    ) {
+      return;
+    }
+
+    stopDragging();
+  };
+
+  const handleLostPointerCapture = (event: React.PointerEvent<HTMLDivElement>): void => {
+    if (!supportsPointerEvents) return;
+    if (activePointerIdRef.current !== null && activePointerIdRef.current !== event.pointerId) return;
+    stopDragging();
+  };
+
+  const resolveTrackedTouch = (touches: TouchListLike): TouchLike | null => {
+    if (activeTouchIdRef.current === null) return null;
+
+    for (let index = 0; index < touches.length; index += 1) {
+      const touch = touches.item(index);
+      if (touch && touch.identifier === activeTouchIdRef.current) {
+        return touch;
+      }
+    }
+
+    return null;
+  };
+
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>): void => {
+    if (isDisabled || supportsPointerEvents) return;
+
+    const touch = event.changedTouches.item(0);
+    if (!touch) return;
+
+    activeTouchIdRef.current = touch.identifier;
+    setIsDragging(true);
+    updateFromClientX(touch.clientX);
+  };
+
+  const handleTouchMove = (event: React.TouchEvent<HTMLDivElement>): void => {
+    if (!isDragging || supportsPointerEvents) return;
+
+    const touch = resolveTrackedTouch(event.touches);
+    if (!touch) return;
+
+    event.preventDefault();
+    updateFromClientX(touch.clientX);
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>): void => {
+    if (supportsPointerEvents) return;
+
+    const touch = resolveTrackedTouch(event.changedTouches);
+    if (!touch) return;
+
+    stopDragging();
+  };
+
+  const handleTouchCancel = (): void => {
+    if (supportsPointerEvents) return;
+    stopDragging();
+  };
 
   const applyHealthyAuto = (): void => {
     if (isDisabled) return;
@@ -108,15 +213,24 @@ export const GoalDeltaHoldBar = ({
 
       <div
         ref={trackRef}
-        className={`relative mt-3 h-7 overflow-hidden rounded-full border-2 shadow-[inset_0_2px_6px_rgba(15,23,42,0.14)] ${isDisabled ? 'cursor-not-allowed' : 'cursor-ew-resize'}`}
+        className={`touch-pan-y relative mt-3 h-11 overflow-hidden rounded-full border-2 shadow-[inset_0_2px_6px_rgba(15,23,42,0.14)] md:h-7 ${isDisabled ? 'cursor-not-allowed' : 'cursor-ew-resize'}`}
         style={{
           background: 'var(--brand-green-track-bg, #f8fafc)',
           borderColor: 'var(--brand-green-border, #34d399)',
+          touchAction: isDisabled ? 'auto' : 'pan-y',
+          userSelect: isDragging ? 'none' : 'auto',
+          WebkitUserSelect: isDragging ? 'none' : 'auto',
         }}
-        onPointerCancel={stopDragging}
+        onLostPointerCapture={handleLostPointerCapture}
+        onPointerCancel={handlePointerCancel}
         onPointerDown={handlePointerDown}
+        onPointerLeave={handlePointerLeave}
         onPointerMove={handlePointerMove}
-        onPointerUp={stopDragging}
+        onPointerUp={handlePointerUp}
+        onTouchCancel={handleTouchCancel}
+        onTouchEnd={handleTouchEnd}
+        onTouchMove={handleTouchMove}
+        onTouchStart={handleTouchStart}
         role="slider"
         aria-label="Meta semanal de peso"
         aria-valuemin={min}

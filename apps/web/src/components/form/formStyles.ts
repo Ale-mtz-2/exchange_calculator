@@ -1,7 +1,7 @@
 export const fieldLabelClass = 'grid min-w-0 gap-1.5 text-sm font-semibold text-navy';
 
 export const inputClass =
-  'w-full min-w-0 rounded-xl border border-sky/25 bg-white/95 px-3 py-2.5 text-sm text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition duration-200 focus:border-sky focus:ring-4 focus:ring-sky/15 placeholder:text-slate-400';
+  'w-full min-w-0 min-h-[44px] rounded-xl border border-sky/25 bg-white/95 px-3 py-2.5 text-base text-slate-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] outline-none transition duration-200 focus:border-sky focus:ring-4 focus:ring-sky/15 placeholder:text-slate-400 sm:text-sm';
 
 export const selectClass = `${inputClass} pr-9`;
 

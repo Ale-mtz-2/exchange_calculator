@@ -32,7 +32,8 @@ export const MealDistributionTable = ({
         Equivalentes sugeridos por bucket para cada comida del dia.
         Los valores se calculan automaticamente segun tu objetivo y numero de comidas.
       </p>
-      <div className="overflow-x-auto rounded-2xl border border-sky/12 bg-white">
+      <p className="mb-2 text-[11px] font-semibold text-slate-500">Desliza horizontalmente para ver todas las columnas.</p>
+      <div className="no-scrollbar touch-pan-x overflow-x-auto rounded-2xl border border-sky/12 bg-white">
         <table className="min-w-full border-collapse text-sm">
           <thead>
             <tr className="border-b border-sky/10 bg-gradient-to-r from-sky-50/60 to-white text-left">
