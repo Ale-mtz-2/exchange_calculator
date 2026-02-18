@@ -28,7 +28,6 @@ import {
     buildBaseExchangesByBucket,
     buildEditableBucketRows,
     buildEffectiveEditableBucketRows,
-    buildTopFoodsByBucket,
     isNonRebalanceBucket,
     roundHalf,
     roundHalfSigned,
@@ -227,56 +226,15 @@ export function useHomeLogic() {
         [effectiveEditableBucketRows],
     );
 
-    const bucketScoreBias = useMemo(() => {
-        const biasMap: Record<string, number> = {};
-
-        for (const bucket of effectiveEditableBucketRows) {
-            const key = bucket.bucketKey;
-            const baseExchanges = baseExchangesByBucket.get(key) ?? 0;
-            const deltaExchanges = roundHalfSigned(bucket.exchangesPerDay - baseExchanges);
-            if (deltaExchanges === 0) continue;
-            biasMap[key] = round(deltaExchanges * 4);
-        }
-
-        return biasMap;
-    }, [effectiveEditableBucketRows, baseExchangesByBucket]);
-
     const adjustedExtendedFoods = useMemo(() => {
         if (!plan) return [] as RankedFoodItemV2[];
-
-        return plan.extendedFoods
-            .map((food) => {
-                const key = String(food.bucketKey);
-                const bias = bucketScoreBias[key] ?? 0;
-                if (!bias) return food;
-
-                return {
-                    ...food,
-                    score: round(food.score + bias),
-                    reasons: [
-                        ...food.reasons,
-                        {
-                            code: 'group_match' as const,
-                            label: 'Ajuste dinamico por equivalentes del grupo',
-                            impact: bias,
-                        },
-                    ],
-                };
-            })
-            .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name));
-    }, [plan, bucketScoreBias]);
+        return plan.extendedFoods;
+    }, [plan]);
 
     const adjustedTopFoodsByBucket = useMemo(() => {
         if (!plan) return {} as Record<string, RankedFoodItemV2[]>;
-
-        const grouped = buildTopFoodsByBucket(adjustedExtendedFoods, 6);
-        for (const bucket of adjustedBucketPlan) {
-            if (!grouped[bucket.bucketKey]) {
-                grouped[bucket.bucketKey] = (plan.topFoodsByBucket[bucket.bucketKey] ?? []).slice(0, 6);
-            }
-        }
-        return grouped;
-    }, [adjustedExtendedFoods, adjustedBucketPlan, plan]);
+        return plan.topFoodsByBucket;
+    }, [plan]);
 
     const adjustedMealDistribution = useMemo(() => {
         if (!plan) return [];

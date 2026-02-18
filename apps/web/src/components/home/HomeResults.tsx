@@ -144,8 +144,8 @@ export const HomeResults = ({
                 )}
 
                 <p className="text-xs text-slate-500">
-                    Ajusta equivalentes con +/- por bucket. La distribucion de macros y la lista de alimentos
-                    se actualizan en tiempo real.
+                    Ajusta equivalentes con +/- por bucket. La distribucion de macros y equivalentes se
+                    actualiza en tiempo real. La lista de alimentos corresponde al plan generado.
                 </p>
                 <p className="text-[11px] font-semibold text-slate-500">Desliza horizontalmente para ver todas las columnas.</p>
                 <div className="no-scrollbar touch-pan-x overflow-x-auto rounded-2xl border border-sky/12 bg-white">
@@ -156,7 +156,7 @@ export const HomeResults = ({
                                 <th className="py-3 pr-3 font-bold text-ink">Equiv./dia</th>
                                 <th className="py-3 pr-3 font-bold text-ink">Ajuste</th>
                                 <th className="py-3 pr-3 font-bold text-ink">Macros</th>
-                                <th className="py-3 pr-4 font-bold text-ink">Top alimentos</th>
+                                <th className="py-3 pr-4 font-bold text-ink">Top alimentos (base)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -207,7 +207,15 @@ export const HomeResults = ({
                 </div>
 
                 <div>
-                    <h3 className="mb-2 text-lg font-extrabold text-ink">Lista extensa personalizada</h3>
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                        <h3 className="text-lg font-extrabold text-ink">Lista extensa personalizada</h3>
+                        <span
+                            className="inline-flex items-center rounded-full border border-sky/25 bg-sky-50/70 px-2 py-0.5 text-[11px] font-semibold text-sky-800"
+                            title="Recomendaciones estables del plan generado; no cambian al ajustar equivalentes."
+                        >
+                            Recomendaciones base del plan
+                        </span>
+                    </div>
                     <p className="mb-2 text-[11px] font-semibold text-slate-500">Desliza horizontalmente para revisar la tabla completa.</p>
                     <div className="no-scrollbar touch-pan-x max-h-[420px] overflow-x-auto overflow-y-auto rounded-xl border border-sky/12 bg-white">
                         <table className="min-w-full text-sm">
