@@ -49,6 +49,11 @@ export const HomeResults = ({
     onReset,
     onAdjustBucket,
 }: HomeResultsProps): JSX.Element => {
+    const canIncreaseByBucket = editableBucketRows.reduce<Record<string, boolean>>((acc, bucket) => {
+        acc[bucket.bucketKey] = canIncrease(bucket);
+        return acc;
+    }, {});
+
     return (
         <section className="lg:col-span-2 rounded-[1.8rem] border border-sky/12 bg-white/85 p-5 shadow-[0_16px_40px_rgba(24,47,80,0.1)] backdrop-blur-xl md:p-6">
             <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
@@ -138,13 +143,15 @@ export const HomeResults = ({
 
                 {adjustedMealDistribution.length > 0 && (
                     <MealDistributionTable
+                        canIncreaseByBucket={canIncreaseByBucket}
                         mealDistribution={adjustedMealDistribution}
+                        onAdjustBucket={onAdjustBucket}
                         bucketPlan={adjustedBucketPlan}
                     />
                 )}
 
                 <p className="text-xs text-slate-500">
-                    Ajusta equivalentes con +/- por bucket. La distribucion de macros y equivalentes se
+                    Ajusta equivalentes con +/- en la tabla de distribucion por comida. La distribucion de macros y equivalentes se
                     actualiza en tiempo real. La lista de alimentos corresponde al plan generado.
                 </p>
                 <p className="text-[11px] font-semibold text-slate-500">Desliza horizontalmente para ver todas las columnas.</p>
@@ -154,7 +161,6 @@ export const HomeResults = ({
                             <tr className="border-b border-sky/10 bg-gradient-to-r from-sky-50/60 to-white text-left">
                                 <th className="py-3 pl-4 pr-3 font-bold text-ink">Grupo</th>
                                 <th className="py-3 pr-3 font-bold text-ink">Equiv./dia</th>
-                                <th className="py-3 pr-3 font-bold text-ink">Ajuste</th>
                                 <th className="py-3 pr-3 font-bold text-ink">Macros</th>
                                 <th className="py-3 pr-4 font-bold text-ink">Top alimentos (base)</th>
                             </tr>
@@ -171,26 +177,6 @@ export const HomeResults = ({
                                     >
                                         <td className="py-3 pl-4 pr-3 font-semibold text-ink">{groupLabel}</td>
                                         <td className="py-3 pr-3 tabular-nums">{bucket.exchangesPerDay}</td>
-                                        <td className="py-3 pr-3">
-                                            <div className="flex items-center gap-1.5">
-                                                <button
-                                                    className="h-7 w-7 rounded-lg border border-sky/25 bg-white text-sm font-bold text-sky transition hover:border-sky hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40"
-                                                    disabled={bucket.exchangesPerDay <= 0}
-                                                    onClick={() => onAdjustBucket(bucket.bucketKey, -0.5)}
-                                                    type="button"
-                                                >
-                                                    -
-                                                </button>
-                                                <button
-                                                    className="h-7 w-7 rounded-lg border border-sky/25 bg-white text-sm font-bold text-sky transition hover:border-sky hover:bg-sky-50 disabled:cursor-not-allowed disabled:opacity-40"
-                                                    disabled={!canIncrease(bucket)}
-                                                    onClick={() => onAdjustBucket(bucket.bucketKey, 0.5)}
-                                                    type="button"
-                                                >
-                                                    +
-                                                </button>
-                                            </div>
-                                        </td>
                                         <td className="py-3 pr-3 text-xs text-slate-600">
                                             CHO {bucket.choG}g / PRO {bucket.proG}g / FAT {bucket.fatG}g
                                         </td>
