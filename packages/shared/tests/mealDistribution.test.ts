@@ -8,6 +8,13 @@ const profile4Meals: Pick<PatientProfile, 'mealsPerDay' | 'goal'> = {
   goal: 'maintain',
 };
 
+const profile4MealsMx: Pick<PatientProfile, 'mealsPerDay' | 'goal' | 'systemId' | 'usesDairyInSnacks'> = {
+  mealsPerDay: 4,
+  goal: 'maintain',
+  systemId: 'mx_smae',
+  usesDairyInSnacks: true,
+};
+
 const sumByBucket = (
   slots: ReturnType<typeof distributeMeals>,
   bucketKey: string,
@@ -117,5 +124,50 @@ describe('distributeMeals', () => {
 
     expect(slots.some((slot) => slot.distribution['group:6'] !== undefined)).toBe(true);
     expect(slots.some((slot) => slot.distribution['subgroup:16'] !== undefined)).toBe(true);
+  });
+
+  it('prioritizes fruit and milk in mx_smae snack slot for 4 meals', () => {
+    const bucketPlan: MealDistributionBucketInput[] = [
+      {
+        bucketKey: 'group:fruit',
+        legacyCode: 'fruit',
+        exchangesPerDay: 1,
+      },
+      {
+        bucketKey: 'subgroup:milk',
+        legacyCode: 'leche_semidescremada',
+        exchangesPerDay: 1,
+      },
+    ];
+
+    const slots = distributeMeals(bucketPlan, profile4MealsMx);
+    const snack = slots.find((slot) => slot.name === 'Colacion AM');
+
+    expect(snack?.distribution['group:fruit']).toBeGreaterThan(0);
+    expect(snack?.distribution['subgroup:milk']).toBeGreaterThan(0);
+    expect(sumByBucket(slots, 'group:fruit')).toBe(1);
+    expect(sumByBucket(slots, 'subgroup:milk')).toBe(1);
+  });
+
+  it('keeps snack sugar/fat lower than lunch for mx_smae 4 meals', () => {
+    const bucketPlan: MealDistributionBucketInput[] = [
+      {
+        bucketKey: 'subgroup:sugar',
+        legacyCode: 'azucar_sin_grasa',
+        exchangesPerDay: 4,
+      },
+      {
+        bucketKey: 'subgroup:fat',
+        legacyCode: 'grasa_sin_proteina',
+        exchangesPerDay: 4,
+      },
+    ];
+
+    const slots = distributeMeals(bucketPlan, profile4MealsMx);
+    const snack = slots.find((slot) => slot.name === 'Colacion AM');
+    const lunch = slots.find((slot) => slot.name === 'Comida');
+
+    expect((snack?.distribution['subgroup:sugar'] ?? 0)).toBeLessThan(lunch?.distribution['subgroup:sugar'] ?? 0);
+    expect((snack?.distribution['subgroup:fat'] ?? 0)).toBeLessThan(lunch?.distribution['subgroup:fat'] ?? 0);
   });
 });

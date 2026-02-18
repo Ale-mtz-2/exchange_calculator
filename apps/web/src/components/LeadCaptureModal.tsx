@@ -1,19 +1,32 @@
-import { useState } from 'react';
-import { saveLead } from '../lib/api';
+import { useEffect, useState } from 'react';
+import { saveLead, upsertLeadByCid, type LeadByCidPayload } from '../lib/api';
 
 type Props = {
     isOpen: boolean;
+    cid?: string;
+    initialFullName?: string;
     onClose: () => void;
-    onSuccess: () => void;
+    onSuccess: (lead?: LeadByCidPayload) => void;
 };
 
-export const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: Props): JSX.Element | null => {
+export const LeadCaptureModal = ({
+    isOpen,
+    cid,
+    initialFullName,
+    onClose,
+    onSuccess,
+}: Props): JSX.Element | null => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [whatsapp, setWhatsapp] = useState('');
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        setName(initialFullName?.trim() ?? '');
+    }, [initialFullName, isOpen]);
 
     if (!isOpen) return null;
 
@@ -39,13 +52,23 @@ export const LeadCaptureModal = ({ isOpen, onClose, onSuccess }: Props): JSX.Ele
         setIsLoading(true);
 
         try {
-            await saveLead({
-                name,
-                email: email || undefined,
-                whatsapp: whatsapp || undefined,
-                termsAccepted,
-            });
-            onSuccess();
+            if (cid) {
+                const lead = await upsertLeadByCid(cid, {
+                    fullName: name.trim(),
+                    email: email || undefined,
+                    whatsapp: whatsapp || undefined,
+                    termsAccepted: true,
+                });
+                onSuccess(lead);
+            } else {
+                await saveLead({
+                    name,
+                    email: email || undefined,
+                    whatsapp: whatsapp || undefined,
+                    termsAccepted,
+                });
+                onSuccess();
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error al guardar. Intenta de nuevo.');
         } finally {

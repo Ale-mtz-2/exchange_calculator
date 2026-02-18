@@ -1,0 +1,3 @@
+﻿"food_id","name","current_group_id","current_subgroup_id","current_serving_qty","current_serving_unit","recommended_group_id","recommended_subgroup_id","recommended_serving_qty","recommended_serving_unit","recommended_group_code","recommended_subgroup_code","evidence_source","confidence","action","canonical_data_source","external_match_group_alias","external_match_equi_qty","external_match_units","notes"
+"214","Habas cocidas enteras","8","13","75","g","9","","75","g","legume","","manual_example","low","update","SMAE (México)","","","","Guide token match: habas"
+"215","Alubias blancas cocidas","8","13","60","g","9","","60","g","legume","","manual_example","low","update","SMAE (México)","","","","Guide token match: alubias"

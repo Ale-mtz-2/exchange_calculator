@@ -8,6 +8,11 @@ const nutritionSchema = safeSchema(env.DB_NUTRITION_SCHEMA);
 const appSchema = safeSchema(env.DB_APP_SCHEMA);
 
 const DEFAULT_SOURCE_PRIORITY = 1000;
+const SOURCE_NAME_NORMALIZER = "translate(lower(COALESCE(ds.name,'')), 'áéíóúäëïöüñ', 'aeiouaeioun')";
+
+const STRICT_SOURCE_PATTERNS_BY_SYSTEM: Partial<Record<ExchangeSystemId, string>> = {
+  mx_smae: '%(smae|mex)%',
+};
 
 export type CanonicalNutritionValue = {
   nutritionValueId: number;
@@ -86,6 +91,10 @@ export const selectCanonicalNutritionValue = (
 export const resolveCanonicalNutritionValues = async (
   systemId: ExchangeSystemId | string,
 ): Promise<Map<number, CanonicalNutritionValue>> => {
+  const strictPattern =
+    (typeof systemId === 'string' && (STRICT_SOURCE_PATTERNS_BY_SYSTEM as Record<string, string | undefined>)[systemId]) ??
+    null;
+
   const result = await nutritionPool.query<{
     nutrition_value_id: number;
     food_id: number;
@@ -109,6 +118,7 @@ export const resolveCanonicalNutritionValues = async (
         COALESCE(fnv.base_serving_size, 100)::float8 AS serving_qty,
         COALESCE(fnv.base_unit, 'g') AS serving_unit
       FROM ${nutritionSchema}.food_nutrition_values fnv
+      LEFT JOIN ${nutritionSchema}.data_sources ds ON ds.id = fnv.data_source_id
       LEFT JOIN ${appSchema}.exchange_source_priorities esp
         ON esp.system_id = $1
        AND esp.data_source_id = fnv.data_source_id
@@ -118,13 +128,17 @@ export const resolveCanonicalNutritionValues = async (
         AND fnv.protein_g IS NOT NULL
         AND fnv.carbs_g IS NOT NULL
         AND fnv.fat_g IS NOT NULL
+        AND (
+          $2::text IS NULL
+          OR ${SOURCE_NAME_NORMALIZER} SIMILAR TO $2
+        )
       ORDER BY
         fnv.food_id,
         CASE WHEN fnv.state = 'standard' THEN 0 ELSE 1 END,
         COALESCE(esp.priority, ${DEFAULT_SOURCE_PRIORITY}),
         fnv.id DESC;
     `,
-    [systemId],
+    [systemId, strictPattern],
   );
 
   const map = new Map<number, CanonicalNutritionValue>();

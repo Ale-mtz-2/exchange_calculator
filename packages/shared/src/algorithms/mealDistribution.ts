@@ -4,6 +4,7 @@ import type {
   MealSlot,
   PatientProfile,
 } from '../types';
+import type { DietPattern, ExchangeSystemId } from '../catalog/systems';
 
 const MEAL_NAMES: Record<3 | 4 | 5, string[]> = {
   3: ['Desayuno', 'Comida', 'Cena'],
@@ -12,75 +13,194 @@ const MEAL_NAMES: Record<3 | 4 | 5, string[]> = {
 };
 
 type GoalKey = 'lose_fat' | 'maintain' | 'gain_muscle';
+type MealsCount = 3 | 4 | 5;
 
 const HALF_EXCHANGE_UNITS = 2;
 
-const getDistributionMatrix = (
-  mealsPerDay: 3 | 4 | 5,
+const cloneMatrix = (matrix: Record<string, number[]>): Record<string, number[]> =>
+  Object.fromEntries(Object.entries(matrix).map(([key, value]) => [key, [...value]]));
+
+const BASE_MATRIX_3: Record<string, number[]> = {
+  vegetable: [15, 45, 40],
+  fruit: [50, 25, 25],
+  carb: [30, 40, 30],
+  legume: [0, 60, 40],
+  protein: [25, 40, 35],
+  milk: [50, 0, 50],
+  fat: [30, 35, 35],
+  sugar: [50, 50, 0],
+};
+
+const BASE_MATRIX_4: Record<string, number[]> = {
+  vegetable: [15, 10, 40, 35],
+  fruit: [35, 30, 20, 15],
+  carb: [25, 15, 35, 25],
+  legume: [20, 0, 50, 30],
+  protein: [25, 0, 40, 35],
+  milk: [40, 30, 0, 30],
+  fat: [25, 10, 35, 30],
+  sugar: [30, 40, 30, 0],
+};
+
+const BASE_MATRIX_5: Record<string, number[]> = {
+  vegetable: [10, 0, 40, 5, 45],
+  fruit: [25, 25, 15, 25, 10],
+  carb: [25, 10, 30, 10, 25],
+  legume: [0, 0, 55, 0, 45],
+  protein: [20, 5, 35, 5, 35],
+  milk: [35, 25, 0, 25, 15],
+  fat: [25, 10, 30, 10, 25],
+  sugar: [25, 25, 25, 25, 0],
+};
+
+const MX_MATRIX_4_WITH_DAIRY: Record<string, number[]> = {
+  vegetable: [15, 5, 45, 35],
+  fruit: [25, 40, 20, 15],
+  carb: [25, 15, 35, 25],
+  legume: [20, 0, 50, 30],
+  protein: [25, 0, 40, 35],
+  milk: [25, 45, 0, 30],
+  fat: [25, 3, 40, 32],
+  sugar: [45, 3, 45, 7],
+};
+
+const MX_MATRIX_4_WITHOUT_DAIRY: Record<string, number[]> = {
+  ...MX_MATRIX_4_WITH_DAIRY,
+  milk: [35, 10, 0, 55],
+};
+
+const MX_MATRIX_5_WITH_DAIRY: Record<string, number[]> = {
+  vegetable: [10, 3, 42, 3, 42],
+  fruit: [20, 30, 15, 25, 10],
+  carb: [25, 10, 30, 10, 25],
+  legume: [0, 0, 55, 0, 45],
+  protein: [20, 5, 35, 5, 35],
+  milk: [25, 30, 0, 30, 15],
+  fat: [25, 3, 34, 3, 35],
+  sugar: [40, 3, 40, 3, 14],
+};
+
+const MX_MATRIX_5_WITHOUT_DAIRY: Record<string, number[]> = {
+  ...MX_MATRIX_5_WITH_DAIRY,
+  milk: [35, 10, 0, 10, 45],
+};
+
+const normalizePercentagesTo100 = (values: number[]): number[] => {
+  const safe = values.map((value) => Math.max(0, value));
+  const total = safe.reduce((sum, value) => sum + value, 0);
+
+  if (total <= 0) {
+    return Array.from({ length: safe.length }, () => 100 / Math.max(1, safe.length));
+  }
+
+  return safe.map((value) => (value / total) * 100);
+};
+
+const trainingWindowBonusIndices = (
+  mealsPerDay: MealsCount,
+  trainingWindow: PatientProfile['trainingWindow'],
+): number[] => {
+  if (trainingWindow === 'none') return [];
+
+  if (trainingWindow === 'morning') {
+    if (mealsPerDay === 3) return [0];
+    return [0, 1];
+  }
+
+  if (trainingWindow === 'afternoon') {
+    if (mealsPerDay === 3) return [1];
+    return [2];
+  }
+
+  if (mealsPerDay === 5) return [3, 4];
+  return [mealsPerDay - 1];
+};
+
+const applyTrainingWindowBonus = (
+  values: number[],
+  mealsPerDay: MealsCount,
+  trainingWindow: PatientProfile['trainingWindow'],
+): number[] => {
+  const indices = trainingWindowBonusIndices(mealsPerDay, trainingWindow);
+  if (indices.length === 0) return values;
+
+  const withBonus = [...values];
+  const perIndexBonus = 10 / indices.length;
+
+  for (const index of indices) {
+    if (index < 0 || index >= withBonus.length) continue;
+    withBonus[index] = (withBonus[index] ?? 0) + perIndexBonus;
+  }
+
+  return normalizePercentagesTo100(withBonus);
+};
+
+const applyGoalAdjustments = (
+  matrix: Record<string, number[]>,
+  mealsPerDay: MealsCount,
   goal: GoalKey,
-): Record<string, number[]> => {
-  if (mealsPerDay === 3) {
-    const base: Record<string, number[]> = {
-      vegetable: [15, 45, 40],
-      fruit: [50, 25, 25],
-      carb: [30, 40, 30],
-      legume: [0, 60, 40],
-      protein: [25, 40, 35],
-      milk: [50, 0, 50],
-      fat: [30, 35, 35],
-      sugar: [50, 50, 0],
-    };
-    if (goal === 'lose_fat') {
-      base.carb = [35, 40, 25];
-      base.fruit = [60, 25, 15];
-    } else if (goal === 'gain_muscle') {
-      base.carb = [30, 35, 35];
-      base.protein = [30, 35, 35];
-    }
-    return base;
-  }
-
-  if (mealsPerDay === 4) {
-    const base: Record<string, number[]> = {
-      vegetable: [15, 10, 40, 35],
-      fruit: [35, 30, 20, 15],
-      carb: [25, 15, 35, 25],
-      legume: [20, 0, 50, 30],
-      protein: [25, 0, 40, 35],
-      milk: [40, 30, 0, 30],
-      fat: [25, 10, 35, 30],
-      sugar: [30, 40, 30, 0],
-    };
-    if (goal === 'lose_fat') {
-      base.carb = [30, 10, 40, 20];
-      base.fruit = [40, 30, 20, 10];
-      base.sugar = [0, 0, 0, 0];
-    } else if (goal === 'gain_muscle') {
-      base.carb = [25, 15, 30, 30];
-      base.protein = [25, 5, 35, 35];
-    }
-    return base;
-  }
-
-  const base: Record<string, number[]> = {
-    vegetable: [10, 0, 40, 5, 45],
-    fruit: [25, 25, 15, 25, 10],
-    carb: [25, 10, 30, 10, 25],
-    legume: [0, 0, 55, 0, 45],
-    protein: [20, 5, 35, 5, 35],
-    milk: [35, 25, 0, 25, 15],
-    fat: [25, 10, 30, 10, 25],
-    sugar: [25, 25, 25, 25, 0],
-  };
+): void => {
   if (goal === 'lose_fat') {
-    base.carb = [25, 10, 35, 10, 20];
-    base.fruit = [30, 25, 15, 20, 10];
-    base.sugar = [0, 0, 0, 0, 0];
-  } else if (goal === 'gain_muscle') {
-    base.carb = [20, 15, 25, 15, 25];
-    base.protein = [20, 10, 30, 10, 30];
+    matrix.carb = mealsPerDay === 3
+      ? [35, 40, 25]
+      : mealsPerDay === 4
+        ? [30, 10, 40, 20]
+        : [25, 10, 35, 10, 20];
+
+    if (mealsPerDay === 3) {
+      matrix.fruit = [60, 25, 15];
+    }
   }
-  return base;
+
+  if (goal === 'gain_muscle') {
+    matrix.carb = mealsPerDay === 3
+      ? [30, 35, 35]
+      : mealsPerDay === 4
+        ? [25, 15, 30, 30]
+        : [20, 15, 25, 15, 25];
+
+    matrix.protein = mealsPerDay === 3
+      ? [30, 35, 35]
+      : mealsPerDay === 4
+        ? [25, 5, 35, 35]
+        : [20, 10, 30, 10, 30];
+  }
+};
+
+const getDistributionMatrix = (
+  mealsPerDay: MealsCount,
+  goal: GoalKey,
+  systemId?: ExchangeSystemId,
+  usesDairyInSnacks = true,
+  trainingWindow: PatientProfile['trainingWindow'] = 'none',
+  dietPattern?: DietPattern,
+): Record<string, number[]> => {
+  void dietPattern;
+
+  const isMx = systemId === 'mx_smae';
+  const shouldUseMxMatrix = isMx && (mealsPerDay === 4 || mealsPerDay === 5);
+
+  let matrix: Record<string, number[]>;
+
+  if (shouldUseMxMatrix) {
+    if (mealsPerDay === 4) {
+      matrix = cloneMatrix(usesDairyInSnacks ? MX_MATRIX_4_WITH_DAIRY : MX_MATRIX_4_WITHOUT_DAIRY);
+    } else {
+      matrix = cloneMatrix(usesDairyInSnacks ? MX_MATRIX_5_WITH_DAIRY : MX_MATRIX_5_WITHOUT_DAIRY);
+    }
+  } else if (mealsPerDay === 3) {
+    matrix = cloneMatrix(BASE_MATRIX_3);
+  } else if (mealsPerDay === 4) {
+    matrix = cloneMatrix(BASE_MATRIX_4);
+  } else {
+    matrix = cloneMatrix(BASE_MATRIX_5);
+  }
+
+  applyGoalAdjustments(matrix, mealsPerDay, goal);
+  matrix.carb = applyTrainingWindowBonus(matrix.carb ?? [], mealsPerDay, trainingWindow);
+  matrix.protein = applyTrainingWindowBonus(matrix.protein ?? [], mealsPerDay, trainingWindow);
+
+  return matrix;
 };
 
 const toHalfUnits = (value: number): number => Math.max(0, Math.round(value * HALF_EXCHANGE_UNITS));
@@ -140,9 +260,31 @@ const selectPrimaryMealIndex = (percentages: number[]): number => {
   return bestIndex;
 };
 
+const selectPreferredSnackIndex = (
+  percentages: number[],
+  mealCount: number,
+): number | null => {
+  if (mealCount < 4) return null;
+
+  const snackIndexes = mealCount === 5 ? [1, 3] : [1];
+  let bestIndex = snackIndexes[0] ?? 0;
+  let bestValue = Number.NEGATIVE_INFINITY;
+
+  for (const snackIndex of snackIndexes) {
+    const value = percentages[snackIndex] ?? 0;
+    if (value > bestValue) {
+      bestValue = value;
+      bestIndex = snackIndex;
+    }
+  }
+
+  return bestIndex;
+};
+
 const allocateUnitsByLargestRemainder = (
   targetUnits: number,
   percentages: number[],
+  preferredPrimaryIndex?: number,
 ): number[] => {
   const mealCount = percentages.length;
   const allocations = Array.from({ length: mealCount }, () => 0);
@@ -152,7 +294,11 @@ const allocateUnitsByLargestRemainder = (
   const normalizedWeights = toNormalizedWeights(percentages);
 
   if (targetUnits <= HALF_EXCHANGE_UNITS) {
-    allocations[selectPrimaryMealIndex(percentages)] = targetUnits;
+    const primaryIndex =
+      typeof preferredPrimaryIndex === 'number'
+        ? preferredPrimaryIndex
+        : selectPrimaryMealIndex(percentages);
+    allocations[primaryIndex] = targetUnits;
     return allocations;
   }
 
@@ -213,12 +359,23 @@ const selectEffectiveBuckets = (
 
 export const distributeMeals = (
   bucketPlan: MealDistributionBucketInput[],
-  profile: Pick<PatientProfile, 'mealsPerDay' | 'goal'>,
+  profile: Pick<PatientProfile, 'mealsPerDay' | 'goal'> &
+    Partial<
+      Pick<PatientProfile, 'systemId' | 'dietPattern' | 'trainingWindow' | 'usesDairyInSnacks'>
+    >,
 ): MealDistributionPlan => {
-  const meals = profile.mealsPerDay as 3 | 4 | 5;
+  const meals = profile.mealsPerDay as MealsCount;
   const mealNames = MEAL_NAMES[meals] ?? MEAL_NAMES[3];
   const goalKey = (profile.goal ?? 'maintain') as GoalKey;
-  const matrix = getDistributionMatrix(meals, goalKey);
+  const isMx = profile.systemId === 'mx_smae';
+  const matrix = getDistributionMatrix(
+    meals,
+    goalKey,
+    profile.systemId,
+    profile.usesDairyInSnacks ?? true,
+    profile.trainingWindow ?? 'none',
+    profile.dietPattern,
+  );
   const effectiveBuckets = selectEffectiveBuckets(bucketPlan);
   const mealCount = mealNames.length;
 
@@ -229,13 +386,25 @@ export const distributeMeals = (
       const family = getFamilyForBucket(bucket);
       const percentages = getPercentagesForMeals(matrix[family], mealCount);
       const targetUnits = toHalfUnits(bucket.exchangesPerDay);
+      const shouldPreferSnackForSmallBucket =
+        isMx &&
+        targetUnits <= HALF_EXCHANGE_UNITS &&
+        mealCount >= 4 &&
+        (family === 'fruit' || (family === 'milk' && (profile.usesDairyInSnacks ?? true)));
+      const preferredPrimaryIndex = shouldPreferSnackForSmallBucket
+        ? selectPreferredSnackIndex(percentages, mealCount)
+        : null;
 
       if (targetUnits <= 0) {
         distribution[bucket.bucketKey] = 0;
         continue;
       }
 
-      const unitsByMeal = allocateUnitsByLargestRemainder(targetUnits, percentages);
+      const unitsByMeal = allocateUnitsByLargestRemainder(
+        targetUnits,
+        percentages,
+        preferredPrimaryIndex ?? undefined,
+      );
       distribution[bucket.bucketKey] = fromHalfUnits(unitsByMeal[mealIdx] ?? 0);
     }
 

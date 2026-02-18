@@ -6,6 +6,14 @@ import { rankFoods } from '../src/algorithms/ranking';
 import type { KcalSelectionPolicyDefinition } from '../src/catalog/systems';
 
 const baseProfile: PatientProfile = {
+  fullName: 'Paciente Demo',
+  birthDate: '1996-01-01',
+  waistCm: 80,
+  hasDiabetes: false,
+  hasHypertension: false,
+  hasDyslipidemia: false,
+  trainingWindow: 'none',
+  usesDairyInSnacks: true,
   goal: 'maintain',
   goalDeltaKgPerWeek: 0,
   sex: 'female',
@@ -159,5 +167,54 @@ describe('rankFoods geo metadata fallback', () => {
 
     expect(ranked).toHaveLength(1);
     expect(ranked[0]?.reasons.some((reason) => reason.code === 'fallback_neutral')).toBe(false);
+  });
+});
+
+describe('rankFoods diet and clinical strict filters', () => {
+  it('blocks animal foods for vegan pattern', () => {
+    const ranked = rankFoods(
+      [
+        {
+          ...baseFood,
+          id: 201,
+          name: 'Pollo cocido',
+          legacySubgroupCode: 'aoa_bajo_grasa',
+        },
+      ],
+      { ...baseProfile, dietPattern: 'vegan' },
+    );
+
+    expect(ranked).toHaveLength(0);
+  });
+
+  it('blocks meat foods for pescatarian pattern', () => {
+    const ranked = rankFoods(
+      [
+        {
+          ...baseFood,
+          id: 202,
+          name: 'Carne de res magra',
+        },
+      ],
+      { ...baseProfile, dietPattern: 'pescatarian' },
+    );
+
+    expect(ranked).toHaveLength(0);
+  });
+
+  it('blocks sugar subgroups when diabetes is active', () => {
+    const ranked = rankFoods(
+      [
+        {
+          ...baseFood,
+          id: 203,
+          name: 'Azucar blanca',
+          legacySubgroupCode: 'azucar_sin_grasa',
+        },
+      ],
+      { ...baseProfile, hasDiabetes: true },
+    );
+
+    expect(ranked).toHaveLength(0);
   });
 });

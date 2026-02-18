@@ -17,6 +17,7 @@ const nutritionSchema = safeSchema(env.DB_NUTRITION_SCHEMA);
 const appSchema = safeSchema(env.DB_APP_SCHEMA);
 
 const CATALOG_V2_TTL_MS = 5 * 60 * 1000;
+const SYSTEM_NAME_NORMALIZER = "translate(lower(COALESCE(name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun')";
 
 const LEGUME_KEYWORDS = [
   'frijol',
@@ -38,6 +39,13 @@ const LEGUME_KEYWORDS = [
   'tofu',
   'tempeh',
 ];
+
+const SYSTEM_NAME_MATCHERS: Record<ExchangeSystemId, string[]> = {
+  mx_smae: ['smae', 'mex'],
+  us_usda: ['usda', 'united states', 'usa'],
+  es_exchange: ['espana', 'spain', 'es exchange', 'es_exchange'],
+  ar_exchange: ['argentina', 'ar exchange', 'ar_exchange'],
+};
 
 type GroupMeta = {
   id: number;
@@ -69,6 +77,10 @@ type OverrideRow = {
   subgroup_id: number | null;
   equivalent_portion_qty: number | null;
   portion_unit: string | null;
+};
+
+type InactiveOverrideRow = {
+  food_id: number;
 };
 
 type ClassificationRuleRow = {
@@ -115,6 +127,7 @@ type CatalogV2CacheEntry = {
 };
 
 const v2Cache = new Map<string, CatalogV2CacheEntry>();
+const nutritionSystemIdByAppSystem = new Map<ExchangeSystemId, number>();
 
 const normalizeText = (value: string | null | undefined): string => (value ?? '').trim().toLowerCase();
 
@@ -248,10 +261,38 @@ const buildClassificationRules = (rows: ClassificationRuleRow[]): Classification
     .filter((row): row is ClassificationRule => row !== null)
     .sort((a, b) => a.priority - b.priority);
 
+const resolveNutritionSystemId = async (systemId: ExchangeSystemId): Promise<number> => {
+  const cached = nutritionSystemIdByAppSystem.get(systemId);
+  if (cached) return cached;
+
+  const tokens = SYSTEM_NAME_MATCHERS[systemId] ?? [systemId];
+  const likeTokens = tokens.map((token) => `%${normalizeText(token)}%`);
+
+  const result = await nutritionPool.query<{ id: number }>(
+    `
+      SELECT id
+      FROM ${nutritionSchema}.exchange_systems
+      WHERE ${SYSTEM_NAME_NORMALIZER} LIKE ANY($1::text[])
+      ORDER BY id ASC
+      LIMIT 1;
+    `,
+    [likeTokens],
+  );
+
+  const row = result.rows[0];
+  if (!row) {
+    throw new Error(`No nutrition.exchange_systems match found for ${systemId}`);
+  }
+
+  nutritionSystemIdByAppSystem.set(systemId, row.id);
+  return row.id;
+};
+
 const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<CatalogV2Result> => {
   const shouldClassifyMx = isSmaeSubgroupsEnabled && options.systemId === 'mx_smae';
+  const nutritionSystemId = await resolveNutritionSystemId(options.systemId);
 
-  const [canonicalValues, foodsResult, groupsResult, subgroupsResult, overridesResult, rulesResult, tagsResult, geoWeightsResult] =
+  const [canonicalValues, foodsResult, groupsResult, subgroupsResult, overridesResult, inactiveOverridesResult, rulesResult, tagsResult, geoWeightsResult] =
     await Promise.all([
       resolveCanonicalNutritionValues(options.systemId),
       nutritionPool.query<RawFoodRow>(
@@ -271,15 +312,19 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
           FROM ${nutritionSchema}.foods f
           LEFT JOIN ${nutritionSchema}.food_categories fc ON fc.id = f.category_id
           LEFT JOIN ${nutritionSchema}.exchange_groups ng ON ng.id = f.exchange_group_id
+          WHERE ng.system_id = $1
           ORDER BY f.id;
         `,
+        [nutritionSystemId],
       ),
       nutritionPool.query<{ id: number; name: string }>(
         `
           SELECT id, name
           FROM ${nutritionSchema}.exchange_groups
+          WHERE system_id = $1
           ORDER BY id ASC;
         `,
+        [nutritionSystemId],
       ),
       nutritionPool.query<{ id: number; parent_group_id: number; name: string; parent_group_name: string }>(
         `
@@ -290,8 +335,10 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
             eg.name AS parent_group_name
           FROM ${nutritionSchema}.exchange_subgroups es
           JOIN ${nutritionSchema}.exchange_groups eg ON eg.id = es.exchange_group_id
+          WHERE eg.system_id = $1
           ORDER BY es.id ASC;
         `,
+        [nutritionSystemId],
       ),
       nutritionPool.query<OverrideRow>(
         `
@@ -307,6 +354,17 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
         `,
         [options.systemId],
       ),
+      options.systemId === 'mx_smae'
+        ? nutritionPool.query<InactiveOverrideRow>(
+          `
+            SELECT food_id
+            FROM ${appSchema}.food_exchange_overrides
+            WHERE system_id = $1
+              AND is_active = false;
+          `,
+          [options.systemId],
+        )
+        : Promise.resolve({ rows: [] as InactiveOverrideRow[] }),
       shouldClassifyMx
         ? nutritionPool.query<ClassificationRuleRow>(
           `
@@ -358,6 +416,9 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
   const overrideByFood = new Map<number, OverrideRow>(
     overridesResult.rows.map((row) => [row.food_id, row]),
   );
+  const inactiveOverrideFoodIds = new Set<number>(
+    inactiveOverridesResult.rows.map((row) => row.food_id),
+  );
   const geoWeightByFood = new Map<number, number>(
     geoWeightsResult.rows.map((row) => [row.food_id, row.weight]),
   );
@@ -366,6 +427,8 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
   const foods: FoodItemV2[] = [];
 
   for (const row of foodsResult.rows) {
+    if (inactiveOverrideFoodIds.has(row.id)) continue;
+
     const canonical = canonicalValues.get(row.id);
     if (!canonical) continue;
 
@@ -417,6 +480,7 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
     const bucketKey = `${bucketType}:${bucketId}`;
     const groupKey = `group:${groupId}`;
     const subgroupKey = subgroupId ? `subgroup:${subgroupId}` : undefined;
+    const legacySubgroupCode = subgroupId ? subgroupsById.get(subgroupId)?.legacyCode : undefined;
     const servingQty =
       normalizePortionQty(override?.equivalent_portion_qty) ??
       normalizePortionQty(row.base_serving_size) ??
@@ -447,6 +511,7 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
       bucketKey,
       ...(subgroupId ? { subgroupId } : {}),
       ...(subgroupKey ? { subgroupCode: subgroupKey } : {}),
+      ...(legacySubgroupCode ? { legacySubgroupCode } : {}),
     };
 
     const tags = tagsByFood.get(row.id);

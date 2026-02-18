@@ -17,6 +17,7 @@ export const HomePage = (): JSX.Element => {
     error,
     plan,
     isLeadModalOpen,
+    leadByCid,
     profile,
     csvInputs,
   } = state;
@@ -120,6 +121,8 @@ export const HomePage = (): JSX.Element => {
       ) : null}
       <LeadCaptureModal
         isOpen={isLeadModalOpen}
+        cid={cid}
+        initialFullName={profile.fullName || leadByCid?.fullName || ''}
         onClose={handleLeadClose}
         onSuccess={handleLeadSuccess}
       />

@@ -305,8 +305,11 @@ export const downloadClinicalPdf = async ({
   const lineStartY = y;
 
   let leftY = lineStartY;
+  leftY = drawLabelValue(doc, leftX, leftY, 'Nombre completo', profile.fullName || '-');
   leftY = drawLabelValue(doc, leftX, leftY, 'Objetivo', goalLabelMap[profile.goal]);
   leftY = drawLabelValue(doc, leftX, leftY + 2, 'Meta semanal', `${profile.goalDeltaKgPerWeek} kg/semana`);
+  leftY = drawLabelValue(doc, leftX, leftY + 2, 'Nacimiento', profile.birthDate ?? '-');
+  leftY = drawLabelValue(doc, leftX, leftY + 2, 'Cintura', profile.waistCm !== null ? `${profile.waistCm} cm` : '-');
   leftY = drawLabelValue(doc, leftX, leftY + 2, 'Sexo', sexLabelMap[profile.sex]);
   leftY = drawLabelValue(doc, leftX, leftY + 2, 'Edad', `${profile.age} anios`);
   leftY = drawLabelValue(
@@ -325,6 +328,16 @@ export const downloadClinicalPdf = async ({
   rightY = drawLabelValue(doc, rightX, rightY + 2, 'Sistema', profile.systemId);
   rightY = drawLabelValue(doc, rightX, rightY + 2, 'Formula kcal', profile.formulaId);
   rightY = drawLabelValue(doc, rightX, rightY + 2, 'Patron', dietPatternLabelMap[profile.dietPattern]);
+  rightY = drawLabelValue(doc, rightX, rightY + 2, 'Ventana entrenamiento', profile.trainingWindow);
+  rightY = drawLabelValue(doc, rightX, rightY + 2, 'Lacteos en colacion', profile.usesDairyInSnacks ? 'Si' : 'No');
+  rightY = drawLabelValue(
+    doc,
+    rightX,
+    rightY + 2,
+    'Banderas clinicas',
+    `Diabetes: ${profile.hasDiabetes ? 'Si' : 'No'} | HTA: ${profile.hasHypertension ? 'Si' : 'No'} | Dislipidemia: ${profile.hasDyslipidemia ? 'Si' : 'No'}`,
+    colWidth,
+  );
   rightY = drawLabelValue(doc, rightX, rightY + 2, 'Presupuesto', budgetLabelMap[profile.budgetLevel]);
   rightY = drawLabelValue(doc, rightX, rightY + 2, 'Prep time', prepTimeLabelMap[profile.prepTimeLevel]);
   rightY = drawLabelValue(doc, rightX, rightY + 2, 'BMR / TDEE', `${targets.bmr} / ${targets.tdee} kcal`);

@@ -243,6 +243,7 @@ const loadSubgroupPolicies = async (
 const buildGroupPlan = (
   targets: EquivalentPlanResponseV2['targets'],
   groups: GroupBucketProfile[],
+  profile: PatientProfile,
 ): EquivalentBucketPlanV2[] => {
   const sorted = [...groups].sort((a, b) => {
     const orderA = familySortOrder[a.familyCode] ?? 999;
@@ -278,7 +279,10 @@ const buildGroupPlan = (
       remainingPro,
       remainingFat,
     );
-    const exchanges = roundHalf(clamp(estimated, 0, 30));
+    const exchanges =
+      profile.hasDiabetes && group.familyCode === 'sugar'
+        ? 0
+        : roundHalf(clamp(estimated, 0, 30));
     exchangesByGroup.set(group.bucketId, exchanges);
 
     const used = contribution(exchanges, group);
@@ -435,7 +439,7 @@ export const generateEquivalentPlanV2 = async (
   );
 
   const subgroupPolicies = await loadSubgroupPolicies(profile, subgroupProfiles);
-  const groupPlan = buildGroupPlan(targets, groupProfiles);
+  const groupPlan = buildGroupPlan(targets, groupProfiles, profile);
   const subgroupPlan = buildSubgroupPlan(groupPlan, subgroupProfiles, subgroupPolicies);
   const bucketPlan = [...groupPlan, ...subgroupPlan];
 

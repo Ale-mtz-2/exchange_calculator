@@ -240,12 +240,22 @@ model GeneratedPlanRecommendation {
 
 model Lead {
   id        String   @id @default(uuid())
+  cid       String?
   name      String
   email     String?
   whatsapp  String?
+  birthDate DateTime? @map("birth_date") @db.Date
+  waistCm   Decimal?  @map("waist_cm") @db.Decimal(6, 2)
+  hasDiabetes Boolean  @default(false) @map("has_diabetes")
+  hasHypertension Boolean  @default(false) @map("has_hypertension")
+  hasDyslipidemia Boolean  @default(false) @map("has_dyslipidemia")
+  trainingWindow String @default("none") @map("training_window")
+  usesDairyInSnacks Boolean @default(true) @map("uses_dairy_in_snacks")
   termsAccepted Boolean  @default(false) @map("terms_accepted")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
+  @@index([cid], map: "idx_leads_cid")
   @@map("leads")
   @@schema("equivalentes_app")
 }

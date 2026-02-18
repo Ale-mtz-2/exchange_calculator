@@ -4,6 +4,7 @@ import type { PatientProfile } from '@equivalentes/shared';
 
 import {
   clampWeeklyGoalDelta,
+  validateClinicalStep,
   getFirstInvalidStepIndex,
   validateAnthropometryStep,
   validateGoalStep,
@@ -11,6 +12,14 @@ import {
 } from './validators';
 
 const baseProfile = (): PatientProfile => ({
+  fullName: 'Paciente Demo',
+  birthDate: '1996-01-01',
+  waistCm: 80,
+  hasDiabetes: false,
+  hasHypertension: false,
+  hasDyslipidemia: false,
+  trainingWindow: 'none',
+  usesDairyInSnacks: true,
   goal: 'maintain',
   goalDeltaKgPerWeek: 0,
   sex: 'female',
@@ -91,5 +100,12 @@ describe('validators', () => {
     ];
     expect(getFirstInvalidStepIndex(validations)).toBe(1);
   });
-});
 
+  it('validates clinical step requirements for guest profile', () => {
+    const missingName = { ...baseProfile(), fullName: '' };
+    const result = validateClinicalStep(missingName, { requireFullName: true });
+
+    expect(result.valid).toBe(false);
+    expect(result.fieldErrors.fullName).toBeTruthy();
+  });
+});

@@ -12,6 +12,14 @@ export const parseCsvText = (value: string): string[] =>
         .filter(Boolean);
 
 export const defaultProfile = (): PatientProfile => ({
+    fullName: '',
+    birthDate: null,
+    waistCm: null,
+    hasDiabetes: false,
+    hasHypertension: false,
+    hasDyslipidemia: false,
+    trainingWindow: 'none',
+    usesDairyInSnacks: true,
     goal: 'maintain',
     goalDeltaKgPerWeek: 0,
     sex: 'female',
@@ -59,6 +67,12 @@ export const FORM_STEPS = [
         shortTitle: 'Habitos',
         description:
             'Ajusta patron alimentario, presupuesto, tiempo de preparacion y preferencias.',
+    },
+    {
+        title: 'Perfil clinico',
+        shortTitle: 'Clinico',
+        description:
+            'Captura nombre completo y contexto clinico para personalizar mejor la distribucion.',
     },
     {
         title: 'Restricciones y revision',

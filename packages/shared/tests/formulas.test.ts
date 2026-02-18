@@ -4,6 +4,14 @@ import { calculateEnergyTargets } from '../src/algorithms/formulas';
 import type { PatientProfile } from '../src/types';
 
 const baseProfile: PatientProfile = {
+  fullName: 'Paciente Demo',
+  birthDate: '1996-01-01',
+  waistCm: 80,
+  hasDiabetes: false,
+  hasHypertension: false,
+  hasDyslipidemia: false,
+  trainingWindow: 'none',
+  usesDairyInSnacks: true,
   goal: 'maintain',
   goalDeltaKgPerWeek: 0,
   sex: 'female',

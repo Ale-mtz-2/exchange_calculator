@@ -3,7 +3,69 @@ import type { Goal, KcalSelectionPolicyDefinition } from '../catalog/systems';
 import type { PatientProfile } from '../types';
 import type { FoodItem, FoodRankReason, RankedFoodItem } from '../types';
 
-const normalize = (value: string): string => value.trim().toLowerCase();
+const COMBINING_MARKS_REGEX = /[\u0300-\u036f]/g;
+const normalize = (value: string): string =>
+  value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(COMBINING_MARKS_REGEX, '');
+
+const MEAT_KEYWORDS = [
+  'res',
+  'cerdo',
+  'pollo',
+  'pavo',
+  'carne',
+  'tocino',
+  'chorizo',
+  'salchicha',
+  'jamon',
+  'carnitas',
+  'barbacoa',
+  'cordero',
+  'borrego',
+];
+
+const SEAFOOD_KEYWORDS = [
+  'atun',
+  'salmon',
+  'tilapia',
+  'trucha',
+  'bacalao',
+  'camaron',
+  'pulpo',
+  'pescado',
+  'marisco',
+  'sardina',
+];
+
+const DAIRY_KEYWORDS = [
+  'leche',
+  'queso',
+  'yogur',
+  'yogurt',
+  'kefir',
+  'mantequilla',
+  'crema',
+  'yakult',
+];
+
+const EGG_KEYWORDS = ['huevo', 'clara', 'yema'];
+
+const VEGAN_ALLOWLIST_KEYWORDS = ['tofu', 'tempeh', 'soya', 'soja', 'edamame', 'garbanzo', 'lenteja', 'frijol'];
+
+const HIGH_SODIUM_PROCESSED_KEYWORDS = [
+  'jamon',
+  'salchicha',
+  'chorizo',
+  'tocino',
+  'carnitas',
+  'aderezo',
+  'mayonesa',
+  'salsa',
+  'embutido',
+];
 
 const goalCompatibilityScore = (goal: Goal, food: FoodItem): number => {
   const proteinDensity = food.proteinG / Math.max(1, food.caloriesKcal);
@@ -32,8 +94,55 @@ const collectTextMatches = (textValues: string[], targetValues: string[]): boole
   return targetValues.some((target) => normalizedText.some((text) => text.includes(normalize(target))));
 };
 
-const isAoaSubgroup = (subgroupCode: string | undefined): boolean =>
-  Boolean(subgroupCode?.toLowerCase().startsWith('aoa_'));
+const getLegacySubgroupCode = (food: FoodItem): string | undefined =>
+  normalize(((food.legacySubgroupCode ?? '') as string).trim() || (food.subgroupCode?.toString() ?? '').trim());
+
+const hasKeyword = (value: string, keywords: string[]): boolean =>
+  keywords.some((keyword) => value.includes(keyword));
+
+const hasLegacySubgroup = (food: FoodItem, code: string): boolean => getLegacySubgroupCode(food) === code;
+
+const isFoodCompatibleWithDietPattern = (
+  food: FoodItem,
+  profile: PatientProfile,
+): boolean => {
+  const name = normalize(food.name);
+  const legacySubgroupCode = getLegacySubgroupCode(food);
+
+  if (hasTag(food, 'diet', profile.dietPattern)) {
+    return true;
+  }
+
+  if (profile.dietPattern === 'vegan') {
+    const blockedBySubgroup =
+      Boolean(legacySubgroupCode?.startsWith('aoa_')) ||
+      Boolean(legacySubgroupCode?.startsWith('leche_'));
+
+    const blockedByKeywords =
+      (hasKeyword(name, MEAT_KEYWORDS) ||
+        hasKeyword(name, SEAFOOD_KEYWORDS) ||
+        hasKeyword(name, DAIRY_KEYWORDS) ||
+        hasKeyword(name, EGG_KEYWORDS)) &&
+      !hasKeyword(name, VEGAN_ALLOWLIST_KEYWORDS);
+
+    return !blockedBySubgroup && !blockedByKeywords;
+  }
+
+  if (profile.dietPattern === 'vegetarian') {
+    const blockedByKeywords =
+      hasKeyword(name, MEAT_KEYWORDS) ||
+      hasKeyword(name, SEAFOOD_KEYWORDS);
+
+    return !blockedByKeywords;
+  }
+
+  if (profile.dietPattern === 'pescatarian') {
+    const blockedByKeywords = hasKeyword(name, MEAT_KEYWORDS);
+    return !blockedByKeywords;
+  }
+
+  return true;
+};
 
 const hasGeoMetadata = (food: FoodItem): boolean => {
   const hasCountryAvailability = Array.isArray(food.countryAvailability) && food.countryAvailability.length > 0;
@@ -62,9 +171,14 @@ const evaluateFood = (
   let score = 0;
 
   const subgroupCode = food.subgroupCode?.toString();
+  const legacySubgroupCode = getLegacySubgroupCode(food);
   const bucketCode = subgroupCode ?? food.groupCode;
 
-  if (profile.dietPattern === 'vegan' && isAoaSubgroup(subgroupCode)) {
+  if (!isFoodCompatibleWithDietPattern(food, profile)) {
+    return null;
+  }
+
+  if (profile.hasDiabetes && (hasLegacySubgroup(food, 'azucar_sin_grasa') || hasLegacySubgroup(food, 'azucar_con_grasa'))) {
     return null;
   }
 
@@ -132,9 +246,32 @@ const evaluateFood = (
     reasons.push({ code: 'disliked_penalty', label: 'Coincide con alimento no preferido', impact: -12 });
   }
 
-  if (profile.dietPattern === 'vegetarian' && subgroupCode === 'aoa_alto_grasa') {
+  if (profile.dietPattern === 'vegetarian' && legacySubgroupCode === 'aoa_alto_grasa') {
     score -= 8;
     reasons.push({ code: 'subgroup_goal_fit', label: 'Penalizacion por AOA alto en patron vegetariano', impact: -8 });
+  }
+
+  if (
+    profile.hasDyslipidemia &&
+    (legacySubgroupCode === 'aoa_alto_grasa' ||
+      legacySubgroupCode === 'grasa_con_proteina' ||
+      legacySubgroupCode === 'cereal_con_grasa')
+  ) {
+    score -= 10;
+    reasons.push({
+      code: 'subgroup_goal_fit',
+      label: 'Penalizacion por dislipidemia en subgrupos altos en grasa',
+      impact: -10,
+    });
+  }
+
+  if (profile.hasHypertension && hasKeyword(normalize(food.name), HIGH_SODIUM_PROCESSED_KEYWORDS)) {
+    score -= 8;
+    reasons.push({
+      code: 'subgroup_goal_fit',
+      label: 'Penalizacion por HTA (ultraprocesado/sodio alto)',
+      impact: -8,
+    });
   }
 
   const subgroupAdjustment = options?.subgroupScoreAdjustments?.[bucketCode];

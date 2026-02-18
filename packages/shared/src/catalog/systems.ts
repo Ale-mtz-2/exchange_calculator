@@ -16,6 +16,8 @@ export type BudgetLevel = 'low' | 'medium' | 'high';
 
 export type PrepTimeLevel = 'short' | 'medium' | 'long';
 
+export type TrainingWindow = 'none' | 'morning' | 'afternoon' | 'evening';
+
 export type ExchangeGroupCode = 'vegetable' | 'fruit' | 'carb' | 'protein' | 'legume' | 'fat' | 'milk' | 'sugar';
 
 export type ExchangeSubgroupCode =

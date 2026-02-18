@@ -9,6 +9,7 @@ import type {
   KcalFormulaId,
   PrepTimeLevel,
   Sex,
+  TrainingWindow,
 } from './catalog/systems';
 import type { CountryCode } from './catalog/geography';
 
@@ -53,6 +54,14 @@ export type EventMetaExport = {
 };
 
 export type PatientProfile = {
+  fullName: string;
+  birthDate: string | null;
+  waistCm: number | null;
+  hasDiabetes: boolean;
+  hasHypertension: boolean;
+  hasDyslipidemia: boolean;
+  trainingWindow: TrainingWindow;
+  usesDairyInSnacks: boolean;
   goal: Goal;
   goalDeltaKgPerWeek: number;
   sex: Sex;
@@ -94,6 +103,7 @@ export type FoodItem = {
   name: string;
   groupCode: ExchangeGroupCode | string;
   subgroupCode?: ExchangeSubgroupCode | string;
+  legacySubgroupCode?: ExchangeSubgroupCode | string;
   countryAvailability?: CountryCode[];
   stateAvailability?: string[];
   carbsG: number;
@@ -142,6 +152,7 @@ export type FoodItemV2 = FoodItem & {
   bucketType: BucketType;
   bucketId: number;
   bucketKey: string;
+  legacySubgroupCode?: ExchangeSubgroupCode;
 };
 
 export type RankedFoodItemV2 = FoodItemV2 & {

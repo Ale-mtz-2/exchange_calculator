@@ -52,6 +52,19 @@ const normalizeWeeklyGoalDelta = (
 };
 
 const rawPatientProfileSchema = z.object({
+  fullName: z.string().trim().max(120).default(''),
+  birthDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'birthDate must be YYYY-MM-DD')
+    .nullable()
+    .optional()
+    .default(null),
+  waistCm: z.number().min(40).max(250).nullable().optional().default(null),
+  hasDiabetes: z.boolean().optional().default(false),
+  hasHypertension: z.boolean().optional().default(false),
+  hasDyslipidemia: z.boolean().optional().default(false),
+  trainingWindow: z.enum(['none', 'morning', 'afternoon', 'evening']).optional().default('none'),
+  usesDairyInSnacks: z.boolean().optional().default(true),
   goal: goalSchema,
   goalDeltaKgPerWeek: z.number().min(0).max(1).optional(),
   sex: z.enum(['male', 'female']),
@@ -74,6 +87,14 @@ const rawPatientProfileSchema = z.object({
 }).strict();
 
 export const patientProfileSchema = rawPatientProfileSchema.transform((profile) => ({
+  fullName: profile.fullName,
+  birthDate: profile.birthDate,
+  waistCm: profile.waistCm,
+  hasDiabetes: profile.hasDiabetes,
+  hasHypertension: profile.hasHypertension,
+  hasDyslipidemia: profile.hasDyslipidemia,
+  trainingWindow: profile.trainingWindow,
+  usesDairyInSnacks: profile.usesDairyInSnacks,
   goal: profile.goal,
   goalDeltaKgPerWeek: normalizeWeeklyGoalDelta(
     profile.goal,

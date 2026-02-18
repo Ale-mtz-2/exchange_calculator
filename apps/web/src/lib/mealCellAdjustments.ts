@@ -35,7 +35,7 @@ export const normalizeBucketMealRow = (
     normalized[mealName] = safeHalf(row[mealName] ?? 0);
   }
 
-  let diff = roundHalfSigned(targetTotal - rowSum(normalized, mealOrder));
+  const diff = roundHalfSigned(targetTotal - rowSum(normalized, mealOrder));
   if (diff === 0) return normalized;
 
   const priority = mealPriority(preferredMealName, mealOrder, normalized);

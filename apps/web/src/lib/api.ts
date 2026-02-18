@@ -9,7 +9,7 @@ import type {
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000';
 
 type RequestOptions = {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'PUT';
   body?: unknown;
   headers?: Record<string, string>;
 };
@@ -206,11 +206,63 @@ export const getAdminCampaignContacts = (
   );
 
 export type LeadInput = {
+  cid?: string | undefined;
   name: string;
   email?: string | undefined;
   whatsapp?: string | undefined;
+  birthDate?: string | null;
+  waistCm?: number | null;
+  hasDiabetes?: boolean;
+  hasHypertension?: boolean;
+  hasDyslipidemia?: boolean;
+  trainingWindow?: PatientProfile['trainingWindow'];
+  usesDairyInSnacks?: boolean;
   termsAccepted: boolean;
 };
 
 export const saveLead = (payload: LeadInput): Promise<{ id: string }> =>
   request('/api/leads', { method: 'POST', body: payload });
+
+export type LeadByCidPayload = {
+  id: string;
+  cid: string | null;
+  fullName: string;
+  email: string | null;
+  whatsapp: string | null;
+  birthDate: string | null;
+  waistCm: number | null;
+  hasDiabetes: boolean;
+  hasHypertension: boolean;
+  hasDyslipidemia: boolean;
+  trainingWindow: PatientProfile['trainingWindow'];
+  usesDairyInSnacks: boolean;
+  termsAccepted: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type UpsertLeadByCidInput = {
+  fullName?: string;
+  email?: string | undefined;
+  whatsapp?: string | undefined;
+  birthDate?: string | null;
+  waistCm?: number | null;
+  hasDiabetes?: boolean;
+  hasHypertension?: boolean;
+  hasDyslipidemia?: boolean;
+  trainingWindow?: PatientProfile['trainingWindow'];
+  usesDairyInSnacks?: boolean;
+  termsAccepted?: boolean;
+};
+
+export const getLeadByCid = (cid: string): Promise<LeadByCidPayload> =>
+  request(`/api/leads/by-cid/${encodeURIComponent(cid)}`);
+
+export const upsertLeadByCid = (
+  cid: string,
+  payload: UpsertLeadByCidInput,
+): Promise<LeadByCidPayload> =>
+  request(`/api/leads/by-cid/${encodeURIComponent(cid)}`, {
+    method: 'PUT',
+    body: payload,
+  });

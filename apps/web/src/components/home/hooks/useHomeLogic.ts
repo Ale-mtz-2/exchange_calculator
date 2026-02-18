@@ -17,12 +17,21 @@ import {
     clampWeeklyGoalDelta,
     getFirstInvalidStepIndex,
     validateAnthropometryStep,
+    validateClinicalStep,
     validateGoalStep,
     validateHabitsStep,
     validateRegionStep,
     validateReviewStep,
 } from '../../form/validators';
-import { generatePlan, getOptions, postEvent, type AppOptions } from '../../../lib/api';
+import {
+    generatePlan,
+    getLeadByCid,
+    getOptions,
+    postEvent,
+    upsertLeadByCid,
+    type AppOptions,
+    type LeadByCidPayload,
+} from '../../../lib/api';
 import { resolveTrackingIdentity } from '../../../lib/trackingIdentity';
 import {
     buildBaseExchangesByBucket,
@@ -88,6 +97,8 @@ export function useHomeLogic() {
     const [mealCellOverridesByBucket, setMealCellOverridesByBucket] = useState<MealCellOverridesByBucket>({});
     const [lastEditedMealByBucket, setLastEditedMealByBucket] = useState<Record<string, string>>({});
     const [isLeadModalOpen, setIsLeadModalOpen] = useState(false);
+    const [leadByCid, setLeadByCid] = useState<LeadByCidPayload | null>(null);
+    const [isLeadLookupDone, setIsLeadLookupDone] = useState(false);
     const isGenerating = viewPhase === 'generating';
 
     useEffect(() => {
@@ -109,6 +120,47 @@ export function useHomeLogic() {
 
     useEffect(() => {
         setOpenTracked(false);
+    }, [cid]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        if (!cid) {
+            setLeadByCid(null);
+            setIsLeadLookupDone(true);
+            return;
+        }
+
+        setIsLeadLookupDone(false);
+
+        void getLeadByCid(cid)
+            .then((lead) => {
+                if (cancelled) return;
+                setLeadByCid(lead);
+                setProfile((prev) => ({
+                    ...prev,
+                    fullName: lead.fullName || prev.fullName,
+                    birthDate: lead.birthDate ?? prev.birthDate,
+                    waistCm: lead.waistCm ?? prev.waistCm,
+                    hasDiabetes: lead.hasDiabetes,
+                    hasHypertension: lead.hasHypertension,
+                    hasDyslipidemia: lead.hasDyslipidemia,
+                    trainingWindow: lead.trainingWindow,
+                    usesDairyInSnacks: lead.usesDairyInSnacks,
+                }));
+            })
+            .catch(() => {
+                if (cancelled) return;
+                setLeadByCid(null);
+            })
+            .finally(() => {
+                if (cancelled) return;
+                setIsLeadLookupDone(true);
+            });
+
+        return () => {
+            cancelled = true;
+        };
     }, [cid]);
 
     useEffect(() => {
@@ -163,9 +215,12 @@ export function useHomeLogic() {
                 systemOptions.map((system) => system.id),
             ),
             validateHabitsStep(profile),
+            validateClinicalStep(profile, {
+                requireFullName: isGuest && isLeadLookupDone && !leadByCid?.fullName?.trim(),
+            }),
             validateReviewStep(),
         ],
-        [profile, stateOptions, systemOptions],
+        [isGuest, isLeadLookupDone, leadByCid?.fullName, profile, stateOptions, systemOptions],
     );
 
     const firstInvalidStepIndex = getFirstInvalidStepIndex(stepValidations);
@@ -500,13 +555,35 @@ export function useHomeLogic() {
 
         try {
             const generated = await generatePlan(cid, normalizedProfile);
+            let resolvedLead = leadByCid;
+
+            if (cid) {
+                try {
+                    resolvedLead = await upsertLeadByCid(cid, {
+                        fullName: normalizedProfile.fullName,
+                        birthDate: normalizedProfile.birthDate,
+                        waistCm: normalizedProfile.waistCm,
+                        hasDiabetes: normalizedProfile.hasDiabetes,
+                        hasHypertension: normalizedProfile.hasHypertension,
+                        hasDyslipidemia: normalizedProfile.hasDyslipidemia,
+                        trainingWindow: normalizedProfile.trainingWindow,
+                        usesDairyInSnacks: normalizedProfile.usesDairyInSnacks,
+                        termsAccepted: leadByCid?.termsAccepted ?? false,
+                    });
+                    setLeadByCid(resolvedLead);
+                } catch {
+                    // fail-soft lead upsert
+                }
+            }
+
             setPlan(generated);
             setBucketAdjustments({});
             setMealCellOverridesByBucket({});
             setLastEditedMealByBucket({});
             setProfile(normalizedProfile);
             setViewPhase('result');
-            if (cid && !hasLeadPromptBeenHandled(cid)) {
+            const hasContact = Boolean(resolvedLead?.email?.trim() || resolvedLead?.whatsapp?.trim());
+            if (cid && !hasLeadPromptBeenHandled(cid) && !hasContact) {
                 setIsLeadModalOpen(true);
             }
 
@@ -539,7 +616,17 @@ export function useHomeLogic() {
         }
     };
 
-    const handleLeadSuccess = (): void => {
+    const handleLeadSuccess = (lead?: LeadByCidPayload): void => {
+        if (lead) {
+            setLeadByCid(lead);
+        } else if (cid) {
+            void getLeadByCid(cid)
+                .then((resolved) => setLeadByCid(resolved))
+                .catch(() => {
+                    // fail-soft lead refresh
+                });
+        }
+
         if (cid) {
             markLeadPromptCompleted(cid);
         }
@@ -637,6 +724,8 @@ export function useHomeLogic() {
             error,
             plan,
             isLeadModalOpen,
+            leadByCid,
+            isLeadLookupDone,
             profile,
             csvInputs,
         },

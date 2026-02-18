@@ -157,6 +157,21 @@ export const StepReview = ({
           `Dislikes: ${csvInputs.dislikesText.trim() || 'Sin exclusiones'}`,
         ]}
       />
+      <SummaryCard
+        title="Perfil clinico"
+        stepIndex={4}
+        onGoToStep={onGoToStep}
+        lines={[
+          `Nombre completo: ${profile.fullName.trim() || 'Sin capturar'}`,
+          `Nacimiento: ${profile.birthDate || 'Sin dato'}`,
+          `Cintura: ${profile.waistCm ?? 'Sin dato'} cm`,
+          `Ventana entrenamiento: ${profile.trainingWindow}`,
+          `Diabetes: ${profile.hasDiabetes ? 'Si' : 'No'}`,
+          `Hipertension: ${profile.hasHypertension ? 'Si' : 'No'}`,
+          `Dislipidemia: ${profile.hasDyslipidemia ? 'Si' : 'No'}`,
+          `Lacteos en colacion: ${profile.usesDairyInSnacks ? 'Si' : 'No'}`,
+        ]}
+      />
     </div>
   </div>
 );

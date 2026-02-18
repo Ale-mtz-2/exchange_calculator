@@ -16,7 +16,10 @@
     "db:setup": "corepack pnpm prisma:baseline && corepack pnpm prisma:migrate && corepack pnpm prisma:seed",
     "sync:bucket-profiles": "tsx src/scripts/syncBucketProfiles.ts",
     "backfill:nutrition-ids": "tsx src/scripts/backfillNutritionIds.ts",
-    "sync:geo-metadata": "tsx src/scripts/backfillGeoMetadata.ts"
+    "sync:geo-metadata": "tsx src/scripts/backfillGeoMetadata.ts",
+    "smae:audit": "tsx src/scripts/buildSmaeFoodAudit.ts",
+    "smae:apply-curation": "tsx src/scripts/applySmaeFoodCuration.ts",
+    "smae:validate-curation": "tsx src/scripts/validateSmaeFoodCuration.ts"
   },
   "dependencies": {
     "@equivalentes/shared": "workspace:*",

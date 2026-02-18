@@ -13,3 +13,4 @@ apps/api/prisma/generated
 apps/api/prisma/*.js
 apps/api/dev.db
 apps/api/dev.db-journal
+apps/api/tmp/

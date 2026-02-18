@@ -6,6 +6,7 @@ import { StepperHeader } from '../form/StepperHeader';
 import { StepAnthropometry } from '../form/steps/StepAnthropometry';
 import { StepGoal } from '../form/steps/StepGoal';
 import { StepHabits } from '../form/steps/StepHabits';
+import { StepClinicalProfile } from '../form/steps/StepClinicalProfile';
 import { StepRegion } from '../form/steps/StepRegion';
 import { StepReview } from '../form/steps/StepReview';
 import { WEEKLY_GOAL_SETTINGS } from '../form/validators';
@@ -123,6 +124,15 @@ export const HomeFormWizard = ({
                         errors={currentStepValidation.fieldErrors}
                         onProfileChange={onProfileChange}
                         onCsvChange={(field, value) => onCsvChange(field, value)}
+                    />
+                );
+            case 4:
+                return (
+                    <StepClinicalProfile
+                        profile={profile}
+                        showErrors={currentStepHasErrors}
+                        errors={currentStepValidation.fieldErrors}
+                        onProfileChange={onProfileChange}
                     />
                 );
             default:

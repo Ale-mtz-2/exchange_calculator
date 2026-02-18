@@ -46,6 +46,8 @@ const isFiniteNumber = (value: number): boolean => Number.isFinite(value);
 const inRange = (value: number, minValue: number, maxValue: number): boolean =>
   value >= minValue && value <= maxValue;
 
+const isIsoDate = (value: string): boolean => /^\d{4}-\d{2}-\d{2}$/.test(value);
+
 export const clampWeeklyGoalDelta = (
   goal: PatientProfile['goal'],
   value: number,
@@ -158,10 +160,34 @@ export const validateHabitsStep = (profile: PatientProfile): StepValidationResul
   return toValidationResult(errors);
 };
 
+export const validateClinicalStep = (
+  profile: PatientProfile,
+  options?: { requireFullName?: boolean },
+): StepValidationResult => {
+  const errors: StepFieldErrors = {};
+  const requireFullName = options?.requireFullName ?? false;
+
+  if (requireFullName && !profile.fullName.trim()) {
+    errors.fullName = 'Ingresa nombre completo para personalizar el plan.';
+  }
+
+  if (profile.birthDate && !isIsoDate(profile.birthDate)) {
+    errors.birthDate = 'La fecha debe tener formato YYYY-MM-DD.';
+  }
+
+  if (
+    profile.waistCm !== null &&
+    (!isFiniteNumber(profile.waistCm) || !inRange(profile.waistCm, 40, 250))
+  ) {
+    errors.waistCm = 'La cintura debe estar entre 40 y 250 cm.';
+  }
+
+  return toValidationResult(errors);
+};
+
 export const validateReviewStep = (): StepValidationResult =>
   toValidationResult({});
 
 export const getFirstInvalidStepIndex = (
   validations: StepValidationResult[],
 ): number => validations.findIndex((item) => !item.valid);
-
