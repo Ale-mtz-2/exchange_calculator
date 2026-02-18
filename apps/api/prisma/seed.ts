@@ -216,9 +216,7 @@ const seedMxDefaultOverrides = async (
         fnv.food_id,
         COALESCE(fnv.protein_g, 0)::float8 AS protein_g,
         COALESCE(fnv.carbs_g, 0)::float8 AS carbs_g,
-        COALESCE(fnv.fat_g, 0)::float8 AS fat_g,
-        COALESCE(fnv.base_serving_size, 100)::float8 AS serving_qty,
-        COALESCE(fnv.base_unit, 'g') AS serving_unit
+        COALESCE(fnv.fat_g, 0)::float8 AS fat_g
       FROM nutrition.food_nutrition_values fnv
       LEFT JOIN nutrition.data_sources ds ON ds.id = fnv.data_source_id
       WHERE fnv.deleted_at IS NULL
@@ -231,12 +229,45 @@ const seedMxDefaultOverrides = async (
         END,
         fnv.id DESC
     ),
+    serving_candidates AS (
+      SELECT
+        su.food_id,
+        su.gram_equivalent::float8 AS serving_qty,
+        CASE
+          WHEN su.gram_equivalent <> 100 THEN 1
+          WHEN translate(lower(COALESCE(su.unit_name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun')
+            ~ '(pieza|rebanad|taza|cucharad|envase|vaso|unidad)' THEN 1
+          ELSE 0
+        END AS is_high_conf,
+        CASE
+          WHEN translate(lower(COALESCE(su.unit_name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun') LIKE '%porcion equivalente%' THEN 1
+          WHEN translate(lower(COALESCE(su.unit_name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun') LIKE '%porcion estandar%' THEN 1
+          ELSE 0
+        END AS is_generic,
+        su.id
+      FROM nutrition.serving_units su
+      WHERE su.is_exchange_unit = true
+        AND su.gram_equivalent IS NOT NULL
+        AND su.gram_equivalent > 0
+    ),
+    best_serving AS (
+      SELECT DISTINCT ON (sc.food_id)
+        sc.food_id,
+        sc.serving_qty,
+        sc.is_high_conf
+      FROM serving_candidates sc
+      ORDER BY sc.food_id,
+        sc.is_high_conf DESC,
+        CASE WHEN sc.is_high_conf = 1 AND sc.is_generic = 0 THEN 0 ELSE 1 END,
+        CASE WHEN sc.serving_qty <> 100 THEN 0 ELSE 1 END,
+        sc.id ASC
+    ),
     base AS (
       SELECT
         f.id AS food_id,
-        lower(COALESCE(f.name, '')) AS food_name,
-        lower(COALESCE(fc.name, '')) AS category_name,
-        lower(COALESCE(ng.name, '')) AS exchange_group_name,
+        translate(lower(COALESCE(f.name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun') AS food_name_norm,
+        translate(lower(COALESCE(fc.name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun') AS category_name_norm,
+        translate(lower(COALESCE(ng.name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun') AS exchange_group_name_norm,
         COALESCE(ln.protein_g, f.protein_g, 0)::float8 AS protein_g,
         COALESCE(ln.carbs_g, f.carbs_g, 0)::float8 AS carbs_g,
         COALESCE(ln.fat_g, f.fat_g, 0)::float8 AS fat_g,
@@ -244,29 +275,37 @@ const seedMxDefaultOverrides = async (
           WHEN f.base_serving_size IS NOT NULL AND f.base_serving_size > 0
             THEN f.base_serving_size::float8
           ELSE NULL
-        END AS serving_qty,
-        NULLIF(BTRIM(f.base_unit), '') AS serving_unit
+        END AS current_serving_qty,
+        NULLIF(BTRIM(f.base_unit), '') AS current_serving_unit,
+        bs.serving_qty AS serving_qty_candidate,
+        bs.is_high_conf AS serving_is_high_conf
       FROM nutrition.foods f
       LEFT JOIN nutrition.food_categories fc ON fc.id = f.category_id
       LEFT JOIN nutrition.exchange_groups ng ON ng.id = f.exchange_group_id
       LEFT JOIN latest_nutri ln ON ln.food_id = f.id
+      LEFT JOIN best_serving bs ON bs.food_id = f.id
     ),
     classified AS (
       SELECT
         b.food_id,
-        b.serving_qty,
-        b.serving_unit,
+        b.current_serving_qty,
+        b.current_serving_unit,
+        b.serving_qty_candidate,
+        b.serving_is_high_conf,
+        b.protein_g,
+        b.carbs_g,
+        b.fat_g,
         CASE
-          WHEN (b.exchange_group_name LIKE '%grasa%' OR b.category_name LIKE '%grasa%') THEN 'fat'
-          WHEN (b.exchange_group_name LIKE '%verdura%' OR b.category_name LIKE '%verdura%') THEN 'vegetable'
-          WHEN (b.exchange_group_name LIKE '%fruta%' OR b.category_name LIKE '%fruta%') THEN 'fruit'
-          WHEN (b.exchange_group_name LIKE '%leche%' OR b.category_name LIKE '%lacteo%') THEN 'milk'
-          WHEN (b.exchange_group_name LIKE '%azucar%' OR b.category_name LIKE '%azucar%') THEN 'sugar'
-          WHEN (b.exchange_group_name LIKE '%prote%' OR b.category_name LIKE '%prote%') THEN
+          WHEN (b.exchange_group_name_norm LIKE '%grasa%' OR b.category_name_norm LIKE '%grasa%') THEN 'fat'
+          WHEN (b.exchange_group_name_norm LIKE '%verdura%' OR b.category_name_norm LIKE '%verdura%') THEN 'vegetable'
+          WHEN (b.exchange_group_name_norm LIKE '%fruta%' OR b.category_name_norm LIKE '%fruta%') THEN 'fruit'
+          WHEN (b.exchange_group_name_norm LIKE '%leche%' OR b.category_name_norm LIKE '%lacteo%') THEN 'milk'
+          WHEN (b.exchange_group_name_norm LIKE '%azucar%' OR b.category_name_norm LIKE '%azucar%') THEN 'sugar'
+          WHEN (b.exchange_group_name_norm LIKE '%prote%' OR b.category_name_norm LIKE '%prote%') THEN
             CASE
               WHEN (
-                b.food_name ~ '(frijol|lenteja|garbanzo|haba|edamame|soya|soja|alubia|judia|chicharo|chichar)'
-                OR b.category_name LIKE '%legum%'
+                b.food_name_norm ~ '(frijol|lenteja|garbanzo|haba|edamame|soya|soja|alubia|judia|chicharo|chichar)'
+                OR b.category_name_norm LIKE '%legum%'
                 OR (b.protein_g >= 6 AND b.carbs_g >= 10 AND b.fat_g <= 6)
               ) THEN 'legume'
               ELSE 'protein'
@@ -275,10 +314,10 @@ const seedMxDefaultOverrides = async (
         END AS group_code,
         CASE
           WHEN (
-            (b.exchange_group_name LIKE '%prote%' OR b.category_name LIKE '%prote%')
+            (b.exchange_group_name_norm LIKE '%prote%' OR b.category_name_norm LIKE '%prote%')
             AND NOT (
-              b.food_name ~ '(frijol|lenteja|garbanzo|haba|edamame|soya|soja|alubia|judia|chicharo|chichar)'
-              OR b.category_name LIKE '%legum%'
+              b.food_name_norm ~ '(frijol|lenteja|garbanzo|haba|edamame|soya|soja|alubia|judia|chicharo|chichar)'
+              OR b.category_name_norm LIKE '%legum%'
               OR (b.protein_g >= 6 AND b.carbs_g >= 10 AND b.fat_g <= 6)
             )
           ) THEN
@@ -288,25 +327,120 @@ const seedMxDefaultOverrides = async (
               WHEN ((b.fat_g / GREATEST(b.protein_g, 0.1)) * 7) < 7 THEN 'aoa_moderado_grasa'
               ELSE 'aoa_alto_grasa'
             END
-          WHEN (b.exchange_group_name LIKE '%cereal%' OR b.category_name LIKE '%cereal%' OR b.category_name LIKE '%tuberc%')
+          WHEN (b.exchange_group_name_norm LIKE '%cereal%' OR b.category_name_norm LIKE '%cereal%' OR b.category_name_norm LIKE '%tuberc%')
             THEN CASE WHEN b.fat_g <= 1 THEN 'cereal_sin_grasa' ELSE 'cereal_con_grasa' END
-          WHEN (b.exchange_group_name LIKE '%leche%' OR b.category_name LIKE '%lacteo%')
+          WHEN (b.exchange_group_name_norm LIKE '%leche%' OR b.category_name_norm LIKE '%lacteo%')
             THEN CASE
               WHEN b.carbs_g > 20 THEN 'leche_con_azucar'
               WHEN b.fat_g <= 2 THEN 'leche_descremada'
               WHEN b.fat_g <= 5 THEN 'leche_semidescremada'
               ELSE 'leche_entera'
             END
-          WHEN (b.exchange_group_name LIKE '%azucar%' OR b.category_name LIKE '%azucar%')
+          WHEN (b.exchange_group_name_norm LIKE '%azucar%' OR b.category_name_norm LIKE '%azucar%')
             THEN CASE WHEN b.fat_g <= 1 THEN 'azucar_sin_grasa' ELSE 'azucar_con_grasa' END
-          WHEN (b.exchange_group_name LIKE '%grasa%' OR b.category_name LIKE '%grasa%')
+          WHEN (b.exchange_group_name_norm LIKE '%grasa%' OR b.category_name_norm LIKE '%grasa%')
             THEN CASE WHEN b.protein_g >= 1.5 THEN 'grasa_con_proteina' ELSE 'grasa_sin_proteina' END
           ELSE NULL
         END AS subgroup_code
       FROM base b
+    ),
+    targets AS (
+      SELECT
+        c.*,
+        CASE
+          WHEN c.subgroup_code = 'aoa_muy_bajo_grasa' THEN 7
+          WHEN c.subgroup_code = 'aoa_bajo_grasa' THEN 7
+          WHEN c.subgroup_code = 'aoa_moderado_grasa' THEN 7
+          WHEN c.subgroup_code = 'aoa_alto_grasa' THEN 7
+          WHEN c.subgroup_code = 'cereal_sin_grasa' THEN 15
+          WHEN c.subgroup_code = 'cereal_con_grasa' THEN 15
+          WHEN c.subgroup_code = 'leche_con_azucar' THEN 30
+          WHEN c.subgroup_code IN ('leche_descremada', 'leche_semidescremada', 'leche_entera') THEN 12
+          WHEN c.subgroup_code IN ('azucar_sin_grasa', 'azucar_con_grasa') THEN 10
+          WHEN c.group_code = 'vegetable' THEN 4
+          WHEN c.group_code = 'fruit' THEN 15
+          WHEN c.group_code = 'carb' THEN 15
+          WHEN c.group_code = 'milk' THEN 12
+          WHEN c.group_code = 'sugar' THEN 10
+          WHEN c.group_code = 'legume' THEN 20
+          ELSE NULL
+        END::float8 AS target_cho,
+        CASE
+          WHEN c.group_code = 'legume' THEN 8
+          WHEN c.subgroup_code LIKE 'aoa_%' THEN 7
+          ELSE NULL
+        END::float8 AS target_pro,
+        CASE
+          WHEN c.subgroup_code IN ('grasa_sin_proteina', 'grasa_con_proteina') THEN 5
+          WHEN c.group_code = 'fat' THEN 5
+          ELSE NULL
+        END::float8 AS target_fat
+      FROM classified c
+    ),
+    estimated AS (
+      SELECT
+        t.*,
+        GREATEST(
+          COALESCE(CASE WHEN t.target_cho IS NOT NULL AND t.target_cho > 0 THEN 100.0 * t.target_cho / GREATEST(t.carbs_g, 0.1) END, 0),
+          COALESCE(CASE WHEN t.target_pro IS NOT NULL AND t.target_pro > 0 THEN 100.0 * t.target_pro / GREATEST(t.protein_g, 0.1) END, 0),
+          COALESCE(CASE WHEN t.target_fat IS NOT NULL AND t.target_fat > 0 THEN 100.0 * t.target_fat / GREATEST(t.fat_g, 0.1) END, 0)
+        ) AS target_serving_raw
+      FROM targets t
+    ),
+    resolved AS (
+      SELECT
+        e.food_id,
+        e.group_code,
+        e.subgroup_code,
+        ROUND(
+          CASE
+            WHEN e.current_serving_qty IS NOT NULL
+              AND e.current_serving_qty > 0
+              AND ABS(e.current_serving_qty - 100) > 0.0001
+              THEN e.current_serving_qty
+            WHEN e.serving_is_high_conf = 1
+              AND e.serving_qty_candidate IS NOT NULL
+              AND e.serving_qty_candidate > 0
+              THEN e.serving_qty_candidate
+            WHEN e.target_serving_raw IS NOT NULL
+              AND e.target_serving_raw > 0
+              THEN CASE
+                WHEN e.group_code = 'vegetable' THEN LEAST(250, GREATEST(40, e.target_serving_raw))
+                WHEN e.group_code = 'fruit' THEN LEAST(250, GREATEST(60, e.target_serving_raw))
+                WHEN e.group_code = 'carb' THEN LEAST(200, GREATEST(20, e.target_serving_raw))
+                WHEN e.group_code = 'legume' THEN LEAST(180, GREATEST(30, e.target_serving_raw))
+                WHEN e.group_code = 'protein' THEN LEAST(120, GREATEST(20, e.target_serving_raw))
+                WHEN e.group_code = 'milk' THEN LEAST(350, GREATEST(100, e.target_serving_raw))
+                WHEN e.group_code = 'fat' THEN LEAST(30, GREATEST(5, e.target_serving_raw))
+                WHEN e.group_code = 'sugar' THEN LEAST(80, GREATEST(5, e.target_serving_raw))
+                ELSE LEAST(300, GREATEST(10, e.target_serving_raw))
+              END
+            ELSE CASE
+              WHEN e.group_code = 'vegetable' THEN 100
+              WHEN e.group_code = 'fruit' THEN 120
+              WHEN e.group_code = 'carb' THEN 150
+              WHEN e.group_code = 'legume' THEN 100
+              WHEN e.group_code = 'protein' THEN 100
+              WHEN e.group_code = 'milk' THEN 240
+              WHEN e.group_code = 'fat' THEN 15
+              WHEN e.group_code = 'sugar' THEN 10
+              ELSE 100
+            END
+          END::numeric,
+          2
+        )::float8 AS serving_qty,
+        CASE
+          WHEN e.current_serving_qty IS NOT NULL
+            AND e.current_serving_qty > 0
+            AND ABS(e.current_serving_qty - 100) > 0.0001
+            THEN COALESCE(e.current_serving_unit, CASE WHEN e.group_code = 'milk' THEN 'ml' ELSE 'g' END)
+          WHEN e.group_code = 'milk' THEN 'ml'
+          ELSE 'g'
+        END AS serving_unit
+      FROM estimated e
     )
     SELECT food_id, group_code, subgroup_code, serving_qty, serving_unit
-    FROM classified;
+    FROM resolved;
   `);
 
   const groupMap = groupIdByCodeBySystem.get('mx_smae');
