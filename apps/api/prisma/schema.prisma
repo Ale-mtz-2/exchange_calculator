@@ -23,6 +23,28 @@ model TrackingEvent {
   @@schema("equivalentes_app")
 }
 
+model Lead {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cid              String?
+  name             String
+  email            String?
+  whatsapp         String?
+  birthDate        DateTime? @map("birth_date") @db.Date
+  waistCm          Decimal?  @map("waist_cm") @db.Decimal(6, 2)
+  hasDiabetes      Boolean   @default(false) @map("has_diabetes")
+  hasHypertension  Boolean   @default(false) @map("has_hypertension")
+  hasDyslipidemia  Boolean   @default(false) @map("has_dyslipidemia")
+  trainingWindow   String    @default("none") @map("training_window")
+  usesDairyInSnacks Boolean  @default(true) @map("uses_dairy_in_snacks")
+  termsAccepted    Boolean   @default(false) @map("terms_accepted")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)
+
+  @@index([cid], map: "idx_leads_cid")
+  @@map("leads")
+  @@schema("equivalentes_app")
+}
+
 model KcalFormula {
   id             String          @id
   name           String
@@ -974,7 +996,7 @@ model food_nutrition_values {
 
 model foods {
   id                             Int                           @id @default(autoincrement())
-  name                           String                        @unique(map: "idx_unique_name") @db.VarChar(255)
+  name                           String                        @db.VarChar(255)
   brand                          String?                       @db.VarChar(100)
   category_id                    Int?
   exchange_group_id              Int?
@@ -994,6 +1016,7 @@ model foods {
   recipe_foods                   recipe_foods[]
   serving_units                  serving_units[]
 
+  @@unique([name, exchange_group_id, category_id], map: "uq_foods_name_group_category")
   @@schema("nutrition")
 }
 

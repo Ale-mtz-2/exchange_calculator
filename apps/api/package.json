@@ -17,6 +17,12 @@
     "sync:bucket-profiles": "tsx src/scripts/syncBucketProfiles.ts",
     "backfill:nutrition-ids": "tsx src/scripts/backfillNutritionIds.ts",
     "sync:geo-metadata": "tsx src/scripts/backfillGeoMetadata.ts",
+    "catalog:import": "tsx src/scripts/importSystemCatalog.ts",
+    "catalog:import:mx": "tsx src/scripts/importSystemCatalog.ts --system mx_smae",
+    "catalog:import:us": "tsx src/scripts/importSystemCatalog.ts --system us_usda",
+    "catalog:import:es": "tsx src/scripts/importSystemCatalog.ts --system es_exchange",
+    "catalog:import:ar": "tsx src/scripts/importSystemCatalog.ts --system ar_exchange",
+    "catalog:import:all": "corepack pnpm catalog:import:mx && corepack pnpm catalog:import:us && corepack pnpm catalog:import:es && corepack pnpm catalog:import:ar",
     "smae:audit": "tsx src/scripts/buildSmaeFoodAudit.ts",
     "smae:apply-curation": "tsx src/scripts/applySmaeFoodCuration.ts",
     "smae:validate-curation": "tsx src/scripts/validateSmaeFoodCuration.ts"

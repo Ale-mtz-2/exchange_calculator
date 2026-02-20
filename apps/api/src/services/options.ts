@@ -17,12 +17,14 @@ const OPTIONS_TTL_MS = 5 * 60 * 1000;
 let cachedOptions: Record<string, unknown> | null = null;
 let cacheTimestamp = 0;
 
-const SUPPORTED_SYSTEMS = ['mx_smae', 'us_usda'] as const;
+const SUPPORTED_SYSTEMS = ['mx_smae', 'us_usda', 'es_exchange', 'ar_exchange'] as const;
 type SupportedSystemId = (typeof SUPPORTED_SYSTEMS)[number];
 
 const SYSTEM_NAME_MATCHERS: Record<SupportedSystemId, string[]> = {
   mx_smae: ['smae', 'mex'],
   us_usda: ['usda', 'united states', 'usa'],
+  es_exchange: ['bedca', 'espanola', 'espana', 'spain', 'es exchange', 'es_exchange'],
+  ar_exchange: ['argenfoods', 'argentina', 'ar exchange', 'ar_exchange'],
 };
 
 type NutritionSystemRow = {
@@ -55,6 +57,11 @@ type BucketProfileRow = {
   kcal: number;
 };
 
+type NutritionFoodCountRow = {
+  system_id: number;
+  foods_count: number;
+};
+
 const normalize = (value: string): string =>
   value
     .trim()
@@ -62,26 +69,17 @@ const normalize = (value: string): string =>
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '');
 
-const resolveNutritionSystemMap = (
+const resolveNutritionSystemId = (
+  appSystemId: SupportedSystemId,
   rows: NutritionSystemRow[],
-): Map<SupportedSystemId, number> => {
-  const map = new Map<SupportedSystemId, number>();
+): number | null => {
+  const candidates = SYSTEM_NAME_MATCHERS[appSystemId];
+  const match = rows.find((row) => {
+    const name = normalize(row.name);
+    return candidates.some((token) => name.includes(normalize(token)));
+  });
 
-  for (const appSystemId of SUPPORTED_SYSTEMS) {
-    const candidates = SYSTEM_NAME_MATCHERS[appSystemId];
-    const match = rows.find((row) => {
-      const name = normalize(row.name);
-      return candidates.some((token) => name.includes(normalize(token)));
-    });
-
-    if (!match) {
-      throw new Error(`No nutrition.exchange_systems match found for ${appSystemId}`);
-    }
-
-    map.set(appSystemId, match.id);
-  }
-
-  return map;
+  return match?.id ?? null;
 };
 
 const fetchOptions = async (): Promise<Record<string, unknown>> => {
@@ -106,23 +104,42 @@ const fetchOptions = async (): Promise<Record<string, unknown>> => {
     (system) => !(SUPPORTED_SYSTEMS as readonly string[]).includes(system.id),
   );
   if (unsupportedActive.length > 0) {
-    const ids = unsupportedActive.map((system) => system.id).join(', ');
-    throw new Error(
-      `Unsupported active systems found in equivalentes_app.exchange_systems: ${ids}. Deactivate them before hardcut.`,
-    );
+    console.warn('[options-unsupported-active-systems]', {
+      ids: unsupportedActive.map((system) => system.id),
+    });
   }
 
   const systems = dbSystems.filter((system): system is typeof system & { id: SupportedSystemId } =>
     (SUPPORTED_SYSTEMS as readonly string[]).includes(system.id),
   );
 
-  const nutritionSystemIdByApp = resolveNutritionSystemMap(nutritionSystems.rows);
+  const nutritionSystemIdByApp = new Map<SupportedSystemId, number>();
+  for (const system of systems) {
+    const nutritionSystemId = resolveNutritionSystemId(system.id, nutritionSystems.rows);
+    if (!nutritionSystemId) {
+      console.warn('[options-system-skipped-missing-nutrition-map]', {
+        systemId: system.id,
+      });
+      continue;
+    }
+
+    nutritionSystemIdByApp.set(system.id, nutritionSystemId);
+  }
+
+  const mappedSystems = systems.filter((system) => nutritionSystemIdByApp.has(system.id));
+  if (mappedSystems.length === 0) {
+    throw new Error('No active systems mapped to nutrition.exchange_systems');
+  }
+
   const appSystemIdByNutrition = new Map<number, SupportedSystemId>(
-    Array.from(nutritionSystemIdByApp.entries()).map(([appSystemId, nutritionSystemId]) => [nutritionSystemId, appSystemId]),
+    Array.from(nutritionSystemIdByApp.entries()).map(([appSystemId, nutritionSystemId]) => [
+      nutritionSystemId,
+      appSystemId,
+    ]),
   );
   const nutritionSystemIds = Array.from(appSystemIdByNutrition.keys());
 
-  const [nutritionGroups, nutritionSubgroups, latestProfiles] = await Promise.all([
+  const [nutritionGroups, nutritionSubgroups, latestProfiles, nutritionFoodCounts] = await Promise.all([
     nutritionPool.query<NutritionGroupRow>(
       `
         SELECT
@@ -173,7 +190,27 @@ const fetchOptions = async (): Promise<Record<string, unknown>> => {
           ON l.system_id = bp.system_id
          AND l.profile_version = bp.profile_version;
       `,
-      [systems.map((system) => system.id)],
+      [mappedSystems.map((system) => system.id)],
+    ),
+    nutritionPool.query<NutritionFoodCountRow>(
+      `
+        SELECT
+          eg.system_id,
+          COUNT(DISTINCT fnv.food_id)::int AS foods_count
+        FROM ${nutritionSchema}.food_nutrition_values fnv
+        JOIN ${nutritionSchema}.foods f
+          ON f.id = fnv.food_id
+        JOIN ${nutritionSchema}.exchange_groups eg
+          ON eg.id = f.exchange_group_id
+        WHERE eg.system_id = ANY($1::int[])
+          AND fnv.deleted_at IS NULL
+          AND fnv.calories_kcal IS NOT NULL
+          AND fnv.protein_g IS NOT NULL
+          AND fnv.carbs_g IS NOT NULL
+          AND fnv.fat_g IS NOT NULL
+        GROUP BY eg.system_id;
+      `,
+      [nutritionSystemIds],
     ),
   ]);
 
@@ -229,6 +266,39 @@ const fetchOptions = async (): Promise<Record<string, unknown>> => {
     subgroupCodeBySystemAndId.set(`${appSystemId}:${row.id}`, subgroupCode);
   }
 
+  const foodsCountBySystem = new Map<SupportedSystemId, number>();
+  for (const row of nutritionFoodCounts.rows) {
+    const appSystemId = appSystemIdByNutrition.get(row.system_id);
+    if (!appSystemId) continue;
+    foodsCountBySystem.set(appSystemId, row.foods_count);
+  }
+
+  const usableSystems = mappedSystems.filter((system) => {
+    const groups = groupsBySystem[system.id] ?? [];
+    const foodsCount = foodsCountBySystem.get(system.id) ?? 0;
+
+    if (groups.length === 0 || foodsCount === 0) {
+      console.warn('[options-system-skipped-incomplete-catalog]', {
+        systemId: system.id,
+        groups: groups.length,
+        foodsWithCanonicalMacros: foodsCount,
+      });
+      return false;
+    }
+
+    if (!subgroupsBySystem[system.id]) {
+      subgroupsBySystem[system.id] = [];
+    }
+
+    return true;
+  });
+
+  if (usableSystems.length === 0) {
+    throw new Error('No active systems with utilizable catalog found');
+  }
+
+  const usableSystemIds = new Set<SupportedSystemId>(usableSystems.map((system) => system.id));
+
   const formulas =
     dbFormulas.length > 0
       ? dbFormulas.map((formula) => ({
@@ -251,6 +321,7 @@ const fetchOptions = async (): Promise<Record<string, unknown>> => {
   const subgroupPoliciesBySystem = dbPolicies.reduce<Record<string, Array<Record<string, unknown>>>>(
     (acc, policy) => {
       if (!policy.subgroupId) return acc;
+      if (!usableSystemIds.has(policy.systemId as SupportedSystemId)) return acc;
 
       const list = acc[policy.systemId] ?? [];
       list.push({
@@ -268,27 +339,33 @@ const fetchOptions = async (): Promise<Record<string, unknown>> => {
     {},
   );
 
-  for (const system of systems) {
-    if (!groupsBySystem[system.id] || groupsBySystem[system.id]?.length === 0) {
-      throw new Error(`No nutrition groups found for active system ${system.id}`);
-    }
-    if (!subgroupsBySystem[system.id]) {
-      subgroupsBySystem[system.id] = [];
-    }
-  }
+  const filteredGroupsBySystem = usableSystems.reduce<Record<string, Array<Record<string, unknown>>>>(
+    (acc, system) => {
+      acc[system.id] = groupsBySystem[system.id] ?? [];
+      return acc;
+    },
+    {},
+  );
+
+  const filteredSubgroupsBySystem = usableSystems.reduce<
+    Record<string, Array<Record<string, unknown>>>
+  >((acc, system) => {
+    acc[system.id] = subgroupsBySystem[system.id] ?? [];
+    return acc;
+  }, {});
 
   return {
     countries: COUNTRY_OPTIONS,
     statesByCountry,
     formulas,
-    systems: systems.map((system) => ({
+    systems: usableSystems.map((system) => ({
       id: system.id,
       countryCode: system.countryCode,
       name: system.name,
       source: system.source,
     })),
-    groupsBySystem,
-    subgroupsBySystem,
+    groupsBySystem: filteredGroupsBySystem,
+    subgroupsBySystem: filteredSubgroupsBySystem,
     subgroupPoliciesBySystem,
   };
 };

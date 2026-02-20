@@ -63,6 +63,28 @@ CREATE TABLE "equivalentes_app"."tracking_events" (
 );
 
 -- CreateTable
+CREATE TABLE "equivalentes_app"."leads" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "cid" TEXT,
+    "name" TEXT NOT NULL,
+    "email" TEXT,
+    "whatsapp" TEXT,
+    "birth_date" DATE,
+    "waist_cm" DECIMAL(6,2),
+    "has_diabetes" BOOLEAN NOT NULL DEFAULT false,
+    "has_hypertension" BOOLEAN NOT NULL DEFAULT false,
+    "has_dyslipidemia" BOOLEAN NOT NULL DEFAULT false,
+    "training_window" TEXT NOT NULL DEFAULT 'none',
+    "uses_dairy_in_snacks" BOOLEAN NOT NULL DEFAULT true,
+    "terms_accepted" BOOLEAN NOT NULL DEFAULT false,
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "leads_pkey" PRIMARY KEY ("id"),
+    CONSTRAINT "ck_leads_training_window" CHECK ("training_window" IN ('none', 'morning', 'afternoon', 'evening'))
+);
+
+-- CreateTable
 CREATE TABLE "equivalentes_app"."kcal_formulas" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -1414,7 +1436,28 @@ CREATE UNIQUE INDEX "food_micronutrient_values_food_nutrition_value_id_micronutr
 CREATE UNIQUE INDEX "food_nutrition_values_food_id_data_source_id_state_key" ON "nutrition"."food_nutrition_values"("food_id", "data_source_id", "state");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "idx_unique_name" ON "nutrition"."foods"("name");
+CREATE UNIQUE INDEX "uq_foods_name_group_category" ON "nutrition"."foods"("name", "exchange_group_id", "category_id");
+
+-- CreateIndex
+CREATE INDEX "idx_leads_cid" ON "equivalentes_app"."leads"("cid");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "uq_leads_cid_not_null" ON "equivalentes_app"."leads"("cid") WHERE "cid" IS NOT NULL;
+
+-- CreateFunction
+CREATE OR REPLACE FUNCTION "equivalentes_app"."set_updated_at_leads"()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = CURRENT_TIMESTAMP;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- CreateTrigger
+CREATE TRIGGER "trg_set_updated_at_leads"
+BEFORE UPDATE ON "equivalentes_app"."leads"
+FOR EACH ROW
+EXECUTE FUNCTION "equivalentes_app"."set_updated_at_leads"();
 
 -- CreateIndex
 CREATE UNIQUE INDEX "affiliate_codes_code_key" ON "affiliate_codes"("code");

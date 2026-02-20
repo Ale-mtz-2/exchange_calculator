@@ -1,0 +1,567 @@
+external_id,name,group_name,subgroup_name,category_name,serving_qty,serving_unit,calories_kcal,protein_g,carbs_g,fat_g,source_url
+1,"Arroz, grano, blanco, pulido, crudo",Cereales y tuberculos,,Cereales y tuberculos,100,g,339,6.9,77.5,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/1.htm
+10,"Centeno, pan",Cereales y tuberculos,,Cereales y tuberculos,100,g,206,8.7,41.5,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/10.htm
+103,"Repollito Bruselas, hoja, fresco, crudo - Brassica oleracea gemmifera",Verduras,,Verduras,100,g,58,4.4,8.9,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/103.htm
+103-xls,"Repollito Bruselas, hoja, fresco, crudo",Verduras,,Verduras,100,g,58,4.4,8.9,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+106,"Salsifí, raiz, fresco, crudo - Trapogon porrifolium",Verduras,,Verduras,100,g,85,3.5,15.5,1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/106.htm
+106-xls,"Salsifí, raiz, fresco, crudo",Verduras,,Verduras,100,g,85,3.5,15.5,1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+107,"Soja, semilla madura, seca, cruda - Glycine max. L",Verduras,,Verduras,100,g,356,34.6,11.2,24.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/107.htm
+107-xls,"Soja, semilla madura, seca, cruda",Verduras,,Verduras,100,g,356,34.6,11.2,24.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+11,"Centeno, pan con harina integral",Cereales y tuberculos,,Cereales y tuberculos,100,g,214,10.4,41,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/11.htm
+113,"Verdolaga, hoja y tallo, fresca, cruda - Portulaca oleracea",Verduras,,Verduras,100,g,23,1.6,3.3,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/113.htm
+113-xls,"Verdolaga, hoja y tallo, fresca, cruda",Verduras,,Verduras,100,g,23,1.6,3.3,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+119,"Aceituna verde, pulpa, encurtida - Olea europaea",Frutas,,Frutas,100,g,144,1.5,4,13.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/119.htm
+119-xls,"Aceituna verde, pulpa, encurtida",Frutas,,Frutas,100,g,144,1.5,4,13.5,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+12,"Maiz, choclo",Cereales y tuberculos,,Cereales y tuberculos,100,g,97,3.7,17.8,1.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/12.htm
+120,"Ananá, pulpa, fresco - Ananassa sativa L.",Frutas,,Frutas,100,g,58,0.4,13.7,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/120.htm
+120-xls,"Ananá, pulpa, fresco",Frutas,,Frutas,100,g,58,0.4,13.7,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+121,"Ananá enlatado, contenido envase",Frutas,,Frutas,100,g,87,0.4,21.1,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/121.htm
+122,"Banana, pulpa, fresca - Musa sapientum L.",Frutas,,Frutas,100,g,99,1.2,23,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/122.htm
+122-xls,"Banana, pulpa, fresca",Frutas,,Frutas,100,g,99,1.2,23,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+123,"Cereza, pulpa, fresca - Prunus avium L",Frutas,,Frutas,100,g,68,1.1,14.8,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/123.htm
+123-xls,"Cereza, pulpa, fresca",Frutas,,Frutas,100,g,68,1.1,14.8,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+124,"Ciruela, pulpa, fresca - Prunus domestica L",Frutas,,Frutas,100,g,56,0.7,12.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/124.htm
+124-xls,"Ciruela, pulpa, fresca",Frutas,,Frutas,100,g,56,0.7,12.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+125,"Ciruela, pasa, cruda - Prunus domestica L",Frutas,,Frutas,100,g,255,1.9,61.6,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/125.htm
+125-xls,"Ciruela, pasa, cruda",Frutas,,Frutas,100,g,255,1.9,61.6,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+126,"Ciruela, pasa, hervida - Prunus domestica L",Frutas,,Frutas,100,g,165,1,40.1,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/126.htm
+126-xls,"Ciruela, pasa, hervida",Frutas,,Frutas,100,g,165,1,40.1,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+127,"Coco, pulpa, fresco, crudo - Cocos nucifera",Frutas,,Frutas,100,g,382,3.4,14,34.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/127.htm
+127-xls,"Coco, pulpa, fresco, crudo",Frutas,,Frutas,100,g,382,3.4,14,34.7,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+128,"Damasco, pulpa, fresco, crudo - Prunus Armeniaca L.",Frutas,,Frutas,100,g,57,1,12.9,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/128.htm
+128-xls,"Damasco, pulpa, fresco, crudo",Frutas,,Frutas,100,g,57,1,12.9,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+129,"Durazno, pulpa, fresco, crudo - Prunus persica L.",Frutas,,Frutas,100,g,51,0.5,12,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/129.htm
+129-xls,"Durazno, pulpa, fresco, crudo",Frutas,,Frutas,100,g,51,0.5,12,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+13,"Maiz, grano, entero (Zea mays spp) - Zea mays",Cereales y tuberculos,,Cereales y tuberculos,100,g,346,9.5,67.6,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/13.htm
+13-xls,"Maiz, grano, entero (Zea mays spp)",Cereales y tuberculos,,Cereales y tuberculos,100,g,346,9.5,67.6,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Cereales.xls
+130,"Durazno, pulpa, envasado al natural - Prunus persica L.",Frutas,,Frutas,100,g,75,0.4,18.2,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/130.htm
+130-xls,"Durazno, pulpa, envasado al natural",Frutas,,Frutas,100,g,75,0.4,18.2,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+132,"Frutilla pulpa, fresca, cruda - Fragarta h chiloensis Duch Var, ananassa B.",Frutas,,Frutas,100,g,41,0.8,8.1,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/132.htm
+132-xls,"Frutilla pulpa, fresca, cruda",Frutas,,Frutas,100,g,41,0.8,8.1,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+133,"Granada, pulpa, fresca - Punica granatium L.",Frutas,,Frutas,100,g,75,0.6,17.7,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/133.htm
+133-xls,"Granada, pulpa, fresca",Frutas,,Frutas,100,g,75,0.6,17.7,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+134,"Higo, pulpa, fresca - Ficus carica L.",Frutas,,Frutas,100,g,88,1.4,19.6,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/134.htm
+134-xls,"Higo, pulpa, fresca",Frutas,,Frutas,100,g,88,1.4,19.6,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+135,"Kaki, pulpa, fresco - Diospyrus Kaki L.",Frutas,,Frutas,100,g,87,0.8,20,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/135.htm
+135-xls,"Kaki, pulpa, fresco",Frutas,,Frutas,100,g,87,0.8,20,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+136,"Kinoto, pulpa y cáscara, fresco, crudo - Fortunella spp.",Frutas,,Frutas,100,g,73,0.9,17.1,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/136.htm
+136-xls,"Kinoto, pulpa y cáscara, fresco, crudo",Frutas,,Frutas,100,g,73,0.9,17.1,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+137,"Limón, pulpa, fresco - Citrus limonia",Frutas,,Frutas,100,g,44,0.9,8.7,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/137.htm
+137-xls,"Limón, pulpa, fresco",Frutas,,Frutas,100,g,44,0.9,8.7,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+138,"Manzana, pulpa, fresca, cruda - Malus sylvestria",Frutas,,Frutas,100,g,64,0.3,14.9,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/138.htm
+138-xls,"Manzana, pulpa, fresca, cruda",Frutas,,Frutas,100,g,64,0.3,14.9,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+14,"Maiz, harina amarilla (polenta), cruda",Cereales y tuberculos,,Cereales y tuberculos,100,g,369,11.1,73.9,3.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/14.htm
+140,"Melón, pulpa, fresco - Cucumis melo L.",Frutas,,Frutas,100,g,28,0.6,5.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/140.htm
+140-xls,"Melón, pulpa, fresco",Frutas,,Frutas,100,g,28,0.6,5.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+141,"Membrillo, pulpa, fresco, crudo - Cydonia oblonga L.",Frutas,,Frutas,100,g,58,0.3,13.9,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/141.htm
+141-xls,"Membrillo, pulpa, fresco, crudo",Frutas,,Frutas,100,g,58,0.3,13.9,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+142,"Mora, fresca - Morus spp.",Frutas,,Frutas,100,g,69,1.2,14.6,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/142.htm
+142-xls,"Mora, fresca",Frutas,,Frutas,100,g,69,1.2,14.6,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+143,"Palta, pulpa, fresca - Persea gratissima",Frutas,,Frutas,100,g,258,1.7,3.3,26.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/143.htm
+143-xls,"Palta, pulpa, fresca",Frutas,,Frutas,100,g,258,1.7,3.3,26.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+144,"Pera, pulpa, fresca, cruda - Pirus comimunis L.",Frutas,,Frutas,100,g,70,0.7,15.8,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/144.htm
+144-xls,"Pera, pulpa, fresca, cruda",Frutas,,Frutas,100,g,70,0.7,15.8,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+145,"Pera, orejón, crudo - Pirus comimunis L.",Frutas,,Frutas,100,g,299,2.3,71.6,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/145.htm
+145-xls,"Pera, orejón, crudo",Frutas,,Frutas,100,g,299,2.3,71.6,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+147,"Sandía, pulpa, fresca, cruda - Citrullus vulgaris Schard",Frutas,,Frutas,100,g,31,0.5,6.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/147.htm
+147-xls,"Sandía, pulpa, fresca, cruda",Frutas,,Frutas,100,g,31,0.5,6.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+148,"Aceite comestible mezcla Lira, 85% girasol, 15% oliva",Grasas y aceites,,Grasas y aceites,100,g,900,100,33.6,100,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/148.htm
+149,"Aceite comestible mezcla Patito, 94% girasol, 6% maiz",Grasas y aceites,,Grasas y aceites,100,g,900,100,27.6,100,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/149.htm
+150,Aceite de canola,Grasas y aceites,,Grasas y aceites,100,g,900,100,55,100,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/150.htm
+151,Aceite de girasol Familiar,Grasas y aceites,,Grasas y aceites,100,g,900,100,23,100,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/151.htm
+152,Aceite de girasol Ideal,Grasas y aceites,,Grasas y aceites,100,g,900,100,27,100,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/152.htm
+153,Aceite de girasol Natura,Grasas y aceites,,Grasas y aceites,100,g,900,100,24.8,100,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/153.htm
+154,Aceite de maiz Arcor,Grasas y aceites,,Grasas y aceites,100,g,900,100,33.6,100,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/154.htm
+155,Aceite de maiz Cocinero - Oil,Grasas y aceites,,Grasas y aceites,100,g,900,100,37.8,100,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/155.htm
+155-xls,Aceite de maiz Cocinero,Grasas y aceites,,Grasas y aceites,100,g,900,100,37.8,100,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Grasas.xls
+156,Aceite de maiz Mazzola,Grasas y aceites,,Grasas y aceites,100,g,900,100,31.8,100,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/156.htm
+157,Aceite de oliva Cocinero,Grasas y aceites,,Grasas y aceites,100,g,900,100,71.1,100,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/157.htm
+158,Aceite de uva Cocinero,Grasas y aceites,,Grasas y aceites,100,g,900,100,23.6,100,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/158.htm
+159,Grasa de cerdo,Grasas y aceites,,Grasas y aceites,100,g,898,99.8,0,99.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/159.htm
+16,"Maiz, harina amarilla (polenta), hervida",Cereales y tuberculos,,Cereales y tuberculos,100,g,68,3.2,11.9,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/16.htm
+160,Grasa Vacuna,Grasas y aceites,,Grasas y aceites,100,g,899,99.9,0,99.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/160.htm
+161,Margarina 100% vegetal Manty (en pote y en pan),Grasas y aceites,,Grasas y aceites,100,g,747,83,41.5,83,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/161.htm
+162,Margarina 100% vegetal Delicia,Grasas y aceites,,Grasas y aceites,100,g,747,83,49.8,83,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/162.htm
+163,Margarina reducida en calorias Manty liviana,Grasas y aceites,,Grasas y aceites,100,g,504,56,33,56,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/163.htm
+164,"Abadejo, fresco, crudo, carne - Genypterus blacodes",Proteinas de origen animal,,Proteinas de origen animal,100,g,72,15.8,0.2,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/164.htm
+164-xls,"Abadejo, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,72,15.8,0.2,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+165,"Anchoa, fresca, cruda, carne - Pomatomus saltatrix",Proteinas de origen animal,,Proteinas de origen animal,100,g,92,21.5,0.5,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/165.htm
+165-xls,"Anchoa, fresca, cruda, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,92,21.5,0.5,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+166,"Anchoita, fresca, cruda, carne - Engraulis anchoita hubbs larini",Proteinas de origen animal,,Proteinas de origen animal,100,g,129,19.2,0.8,5.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/166.htm
+166-xls,"Anchoita, fresca, cruda, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,129,19.2,0.8,5.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+167,"Besugo, fresco, crudo, carne - Pagrus pagrus",Proteinas de origen animal,,Proteinas de origen animal,100,g,100,20.4,0,2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/167.htm
+167-xls,"Besugo, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,100,20.4,0,2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+169,"Bonito, fresco, crudo, carne - Sarda sarda",Proteinas de origen animal,,Proteinas de origen animal,100,g,219,22,0.12,14.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/169.htm
+169-xls,"Bonito, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,219,22,0.12,14.5,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+17,"Maiz, pan",Cereales y tuberculos,,Cereales y tuberculos,100,g,275,9.1,53.2,2.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/17.htm
+170,"Brótola, fresca, cruda, carne - Urophycis brasilensis",Proteinas de origen animal,,Proteinas de origen animal,100,g,83,17.6,0.4,1.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/170.htm
+170-xls,"Brótola, fresca, cruda, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,83,17.6,0.4,1.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+171,"Caballa, fresca, cruda, carne - Pneumatophorus japonicus marplatensis",Proteinas de origen animal,,Proteinas de origen animal,100,g,232,22,0.4,15.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/171.htm
+171-xls,"Caballa, fresca, cruda, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,232,22,0.4,15.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+172,"Castañeta, fresca, cruda, entera - Cheilodactylus bergi",Proteinas de origen animal,,Proteinas de origen animal,100,g,170,17,0.5,11.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/172.htm
+172-xls,"Castañeta, fresca, cruda, entera",Proteinas de origen animal,,Proteinas de origen animal,100,g,170,17,0.5,11.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+173,"Castañeta, fresca, cruda, carne - Cheilodactylus bergi",Proteinas de origen animal,,Proteinas de origen animal,100,g,95,18.4,0.3,2.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/173.htm
+173-xls,"Castañeta, fresca, cruda, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,95,18.4,0.3,2.3,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+174,"Congrio, fresco, crudo, carne - Leptocephalus orbignyanus",Proteinas de origen animal,,Proteinas de origen animal,100,g,107,17.2,0.7,4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/174.htm
+174-xls,"Congrio, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,107,17.2,0.7,4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+175,"Cornalito, fresco, crudo, entero - Sorgentinia incisa",Proteinas de origen animal,,Proteinas de origen animal,100,g,86,16,0.6,2.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/175.htm
+175-xls,"Cornalito, fresco, crudo, entero",Proteinas de origen animal,,Proteinas de origen animal,100,g,86,16,0.6,2.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+176,"Corvina blanca, fresca, cruda, carne - Micropogonias undulatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,97,19.5,0.4,1.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/176.htm
+176-xls,"Corvina blanca, fresca, cruda, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,97,19.5,0.4,1.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+177,"Corvina negra, fresca, cruda, carne - Pagonias cromis",Proteinas de origen animal,,Proteinas de origen animal,100,g,84,18.8,0.4,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/177.htm
+177-xls,"Corvina negra, fresca, cruda, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,84,18.8,0.4,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+179,"Dorado, fresco, crudo, carne - Salminus maxilosus",Proteinas de origen animal,,Proteinas de origen animal,100,g,80,18.8,0.1,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/179.htm
+179-xls,"Dorado, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,80,18.8,0.1,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+18,"Trigo, grano entero, crudo",Cereales y tuberculos,,Cereales y tuberculos,100,g,347,12.4,69.8,2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/18.htm
+180,"Gatuso, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,72,17.4,0.1,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/180.htm
+181,"Jurel, fresco, crudo, carne - Trachurus pictatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,149,19,0.2,8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/181.htm
+181-xls,"Jurel, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,149,19,0.2,8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+182,"Lenguado, fresco, crudo, carne - Paralichthys spp",Proteinas de origen animal,,Proteinas de origen animal,100,g,78,17.5,0.2,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/182.htm
+182-xls,"Lenguado, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,78,17.5,0.2,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+183,"Lisa, fresca, cruda, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,146,17.9,1.1,7.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/183.htm
+184,"Merluza, fresca, cruda, carne - Merluccis merluccis",Proteinas de origen animal,,Proteinas de origen animal,100,g,81,17.1,0.1,1.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/184.htm
+184-xls,"Merluza, fresca, cruda, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,81,17.1,0.1,1.3,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+185,"Mero, fresco, crudo, carne - Acanthistis brasilianus",Proteinas de origen animal,,Proteinas de origen animal,100,g,83,17.9,0.5,1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/185.htm
+185-xls,"Mero, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,83,17.9,0.5,1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+186,"Palometa, fresca, cruda, carne - Parona signata",Proteinas de origen animal,,Proteinas de origen animal,100,g,215,20.1,0.4,14.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/186.htm
+186-xls,"Palometa, fresca, cruda, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,215,20.1,0.4,14.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+187,"Pargo, fresco, crudo, carne - Umbrina canosal",Proteinas de origen animal,,Proteinas de origen animal,100,g,113,19.1,0.3,3.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/187.htm
+187-xls,"Pargo, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,113,19.1,0.3,3.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+189,"Patí, fresco, crudo, carne - Luciopimelodus pati",Proteinas de origen animal,,Proteinas de origen animal,100,g,90,18.2,0.3,1.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/189.htm
+189-xls,"Patí, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,90,18.2,0.3,1.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+19,"Trigo, bizcochos ""Bay Biscuit""",Cereales y tuberculos,,Cereales y tuberculos,100,g,382,5.9,67.1,10.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/19.htm
+190,"Pejerrey agua dulce, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,77,18.3,0.05,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/190.htm
+191,"Pejerrey mar, fresco, crudo, carne - Atherinidas",Proteinas de origen animal,,Proteinas de origen animal,100,g,86,18.6,0.2,1.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/191.htm
+191-xls,"Pejerrey mar, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,86,18.6,0.2,1.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+192,"Pescadilla, fresca, crudo, carne - Cynosción striatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,97,17.8,0.2,2.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/192.htm
+192-xls,"Pescadilla, fresca, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,97,17.8,0.2,2.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+193,"Pez Gallo, fresco, crudo, carne - Callorhynchus",Proteinas de origen animal,,Proteinas de origen animal,100,g,84,20.2,0,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/193.htm
+193-xls,"Pez Gallo, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,84,20.2,0,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+194,"Pez palo, fresco, crudo, carne - Perophis brasilensis",Proteinas de origen animal,,Proteinas de origen animal,100,g,96,20.1,0,1.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/194.htm
+194-xls,"Pez palo, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,96,20.1,0,1.7,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+195,"Rubio, fresco, crudo, carne - Helicolenus dactylopterus labillei",Proteinas de origen animal,,Proteinas de origen animal,100,g,109,17.1,0.02,4.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/195.htm
+195-xls,"Rubio, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,109,17.1,0.02,4.5,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+196,"Sardina fueguina, fresca, cruda, carne - Fueguine sardine",Proteinas de origen animal,,Proteinas de origen animal,100,g,136,14,0,8.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/196.htm
+196-xls,"Sardina fueguina, fresca, cruda, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,136,14,0,8.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+199,"Surubí, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,110,18.2,0.2,4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/199.htm
+2,"Arroz, grano, blanco, pulido, hervido",Cereales y tuberculos,,Cereales y tuberculos,100,g,82,1.4,19.1,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/2.htm
+20,"Trigo, bizcochos ""Canale""",Cereales y tuberculos,,Cereales y tuberculos,100,g,395,11,68.4,8.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/20.htm
+200,"Tararira, fresca, cruda, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,79,18.1,0.4,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/200.htm
+201,"Testolin, fresco, crudo, carne - Prionotus punctatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,98,18.9,0.2,2.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/201.htm
+201-xls,"Testolin, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,98,18.9,0.2,2.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+202,"Calamar, fresco, entero, crudo - Illex ilexebrosus",Proteinas de origen animal,,Proteinas de origen animal,100,g,80,18.5,0,0.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/202.htm
+202-xls,"Calamar, fresco, entero, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,80,18.5,0,0.7,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+203,"Calamar, fresco, crudo (tubo aletas y tentáculos) - Illex ilexebrosus",Proteinas de origen animal,,Proteinas de origen animal,100,g,79,18.4,0,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/203.htm
+203-xls,"Calamar, fresco, crudo (tubo aletas y tentáculos)",Proteinas de origen animal,,Proteinas de origen animal,100,g,79,18.4,0,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+204,"Camarón, fresco, crudo, carne de cola - Artemesia longinaris",Proteinas de origen animal,,Proteinas de origen animal,100,g,91,21,0,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/204.htm
+204-xls,"Camarón, fresco, crudo, carne de cola",Proteinas de origen animal,,Proteinas de origen animal,100,g,91,21,0,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+205,"Centolla, fresca, carne, cruda - Lithodes antarcticus",Proteinas de origen animal,,Proteinas de origen animal,100,g,66,13.9,0,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/205.htm
+205-xls,"Centolla, fresca, carne, cruda",Proteinas de origen animal,,Proteinas de origen animal,100,g,66,13.9,0,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+206,"Centolla, fresca (carne de pata solamente) - Lithodes antarcticus",Proteinas de origen animal,,Proteinas de origen animal,100,g,83,18.8,0,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/206.htm
+206-xls,"Centolla, fresca (carne de pata solamente)",Proteinas de origen animal,,Proteinas de origen animal,100,g,83,18.8,0,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+207,"Langostino, fresco, crudo, carne de cola - Hymenopenaeus multeri",Proteinas de origen animal,,Proteinas de origen animal,100,g,97,22,0.2,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/207.htm
+207-xls,"Langostino, fresco, crudo, carne de cola",Proteinas de origen animal,,Proteinas de origen animal,100,g,97,22,0.2,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+208,"Mejillón, fresco, crudo, carne - Mytilus platensis spp",Proteinas de origen animal,,Proteinas de origen animal,100,g,64,11.9,1.7,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/208.htm
+208-xls,"Mejillón, fresco, crudo, carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,64,11.9,1.7,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+209,"Mejillón, fresco, crudo (capturado en primavera) - Mytilus platensis spp",Proteinas de origen animal,,Proteinas de origen animal,100,g,95,17.6,2.5,1.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/209.htm
+209-xls,"Mejillón, fresco, crudo (capturado en primavera)",Proteinas de origen animal,,Proteinas de origen animal,100,g,95,17.6,2.5,1.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+21,"Trigo, bizcochos, vainillas",Cereales y tuberculos,,Cereales y tuberculos,100,g,401,10.2,70,8.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/21.htm
+211,"Ancho, pasta",Proteinas de origen animal,,Proteinas de origen animal,100,g,202,20.2,4.3,11.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/211.htm
+212,"Caballa, tronco - Scomber japonicus marplatensis",Proteinas de origen animal,,Proteinas de origen animal,100,g,212,26.5,0,11.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/212.htm
+212-xls,"Caballa, tronco",Proteinas de origen animal,,Proteinas de origen animal,100,g,212,26.5,0,11.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+213,"Cerdo, costilla flaca, cruda",Proteinas de origen animal,,Proteinas de origen animal,100,g,250,19.9,0.08,18.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/213.htm
+214,"Cerdo, costilla, a la parrilla",Proteinas de origen animal,,Proteinas de origen animal,100,g,320,25.2,0.12,24.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/214.htm
+215,"Cerdo, jamón crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,473,18,0,44.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/215.htm
+216,"Cerdo, jamón cocido",Proteinas de origen animal,,Proteinas de origen animal,100,g,211,20.3,0.05,14.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/216.htm
+217,"Cerdo, panceta",Proteinas de origen animal,,Proteinas de origen animal,100,g,670,8.3,0,70.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/217.htm
+218,"Cerdo, chorizo, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,454,13,1.1,44.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/218.htm
+219,"Cordero, carne de la paleta, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,99,18.7,0,2.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/219.htm
+22,"Trigo, galleta de campo",Cereales y tuberculos,,Cereales y tuberculos,100,g,300,9.8,63,1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/22.htm
+220,"Cordero, carne de la paleta, flaca, a la parrilla",Proteinas de origen animal,,Proteinas de origen animal,100,g,182,28,0,7.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/220.htm
+221,"Pollo, carne-pellejo-menudos, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,88,16.3,0.07,2.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/221.htm
+222,"Pollo, hervido",Proteinas de origen animal,,Proteinas de origen animal,100,g,198,23.1,0.08,11.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/222.htm
+223,"Pollo, asado al horno",Proteinas de origen animal,,Proteinas de origen animal,100,g,162,28.4,0,5.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/223.htm
+224,"Pollo, asado a la parrilla",Proteinas de origen animal,,Proteinas de origen animal,100,g,168,29.8,0.05,5.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/224.htm
+225,"Rana, carne de la pata, fresca, cruda",Proteinas de origen animal,,Proteinas de origen animal,100,g,64,15.5,0.05,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/225.htm
+226,"Vacuno, asado, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,170,18.4,0.03,10.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/226.htm
+227,"Vacuno, bife, a la parrilla",Proteinas de origen animal,,Proteinas de origen animal,100,g,189,24.6,0,10.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/227.htm
+228,"Vacuno, caracú (médula de hueso largo), crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,785,0.5,0,87,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/228.htm
+229,"Vacuno, cuadril y bife angosto flaco, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,111,21,0,3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/229.htm
+23,"Trigo, galleta marinera",Cereales y tuberculos,,Cereales y tuberculos,100,g,361,12.8,75.9,0.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/23.htm
+230,"Vacuno, en conserva, enlatado",Proteinas de origen animal,,Proteinas de origen animal,100,g,224,23.7,0,14.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/230.htm
+231,"Vacuno, hígado, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,132,19.7,6,3.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/231.htm
+232,"Vacuno, jugo de carne",Proteinas de origen animal,,Proteinas de origen animal,100,g,33,6.8,0.1,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/232.htm
+233,"Vacuno, lomo, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,116,20,0,4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/233.htm
+234,"Vacuno, nalga, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,97,21.2,0,1.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/234.htm
+235,"Vacuno, pasta de hígado",Proteinas de origen animal,,Proteinas de origen animal,100,g,335,14,0,31,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/235.htm
+236,"Vacuno, riñon, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,137,15,0.9,8.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/236.htm
+237,"Vacuno, ternera, costilla flaca, a la parrilla",Proteinas de origen animal,,Proteinas de origen animal,100,g,139,27.2,0,3.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/237.htm
+238,"Vacuno, ternera, costilla flaca, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,95,20,0,1.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/238.htm
+239,"Vacuno, vacío flaco, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,171,23.8,0.05,8.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/239.htm
+24,"Trigo, galletitas de agua ""Express""",Cereales y tuberculos,,Cereales y tuberculos,100,g,442,13.5,62,15.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/24.htm
+240,"Vacuno, vacío, a la parrilla",Proteinas de origen animal,,Proteinas de origen animal,100,g,258,25.6,0,17.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/240.htm
+241,"Vacuno, vacío, al horno",Proteinas de origen animal,,Proteinas de origen animal,100,g,241,28.1,0,14.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/241.htm
+242,"Bife, cocido",Proteinas de origen animal,,Proteinas de origen animal,100,g,233,36,0.1,9.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/242.htm
+243,"Bife, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,120,20.7,4.3,2.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/243.htm
+244,"Nalga, cocida",Proteinas de origen animal,,Proteinas de origen animal,100,g,197,38.6,0.7,4.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/244.htm
+246,"Paleta, cocida",Proteinas de origen animal,,Proteinas de origen animal,100,g,207,37,0.4,6.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/246.htm
+247,"Paleta, cruda",Proteinas de origen animal,,Proteinas de origen animal,100,g,107,19,0.2,3.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/247.htm
+248,"Vacío, cocido",Proteinas de origen animal,,Proteinas de origen animal,100,g,231,41.1,1.2,6.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/248.htm
+249,"Vacío, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,105,18.4,3.1,2.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/249.htm
+25,"Trigo, galletitas de agua ""Traviata""",Cereales y tuberculos,,Cereales y tuberculos,100,g,437,12.2,67.6,13.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/25.htm
+253,"Nalga, cruda",Proteinas de origen animal,,Proteinas de origen animal,100,g,103,21,2.5,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/253.htm
+26,"Trigo, galletitas de harina blanca",Cereales y tuberculos,,Cereales y tuberculos,100,g,410,12.2,64.2,11.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/26.htm
+27,"Trigo, galletitas de harina integral",Cereales y tuberculos,,Cereales y tuberculos,100,g,411,10.6,56.5,15.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/27.htm
+28,"Trigo, galletitas dulces ""Manón""",Cereales y tuberculos,,Cereales y tuberculos,100,g,417,8.5,73,10.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/28.htm
+29,"Trigo, galletitas dulces ""Minue""",Cereales y tuberculos,,Cereales y tuberculos,100,g,419,8.2,67,13.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/29.htm
+296,"Leche de burra, entera, fluida",Lacteos,,Lacteos,100,g,45,1.9,6.2,1.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/296.htm
+297,"Leche de cabra, entera, fluida",Lacteos,,Lacteos,100,g,78,3.3,3,5.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/297.htm
+298,"Leche de oveja, entera, fluida",Lacteos,,Lacteos,100,g,99,5.5,4.5,6.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/298.htm
+299,"Leche humana, entera, fluida",Lacteos,,Lacteos,100,g,71,1.1,7.1,4.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/299.htm
+3,"Avena , grano, arrollada, cruda",Cereales y tuberculos,,Cereales y tuberculos,100,g,383,15.6,62.5,7.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/3.htm
+30,"Trigo, galletitas oblea ""Opera""",Cereales y tuberculos,,Cereales y tuberculos,100,g,442,4.9,58,21.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/30.htm
+300,"Leche humana, entera, en polvo",Lacteos,,Lacteos,100,g,520,9.6,49.5,31.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/300.htm
+301,"Leche de vaca, entera, fluida, pasteurizada",Lacteos,,Lacteos,100,g,57,3.1,4.6,2.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/301.htm
+302,"Leche de vaca, entera, fluida, adicionada con vitamina A",Lacteos,,Lacteos,100,g,57,3.1,4.6,2.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/302.htm
+303,"Leche de vaca parcialm. descremada, adic. con vit A y D",Lacteos,,Lacteos,100,g,44,3.2,4.6,1.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/303.htm
+304,Leche en polvo entera,Lacteos,,Lacteos,100,g,489,25.8,40.9,24.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/304.htm
+305,Leche en polvo descremada,Lacteos,,Lacteos,100,g,370,35.5,52.2,1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/305.htm
+306,"Leche, condensada, Nestlé",Lacteos,,Lacteos,100,g,328,8,55.8,8.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/306.htm
+307,"Manteca, fresca",Lacteos,,Lacteos,100,g,758,0.5,0,84,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/307.htm
+308,"Queso crema, entero, untable",Lacteos,,Lacteos,100,g,246,6.6,3.9,22.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/308.htm
+309,"Queso semidescremado, untable",Lacteos,,Lacteos,100,g,104,11.5,5.5,4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/309.htm
+31,"Trigo, grisines",Cereales y tuberculos,,Cereales y tuberculos,100,g,342,12.5,72.6,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/31.htm
+310,"Queso descremado, untable",Lacteos,,Lacteos,100,g,82,13.7,6.1,0.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/310.htm
+311,"Queso, Petit Suisse",Lacteos,,Lacteos,100,g,182,14.1,0,14,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/311.htm
+312,Queso Belpaese,Lacteos,,Lacteos,100,g,309,20.3,0.02,25.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/312.htm
+313,Queso Camembert,Lacteos,,Lacteos,100,g,287,20.1,0,23,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/313.htm
+314,Queso mozarella,Lacteos,,Lacteos,100,g,282,23.6,3.3,19.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/314.htm
+315,Queso cremoso,Lacteos,,Lacteos,100,g,302,19.7,4.2,22.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/315.htm
+316,Queso cuartirolo,Lacteos,,Lacteos,100,g,291,20.8,3.9,21.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/316.htm
+317,Queso doble crema,Lacteos,,Lacteos,100,g,260,18,0,20.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/317.htm
+318,Queso Limburgués,Lacteos,,Lacteos,100,g,324,21.8,0.02,26.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/318.htm
+319,Queso Por Salut,Lacteos,,Lacteos,100,g,301,20.4,3.7,22.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/319.htm
+32,"Trigo, harina tres cero",Cereales y tuberculos,,Cereales y tuberculos,100,g,340,10.3,68.7,2.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/32.htm
+320,Queso Cheddar,Lacteos,,Lacteos,100,g,357,29.5,0.12,26.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/320.htm
+321,Queso Chubut,Lacteos,,Lacteos,100,g,328,25.9,0.08,24.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/321.htm
+322,Queso Fontina,Lacteos,,Lacteos,100,g,340,24.3,0,33.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/322.htm
+323,Queso Gorgonzola,Lacteos,,Lacteos,100,g,480,21.6,0.07,43.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/323.htm
+324,Queso Gruyere,Lacteos,,Lacteos,100,g,379,28.6,0,29.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/324.htm
+325,Queso Holanda,Lacteos,,Lacteos,100,g,345,25.1,0,27.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/325.htm
+326,Queso Pategrás,Lacteos,,Lacteos,100,g,410,24.8,0.08,34.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/326.htm
+327,Queso Roquefort,Lacteos,,Lacteos,100,g,426,19.2,0,38.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/327.htm
+328,Queso Suizo,Lacteos,,Lacteos,100,g,404,28.6,1.9,31.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/328.htm
+329,Queso Tafí,Lacteos,,Lacteos,100,g,358,21.8,0,30.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/329.htm
+33,"Trigo, harina cuatro ceros",Cereales y tuberculos,,Cereales y tuberculos,100,g,348,10.2,70.8,2.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/33.htm
+330,Queso Tandil,Lacteos,,Lacteos,100,g,345,25.5,0,27,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/330.htm
+331,Queso tipo Mar del Plata,Lacteos,,Lacteos,100,g,332,25.4,0,25.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/331.htm
+332,Queso Goya,Lacteos,,Lacteos,100,g,402,29.7,0,31.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/332.htm
+333,Queso Parmesano,Lacteos,,Lacteos,100,g,350,32.7,0,24.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/333.htm
+334,Queso Provolone,Lacteos,,Lacteos,100,g,391,32.1,0,29.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/334.htm
+335,Queso Reggianito,Lacteos,,Lacteos,100,g,365,33.4,3.4,24.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/335.htm
+336,Queso Sardo,Lacteos,,Lacteos,100,g,402,30,5,29.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/336.htm
+337,Queso Sbrinz,Lacteos,,Lacteos,100,g,357,29.4,0,26.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/337.htm
+338,Ricota de leche entera,Lacteos,,Lacteos,100,g,168,11.6,4,11.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/338.htm
+339,Yogur entero natural,Lacteos,,Lacteos,100,g,66,4.6,5.3,3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/339.htm
+34,"Trigo, harina integral",Cereales y tuberculos,,Cereales y tuberculos,100,g,308,11.4,58.8,3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/34.htm
+340,Yogur entero saborizado,Lacteos,,Lacteos,100,g,88,4.4,12.4,2.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/340.htm
+341,Yogur descremado,Lacteos,,Lacteos,100,g,59,4.3,5.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/341.htm
+342,Yogur entero bebible,Lacteos,,Lacteos,100,g,82,2.8,12.7,2.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/342.htm
+343,Yogur descremado bebible,Lacteos,,Lacteos,100,g,30,3.3,4.1,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/343.htm
+344,"Huevo de gallina, entero, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,156,12,0.4,11.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/344.htm
+345,"Huevo de gallina, clara, cruda",Proteinas de origen animal,,Proteinas de origen animal,100,g,48,11.6,0,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/345.htm
+346,"Huevo de gallina, yema, cruda",Proteinas de origen animal,,Proteinas de origen animal,100,g,325,16.6,0.07,28.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/346.htm
+347,"Huevo de gallina, clara, cocido",Proteinas de origen animal,,Proteinas de origen animal,100,g,54,12.8,0.02,0.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/347.htm
+348,"Huevo de gallina, frito",Proteinas de origen animal,,Proteinas de origen animal,100,g,196,16.3,0.08,14.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/348.htm
+349,"Huevo de gallina, poché",Proteinas de origen animal,,Proteinas de origen animal,100,g,152,13.4,0.07,10.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/349.htm
+35,"Trigo, salvado",Cereales y tuberculos,,Cereales y tuberculos,100,g,171,16.3,14,5.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/35.htm
+350,"Huevo de codorniz, entero, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,174,13.6,0.1,13.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/350.htm
+351,"Batata, dulce",Azucares y dulces,,Azucares y dulces,100,g,263,0.9,65,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/351.htm
+352,"Ciruela, mermelada",Azucares y dulces,,Azucares y dulces,100,g,306,3.7,73.1,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/352.htm
+353,Chocolatín,Azucares y dulces,,Azucares y dulces,100,g,549,5.4,62.4,31.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/353.htm
+354,"Durazno, mermelada",Azucares y dulces,,Azucares y dulces,100,g,304,3.5,76.4,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/354.htm
+355,"Frutilla, mermelada",Azucares y dulces,,Azucares y dulces,100,g,309,3.8,73.2,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/355.htm
+356,"Leche, dulce de leche",Azucares y dulces,,Azucares y dulces,100,g,341,8.1,56.8,9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/356.htm
+359,Mortadela,Miscelaneos,,Miscelaneos,100,g,245,17.5,1,19,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/359.htm
+36,"Trigo, pan francés",Cereales y tuberculos,,Cereales y tuberculos,100,g,269,9.3,57.4,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/36.htm
+38,"Trigo, pan alemán",Cereales y tuberculos,,Cereales y tuberculos,100,g,264,8.9,56.7,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/38.htm
+39,"Trigo, pan criollo",Cereales y tuberculos,,Cereales y tuberculos,100,g,280,8.7,60.7,0.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/39.htm
+395,"Amarillo, fresco, crudo, músculo dorsal - Pimedolus clarias maculatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,141,17.3,0,8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/395.htm
+395-xls,"Amarillo, fresco, crudo, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,141,17.3,0,8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+396,"Amarillo, fresco, hervido, músculo dorsal - Pimedolus clarias maculatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,180,18.7,0,11.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/396.htm
+396-xls,"Amarillo, fresco, hervido, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,180,18.7,0,11.7,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+397,"Amarillo, fresco, al horno, músculo dorsal - Pimedolus clarias maculatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,233,19.9,0.1,17,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/397.htm
+397-xls,"Amarillo, fresco, al horno, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,233,19.9,0.1,17,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+398,"Amarillo, fresco, a la parrilla, músculo dorsal - Pimedolus clarias maculatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,183,21.3,0,10.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/398.htm
+398-xls,"Amarillo, fresco, a la parrilla, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,183,21.3,0,10.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+399,"Amarillo, fresco, frito, músculo dorsal - Pimedolus clarias maculatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,232,22.8,0.1,15.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/399.htm
+399-xls,"Amarillo, fresco, frito, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,232,22.8,0.1,15.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+4,"Avena, grano, arrollada, cruda",Cereales y tuberculos,,Cereales y tuberculos,100,g,343,12.8,56.9,7.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/4.htm
+40,"Trigo, pan de Viena",Cereales y tuberculos,,Cereales y tuberculos,100,g,307,9.8,62.6,1.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/40.htm
+400,"Armado, fresco, crudo, músculo dorsal - Pterodotas granulosus",Proteinas de origen animal,,Proteinas de origen animal,100,g,75,15.4,0,1.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/400.htm
+400-xls,"Armado, fresco, crudo, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,75,15.4,0,1.5,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+401,"Armado, fresco, crudo, músculo ventral - Pterodotas granulosus",Proteinas de origen animal,,Proteinas de origen animal,100,g,103,14.6,0.12,4.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/401.htm
+401-xls,"Armado, fresco, crudo, músculo ventral",Proteinas de origen animal,,Proteinas de origen animal,100,g,103,14.6,0.12,4.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+402,"Armado, fresco, hervido, músculo dorsal - Pterodotas granulosus",Proteinas de origen animal,,Proteinas de origen animal,100,g,102,20.8,0,2.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/402.htm
+402-xls,"Armado, fresco, hervido, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,102,20.8,0,2.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+403,"Armado, fresco, al horno, músculo dorsal - Pterodotas granulosus",Proteinas de origen animal,,Proteinas de origen animal,100,g,128,23.7,0,3.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/403.htm
+403-xls,"Armado, fresco, al horno, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,128,23.7,0,3.7,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+404,"Armado, fresco, frito, músculo dorsal - Pterodotas granulosus",Proteinas de origen animal,,Proteinas de origen animal,100,g,130,21.4,0.08,4.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/404.htm
+404-xls,"Armado, fresco, frito, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,130,21.4,0.08,4.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+405,"Boga, fresca, cruda, músculo ventral - Leporinus obtusidens",Proteinas de origen animal,,Proteinas de origen animal,100,g,180,18.5,0,11.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/405.htm
+405-xls,"Boga, fresca, cruda, músculo ventral",Proteinas de origen animal,,Proteinas de origen animal,100,g,180,18.5,0,11.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+406,"Boga, fresca, hervida, músculo dorsal - Leporinus obtusidens",Proteinas de origen animal,,Proteinas de origen animal,100,g,158,22.7,0,7.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/406.htm
+406-xls,"Boga, fresca, hervida, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,158,22.7,0,7.5,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+407,"Boga, fresca, al horno, músculo dorsal - Leporinus obtusidens",Proteinas de origen animal,,Proteinas de origen animal,100,g,150,25.1,0.02,5.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/407.htm
+407-xls,"Boga, fresca, al horno, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,150,25.1,0.02,5.5,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+408,"Boga, fresca, a la parrilla, músculo dorsal - Leporinus obtusidens",Proteinas de origen animal,,Proteinas de origen animal,100,g,150,23.7,0.08,6.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/408.htm
+408-xls,"Boga, fresca, a la parrilla, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,150,23.7,0.08,6.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+409,"Boga, fresca, frita, músculo dorsal - Leporinus obtusidens",Proteinas de origen animal,,Proteinas de origen animal,100,g,168,24.3,0,7.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/409.htm
+409-xls,"Boga, fresca, frita, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,168,24.3,0,7.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+41,"Trigo, pan de salvado",Cereales y tuberculos,,Cereales y tuberculos,100,g,223,9.8,42.3,1.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/41.htm
+410,"Moncholo, fresco, crudo, músculo dorsal - Pimelodus albicans",Proteinas de origen animal,,Proteinas de origen animal,100,g,112,17.5,0,4.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/410.htm
+410-xls,"Moncholo, fresco, crudo, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,112,17.5,0,4.7,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+411,"Moncholo, fresco, crudo, músculo ventral - Pimelodus albicans",Proteinas de origen animal,,Proteinas de origen animal,100,g,148,16.7,0,9.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/411.htm
+411-xls,"Moncholo, fresco, crudo, músculo ventral",Proteinas de origen animal,,Proteinas de origen animal,100,g,148,16.7,0,9.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+412,"Moncholo, fresco, hervido, músculo dorsal - Pimelodus albicans",Proteinas de origen animal,,Proteinas de origen animal,100,g,187,16.7,0.12,13.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/412.htm
+412-xls,"Moncholo, fresco, hervido, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,187,16.7,0.12,13.3,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+413,"Moncholo, fresco, al horno, músculo dorsal - Pimelodus albicans",Proteinas de origen animal,,Proteinas de origen animal,100,g,189,22,0,11.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/413.htm
+413-xls,"Moncholo, fresco, al horno, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,189,22,0,11.3,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+414,"Patí, fresco, hervido, músculo dorsal - Luciopimelodus pati",Proteinas de origen animal,,Proteinas de origen animal,100,g,133,19.6,0,6.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/414.htm
+414-xls,"Patí, fresco, hervido, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,133,19.6,0,6.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+415,"Patí, fresco, al horno, músculo dorsal - Luciopimelodus pati",Proteinas de origen animal,,Proteinas de origen animal,100,g,183,20.6,0,11.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/415.htm
+415-xls,"Patí, fresco, al horno, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,183,20.6,0,11.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+416,"Patí, fresco, a la parrilla, músculo dorsal - Luciopimelodus pati",Proteinas de origen animal,,Proteinas de origen animal,100,g,169,22.6,0,8.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/416.htm
+416-xls,"Patí, fresco, a la parrilla, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,169,22.6,0,8.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+417,"Patí, fresco, frito, músculo dorsal - Luciopimelodus pati",Proteinas de origen animal,,Proteinas de origen animal,100,g,215,23,0.15,13.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/417.htm
+417-xls,"Patí, fresco, frito, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,215,23,0.15,13.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+418,"Sábalo, fresco, crudo, músculo dorsal - Prochilodus lineatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,145,18,0.03,8.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/418.htm
+418-xls,"Sábalo, fresco, crudo, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,145,18,0.03,8.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+419,"Sábalo, fresco, crudo, músculo ventral - Prochilodus lineatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,151,17.5,0,9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/419.htm
+419-xls,"Sábalo, fresco, crudo, músculo ventral",Proteinas de origen animal,,Proteinas de origen animal,100,g,151,17.5,0,9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+42,"Trigo, pan negro con levadura agria",Cereales y tuberculos,,Cereales y tuberculos,100,g,271,8.4,58.3,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/42.htm
+420,"Sábalo, fresco, hervido, músculo dorsal - Prochilodus lineatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,130,20.5,0.08,5.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/420.htm
+420-xls,"Sábalo, fresco, hervido, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,130,20.5,0.08,5.3,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+421,"Sábalo, fresco, al horno, músculo dorsal - Prochilodus lineatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,153,25.1,0.1,5.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/421.htm
+421-xls,"Sábalo, fresco, al horno, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,153,25.1,0.1,5.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+422,"Sábalo, fresco, a la parrilla, músculo dorsal - Prochilodus lineatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,130,23.4,0.1,4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/422.htm
+422-xls,"Sábalo, fresco, a la parrilla, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,130,23.4,0.1,4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+423,"Sábalo, fresco, frito, músculo dorsal - Prochilodus lineatus",Proteinas de origen animal,,Proteinas de origen animal,100,g,166,24.9,0,7.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/423.htm
+423-xls,"Sábalo, fresco, frito, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,166,24.9,0,7.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+424,"Surubí, fresco, crudo, músculo dorsal - Pseudoplastistoma coruscans",Proteinas de origen animal,,Proteinas de origen animal,100,g,187,17.6,0,13,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/424.htm
+424-xls,"Surubí, fresco, crudo, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,187,17.6,0,13,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+425,"Surubí, fresco, hervido, músculo dorsal - Pseudoplastistoma coruscans",Proteinas de origen animal,,Proteinas de origen animal,100,g,186,23.4,0,10.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/425.htm
+425-xls,"Surubí, fresco, hervido, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,186,23.4,0,10.3,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+426,"Surubí, fresco, al horno, músculo dorsal - Pseudoplastistoma coruscans",Proteinas de origen animal,,Proteinas de origen animal,100,g,255,23.5,0,17.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/426.htm
+426-xls,"Surubí, fresco, al horno, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,255,23.5,0,17.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+427,"Surubí, fresco, frito, músculo dorsal - Pseudoplastistoma coruscans",Proteinas de origen animal,,Proteinas de origen animal,100,g,269,26.7,0.05,18,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/427.htm
+427-xls,"Surubí, fresco, frito, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,269,26.7,0.05,18,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+428,"Patí, fresco, crudo, músculo dorsal - Luciopimelodus pati",Proteinas de origen animal,,Proteinas de origen animal,100,g,161,15.9,0.05,10.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/428.htm
+428-xls,"Patí, fresco, crudo, músculo dorsal",Proteinas de origen animal,,Proteinas de origen animal,100,g,161,15.9,0.05,10.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+429,"Patí, fresco, crudo, músculo ventral - Luciopimelodus pati",Proteinas de origen animal,,Proteinas de origen animal,100,g,159,15.2,0.02,10.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/429.htm
+429-xls,"Patí, fresco, crudo, músculo ventral",Proteinas de origen animal,,Proteinas de origen animal,100,g,159,15.2,0.02,10.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Pescados.xls
+43,"Trigo, pan negro con levadura comprimida",Cereales y tuberculos,,Cereales y tuberculos,100,g,269,9.5,52.4,2.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/43.htm
+430,"Zapallo, pulpa, fresco, crudo - Cucurbita pepo",Verduras,,Verduras,100,g,27,0.5,5.8,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/430.htm
+430-xls,"Zapallo, pulpa, fresco, crudo",Verduras,,Verduras,100,g,27,0.5,5.8,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+432,Yogur descremado fortificado con Ca,Lacteos,,Lacteos,100,g,48,4.6,7.1,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/432.htm
+44,"Trigo, pan negro sin levadura",Cereales y tuberculos,,Cereales y tuberculos,100,g,269,9.6,56.3,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/44.htm
+45,"Trigo, sémola, cruda",Cereales y tuberculos,,Cereales y tuberculos,100,g,349,11.7,73.4,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/45.htm
+47,"Trigo, tallarines, frescos, hervidos",Cereales y tuberculos,,Cereales y tuberculos,100,g,98,4.1,16.9,1.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/47.htm
+482,"Maiz, blanco perla, grano entero, crudo - Zea mays",Cereales y tuberculos,,Cereales y tuberculos,100,g,335,9,74.8,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/482.htm
+482-xls,"Maiz, blanco perla, grano entero, crudo",Cereales y tuberculos,,Cereales y tuberculos,100,g,335,9,74.8,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Cereales.xls
+483,"Amaranto, semilla, cruda (Amarantus mantegazzianus) - Amarantus mantegazzianus",Cereales y tuberculos,,Cereales y tuberculos,100,g,388,15.4,62.7,8.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/483.htm
+483-xls,"Amaranto, semilla, cruda (Amarantus mantegazzianus)",Cereales y tuberculos,,Cereales y tuberculos,100,g,388,15.4,62.7,8.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Cereales.xls
+484,"Amaranto, semilla, cruda (Amarantus caudatus) - Amarantus caudatus",Cereales y tuberculos,,Cereales y tuberculos,100,g,384,15.3,63.6,7.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/484.htm
+484-xls,"Amaranto, semilla, cruda (Amarantus caudatus)",Cereales y tuberculos,,Cereales y tuberculos,100,g,384,15.3,63.6,7.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Cereales.xls
+485,"Amaranto, semillia, cruda (Amarantus cruentus) - Amarantus cruentus",Cereales y tuberculos,,Cereales y tuberculos,100,g,384,15.6,63.4,7.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/485.htm
+485-xls,"Amaranto, semillia, cruda (Amarantus cruentus)",Cereales y tuberculos,,Cereales y tuberculos,100,g,384,15.6,63.4,7.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Cereales.xls
+486,"Amaranto, semilla, cruda (Amarantus hipochondriacus) - Amarantus hipochondriacus",Cereales y tuberculos,,Cereales y tuberculos,100,g,381,14.4,64.3,7.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/486.htm
+486-xls,"Amaranto, semilla, cruda (Amarantus hipochondriacus)",Cereales y tuberculos,,Cereales y tuberculos,100,g,381,14.4,64.3,7.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Cereales.xls
+487,"Maiz, blanco 8 rayas, grano entero, crudo - Zea Mays",Cereales y tuberculos,,Cereales y tuberculos,100,g,340,7.3,77.7,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/487.htm
+487-xls,"Maiz, blanco 8 rayas, grano entero, crudo",Cereales y tuberculos,,Cereales y tuberculos,100,g,340,7.3,77.7,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Cereales.xls
+488,"Maiz, amarillo Leales, grano entero, crudo - Zea Mays",Cereales y tuberculos,,Cereales y tuberculos,100,g,346,10.6,74.1,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/488.htm
+488-xls,"Maiz, amarillo Leales, grano entero, crudo",Cereales y tuberculos,,Cereales y tuberculos,100,g,346,10.6,74.1,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Cereales.xls
+489,"Maiz, amarillo trópico 327, grano entero, crudo - Zea Mays",Cereales y tuberculos,,Cereales y tuberculos,100,g,344,9.8,73.6,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/489.htm
+489-xls,"Maiz, amarillo trópico 327, grano entero, crudo",Cereales y tuberculos,,Cereales y tuberculos,100,g,344,9.8,73.6,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Cereales.xls
+490,"Maiz amarillo, pisingallo, grano entero, crudo - Zea Mays",Cereales y tuberculos,,Cereales y tuberculos,100,g,345,10.9,74.6,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/490.htm
+490-xls,"Maiz amarillo, pisingallo, grano entero, crudo",Cereales y tuberculos,,Cereales y tuberculos,100,g,345,10.9,74.6,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Cereales.xls
+491,"Maiz amarillo, sémola, grano entero, crudo - Zea Mays",Cereales y tuberculos,,Cereales y tuberculos,100,g,305,9,76.4,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/491.htm
+491-xls,"Maiz amarillo, sémola, grano entero, crudo",Cereales y tuberculos,,Cereales y tuberculos,100,g,305,9,76.4,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Cereales.xls
+492,"Lupino andino, con cáscara, semilla, crudo - Lupinus mutabilis sweet",Verduras,,Verduras,100,g,399,37.8,39.5,10,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/492.htm
+492-xls,"Lupino andino, con cáscara, semilla, crudo",Verduras,,Verduras,100,g,399,37.8,39.5,10,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+493,"Lupino andino, sin cáscara, semilla, crudo - Lupinus mutabilis sweet",Verduras,,Verduras,100,g,411,38.4,38.3,11.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/493.htm
+493-xls,"Lupino andino, sin cáscara, semilla, crudo",Verduras,,Verduras,100,g,411,38.4,38.3,11.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+494,"Acelga, hoja - Beta vulgaris cycla",Verduras,,Verduras,100,g,15,2.9,0.4,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/494.htm
+494-xls,"Acelga, hoja",Verduras,,Verduras,100,g,15,2.9,0.4,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+495,"Acelga, tallo - Beta vulgaris cycla",Verduras,,Verduras,100,g,8,1.2,0.6,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/495.htm
+495-xls,"Acelga, tallo",Verduras,,Verduras,100,g,8,1.2,0.6,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+496,Aceituna de monte - Zyziphus sativa,Frutas,,Frutas,100,g,93,1.6,19.4,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/496.htm
+496-xls,Aceituna de monte,Frutas,,Frutas,100,g,93,1.6,19.4,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+497,"Guaraniná, Brumelia obtusifolia - Brumelia obtusifolia",Frutas,,Frutas,100,g,147,1.6,23.7,3.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/497.htm
+497-xls,"Guaraniná, Brumelia obtusifolia",Frutas,,Frutas,100,g,147,1.6,23.7,3.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+498,Achira (raíces) - Canna coccinea,Verduras,,Verduras,100,g,34,1.7,7.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/498.htm
+498-xls,Achira (raíces),Verduras,,Verduras,100,g,34,1.7,7.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+499,Achicoria de Monte - Hipochaeris sp.,Verduras,,Verduras,100,g,46,2.8,7.7,1.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/499.htm
+499-xls,Achicoria de Monte,Verduras,,Verduras,100,g,46,2.8,7.7,1.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+5,"Avena, grano, arrollada, hervida",Cereales y tuberculos,,Cereales y tuberculos,100,g,86,3.8,13.4,1.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/5.htm
+50,"Achicoria, hoja, fresca, cruda - Cichorium intybus",Verduras,,Verduras,100,g,21,1.6,2.9,0.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/50.htm
+50-xls,"Achicoria, hoja, fresca, cruda",Verduras,,Verduras,100,g,21,1.6,2.9,0.3,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+500,"Verdolaga, hoja - Portulaca oleracea",Verduras,,Verduras,100,g,32,2.4,5.7,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/500.htm
+500-xls,"Verdolaga, hoja",Verduras,,Verduras,100,g,32,2.4,5.7,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+501,"Mastuerzo, hoja - Coronupos didimus",Verduras,,Verduras,100,g,50,3.7,8.1,1.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/501.htm
+501-xls,"Mastuerzo, hoja",Verduras,,Verduras,100,g,50,3.7,8.1,1.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+502,Ñandapirí - Eugenia uniflora,Frutas,,Frutas,100,g,70,1.7,14.3,0.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/502.htm
+502-xls,Ñandapirí,Frutas,,Frutas,100,g,70,1.7,14.3,0.7,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+503,"Vacuno, bife angosto c/c de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,190,21,0,12,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/503.htm
+504,"Vacuno, bola de lomo de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,114,22,0,3.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/504.htm
+505,"Vacuno, brazuelo de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,120,21,0,3.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/505.htm
+506,"Vacuno, colita de cuadril de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,143,21,0,6.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/506.htm
+507,"Vacuno, corazón de cuadril de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,116,22,0,2.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/507.htm
+51,"Ajo, bulbo, fresco, crudo - Alium satyvum",Verduras,,Verduras,100,g,99,4.4,20,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/51.htm
+51-xls,"Ajo, bulbo, fresco, crudo",Verduras,,Verduras,100,g,99,4.4,20,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+510,"Vacuno, nalga de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,106,22,0,1.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/510.htm
+511,"Vacuno, paleta de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,125,19,0,5.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/511.htm
+512,"Vacuno, paletín o marucha de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,132,20,0,6.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/512.htm
+513,"Vacuno, palomita de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,116,20,0,3.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/513.htm
+514,"Vacuno, peceto de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,125,23,0,1.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/514.htm
+515,"Vacuno, pecho de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,139,20,0,6.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/515.htm
+516,"Vacuno, tortuguita de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,154,22,0,7.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/516.htm
+517,"Vacuno, vacío de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,174,20,0,11,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/517.htm
+52,"Alcaucil, inflorescencia, fresco, crudo - Cynara scolymus",Verduras,,Verduras,100,g,63,2.9,11.9,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/52.htm
+52-xls,"Alcaucil, inflorescencia, fresco, crudo",Verduras,,Verduras,100,g,63,2.9,11.9,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+521,"Vacuno, tapa de cuadril de novillito, fresco, crudo",Proteinas de origen animal,,Proteinas de origen animal,100,g,211,20,0,15,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/521.htm
+522,"Jamon cocido ""Villafranca Novissimo"".El Bierzo. Reducido en colesterol",Proteinas de origen animal,,Proteinas de origen animal,100,g,98,18,0.8,2.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/522.htm
+523,"Lomo ahumado de cerdo cocido ""Villafranca Novissimo"". El Bierzo. Reducido en sodio y en colesterol",Proteinas de origen animal,,Proteinas de origen animal,100,g,95,19,0.6,2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/523.htm
+524,"Mortadela"" Villafranca Novissimo"". El Bierzo - reducida en grasa y en sodio",Proteinas de origen animal,,Proteinas de origen animal,100,g,139,16,6.4,5.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/524.htm
+525,"Pastron ahumado ""Villafranca Novissimo"". El Bierzo. Reducido en sodio y en colesterol",Proteinas de origen animal,,Proteinas de origen animal,100,g,79,16,2.4,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/525.htm
+526,"Salame ""Villafranca Novissimo"".El Bierzo.Reducido en sodio y en colesterol",Proteinas de origen animal,,Proteinas de origen animal,100,g,134,22,1.5,4.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/526.htm
+527,Polen de Totora - Typha domingensis,Miscelaneos,,Miscelaneos,100,g,288,14.2,60.8,3.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/527.htm
+527-xls,Polen de Totora,Miscelaneos,,Miscelaneos,100,g,288,14.2,60.8,3.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Misc.xls
+528,"Poroto Alubia, semilla, seco - Phaseolus vulgaris",Verduras,,Verduras,100,g,337,19.8,62.8,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/528.htm
+528-xls,"Poroto Alubia, semilla, seco",Verduras,,Verduras,100,g,337,19.8,62.8,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+529,"Poroto Colorado, semilla, seco - Phaseolus vulgaris",Verduras,,Verduras,100,g,333,19.6,61,1.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/529.htm
+529-xls,"Poroto Colorado, semilla, seco",Verduras,,Verduras,100,g,333,19.6,61,1.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+53,"Alfalfa, hoja, fresca, cruda - Medicago sativa",Verduras,,Verduras,100,g,57,6.6,6.8,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/53.htm
+53-xls,"Alfalfa, hoja, fresca, cruda",Verduras,,Verduras,100,g,57,6.6,6.8,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+530,"Poroto Carioca, semilla, seco - Phaseolus vulgaris",Verduras,,Verduras,100,g,336,20,62,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/530.htm
+530-xls,"Poroto Carioca, semilla, seco",Verduras,,Verduras,100,g,336,20,62,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+531,"Poroto Grand Berry, semilla, seco - Phaseolus vulgaris",Verduras,,Verduras,100,g,336,21.5,60.4,1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/531.htm
+531-xls,"Poroto Grand Berry, semilla, seco",Verduras,,Verduras,100,g,336,21.5,60.4,1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+532,"Poroto Great Northern, semilla, seco - Phaseolus vulgaris",Verduras,,Verduras,100,g,326,21,60.6,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/532.htm
+532-xls,"Poroto Great Northern, semilla, seco",Verduras,,Verduras,100,g,326,21,60.6,0.5,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+533,"Poroto Negro, semilla, seco - Phaseolus vulgaris",Verduras,,Verduras,100,g,306,20.6,61.5,1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/533.htm
+533-xls,"Poroto Negro, semilla, seco",Verduras,,Verduras,100,g,306,20.6,61.5,1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+534,"Poroto Novy Bean, semilla, seco - Phaseolus vulgaris",Verduras,,Verduras,100,g,336,26,55.6,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/534.htm
+534-xls,"Poroto Novy Bean, semilla, seco",Verduras,,Verduras,100,g,336,26,55.6,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+535,"Poroto Oval, semilla, seco - Phaseolus vulgaris",Verduras,,Verduras,100,g,328,18.2,63.7,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/535.htm
+535-xls,"Poroto Oval, semilla, seco",Verduras,,Verduras,100,g,328,18.2,63.7,1.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+536,"Poroto Pallares, semilla, seco - Phaseolus vulgaris",Verduras,,Verduras,100,g,322,16.6,63.3,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/536.htm
+536-xls,"Poroto Pallares, semilla, seco",Verduras,,Verduras,100,g,322,16.6,63.3,0.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+537,"Poroto Small Red, semilla, seco - Phaseolus vulgaris",Verduras,,Verduras,100,g,336,25.3,56.7,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/537.htm
+537-xls,"Poroto Small Red, semilla, seco",Verduras,,Verduras,100,g,336,25.3,56.7,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+538,"Soja FT11, poroto seco - Glycine max",Verduras,,Verduras,100,g,368,36.9,39.8,6.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/538.htm
+538-xls,"Soja FT11, poroto seco",Verduras,,Verduras,100,g,368,36.9,39.8,6.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+539,"Diente de león, hoja - Taraxacum officinale",Verduras,,Verduras,100,g,33,2.6,6.6,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/539.htm
+539-xls,"Diente de león, hoja",Verduras,,Verduras,100,g,33,2.6,6.6,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+540,"Lengua de vaca, hojas, tejido fresco, parte comestible - Rumex spp.",Verduras,,Verduras,100,g,43,3.1,7.6,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/540.htm
+540-xls,"Lengua de vaca, hojas, tejido fresco, parte comestible",Verduras,,Verduras,100,g,43,3.1,7.6,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+541,"Yuyo colorado, hoja - Amarantus quitensis",Verduras,,Verduras,100,g,60,4.1,11.1,0.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/541.htm
+541-xls,"Yuyo colorado, hoja",Verduras,,Verduras,100,g,60,4.1,11.1,0.7,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+542,Doca - Morrenia odorata,Frutas,,Frutas,100,g,49,1.6,11.5,1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/542.htm
+542-xls,Doca,Frutas,,Frutas,100,g,49,1.6,11.5,1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+543,Mburucuyá verde - Passiflora sp.,Frutas,,Frutas,100,g,59,3.2,15.7,1.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/543.htm
+543-xls,Mburucuyá verde,Frutas,,Frutas,100,g,59,3.2,15.7,1.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+544,Mburucuyá maduro - Passiflora sp.,Frutas,,Frutas,100,g,84,4.7,23.4,1.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/544.htm
+544-xls,Mburucuyá maduro,Frutas,,Frutas,100,g,84,4.7,23.4,1.7,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+545,Ubajay - Eugenia myrciantes,Frutas,,Frutas,100,g,49,1.1,8.1,1.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/545.htm
+545-xls,Ubajay,Frutas,,Frutas,100,g,49,1.1,8.1,1.6,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Frutas.xls
+546,Dulce de Leche Light,Azucares y dulces,,Azucares y dulces,100,g,260,6.2,52.9,1.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/546.htm
+547,Dulce de leche repostero suelto,Azucares y dulces,,Azucares y dulces,100,g,337,5.3,7.9,7.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/547.htm
+548,Dulce de leche para reposteria,Azucares y dulces,,Azucares y dulces,100,g,317,7.3,55,7.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/548.htm
+549,Dulce de leche,Azucares y dulces,,Azucares y dulces,100,g,314,6.5,57.4,6.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/549.htm
+550,Queso azul,Lacteos,,Lacteos,100,g,377,20,4.3,31.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/550.htm
+551,Ricotta semidescremada,Lacteos,,Lacteos,100,g,168,11.6,4,11.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/551.htm
+552,Queso Blanco Argentino Semimagro,Lacteos,,Lacteos,100,g,104,11.5,5.6,4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/552.htm
+553,"Vacuno, hamburguesas crudas",Proteinas de origen animal,,Proteinas de origen animal,100,g,218,17.3,0.08,16.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/553.htm
+554,"Vacuno, hamburguesas cocidas",Proteinas de origen animal,,Proteinas de origen animal,100,g,248,20.5,0.1,18.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/554.htm
+555,"Vacuno, hamburguesas light crudas",Proteinas de origen animal,,Proteinas de origen animal,100,g,175,18.4,0,11.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/555.htm
+556,"Vacuno, hamburguesas light cocidas",Proteinas de origen animal,,Proteinas de origen animal,100,g,199,21,0,12.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/556.htm
+557,Carne de vizcacha - Lagostomus maximus maximus Blainv,Proteinas de origen animal,,Proteinas de origen animal,100,g,46,23.9,7.7,3.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/557.htm
+557-xls,Carne de vizcacha,Proteinas de origen animal,,Proteinas de origen animal,100,g,46,23.9,7.7,3.7,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Carnes.xls
+558,Hamburguesas light asada,Proteinas de origen animal,,Proteinas de origen animal,100,g,199,21,0,12.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/558.htm
+559,Hamburguesas regulares de carne vacuna asadas,Proteinas de origen animal,,Proteinas de origen animal,100,g,248,20.5,0,18.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/559.htm
+56,"Arveja, semilla, fresca, enlatada",Verduras,,Verduras,100,g,105,6,18.3,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/56.htm
+560,Salchichas light tipo Viena,Proteinas de origen animal,,Proteinas de origen animal,100,g,136,14.2,9.8,4.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/560.htm
+561,Salchichas light tipo Viena hervidas,Proteinas de origen animal,,Proteinas de origen animal,100,g,139,13.7,9.8,5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/561.htm
+562,Salchichas tipo Viena,Proteinas de origen animal,,Proteinas de origen animal,100,g,211,11.3,10.8,13.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/562.htm
+563,Salchichas tipo Viena hervidas,Proteinas de origen animal,,Proteinas de origen animal,100,g,209,11.8,10.5,13.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/563.htm
+566,PAPA HERVIDA - Solanum tuberosum Spunta,Cereales y tuberculos,,Cereales y tuberculos,100,g,57.5,1.9,10.7,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/566.htm
+567,PAPA COCIDA EN MICROONDAS - Solanum tuberosum Spunta,Cereales y tuberculos,,Cereales y tuberculos,100,g,97.2,3.3,17.8,1.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/567.htm
+568,PAPA FRITA EN FREIDORA ELECTRICA - Solanum tuberosum Spunta,Cereales y tuberculos,,Cereales y tuberculos,100,g,171,4.5,21.4,7.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/568.htm
+569,PAPA FRITA EN SARTEN - Solanum tuberosum Spunta,Cereales y tuberculos,,Cereales y tuberculos,100,g,157.4,4.2,20.9,6.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/569.htm
+57,"Arveja, semilla, seca, entera, cruda - Pisum sativum L.",Verduras,,Verduras,100,g,304,22.5,46.9,2.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/57.htm
+57-xls,"Arveja, semilla, seca, entera, cruda",Verduras,,Verduras,100,g,304,22.5,46.9,2.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+571,PAPAS PRE-FRITAS CONGELADAS,Cereales y tuberculos,,Cereales y tuberculos,100,g,125.6,2.8,21.1,3.6,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/571.htm
+572,PAPAS PREFRITAS CONGELADAS CON COCCION HOGARENA (EN FREIDORA CON ACEITE),Grasas y aceites,,Grasas y aceites,100,g,280.4,4.2,32.1,15,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/572.htm
+573,PAPAS PREFRITAS CONGELADAS CON COCCION HOGARENA (EN HORNO),Cereales y tuberculos,,Cereales y tuberculos,100,g,228.6,3.8,28.3,11.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/573.htm
+574,PAPAS PREFRITAS CONGELADAS CON POSTERIOR FREIDO HOGARENO EN SARTEN,Cereales y tuberculos,,Cereales y tuberculos,100,g,309,4.2,33,17.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/574.htm
+58,"Arveja, semilla, seca, partida, cruda",Verduras,,Verduras,100,g,311,22,49.1,2.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/58.htm
+59,"Arveja, semilla, seca, partida, hervida",Verduras,,Verduras,100,g,129,8.2,22.5,0.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/59.htm
+6,"Cebada, grano, mondado, perlado, crudo",Cereales y tuberculos,,Cereales y tuberculos,100,g,317,10.2,65.6,1.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/6.htm
+60,"Avellana, pepita, seca - Corylus, avellana",Verduras,,Verduras,100,g,668,12.7,17.7,60.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/60.htm
+60-xls,"Avellana, pepita, seca",Verduras,,Verduras,100,g,668,12.7,17.7,60.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+63,"Batata, frita - Ipomaea batatas Lam",Verduras,,Verduras,100,g,212,1.7,35,7.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/63.htm
+63-xls,"Batata, frita",Verduras,,Verduras,100,g,212,1.7,35,7.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+64,"Berenjena, pulpa, fresca, cruda - Solaun melongena",Verduras,,Verduras,100,g,28,1.1,5.5,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/64.htm
+64-xls,"Berenjena, pulpa, fresca, cruda",Verduras,,Verduras,100,g,28,1.1,5.5,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+65,"Berro (hojas y tallo), fresco, crudo - Nasturtium officinale R. Br.",Verduras,,Verduras,100,g,23,1.7,3.3,0.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/65.htm
+65-xls,"Berro (hojas y tallo), fresco, crudo",Verduras,,Verduras,100,g,23,1.7,3.3,0.3,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+66,"Brócoli, tallo de hoja, fresco, crudo - Brassica oleracea itálica Plank",Verduras,,Verduras,100,g,37,3.3,5.5,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/66.htm
+66-xls,"Brócoli, tallo de hoja, fresco, crudo",Verduras,,Verduras,100,g,37,3.3,5.5,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+67,"Cardo (penca y hojas), fresco, crudo - Cynara Cardundulus",Verduras,,Verduras,100,g,25,1.4,4.4,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/67.htm
+67-xls,"Cardo (penca y hojas), fresco, crudo",Verduras,,Verduras,100,g,25,1.4,4.4,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+68,"Castaña de Pará, pepita, cruda - Bertholletia exceisa",Verduras,,Verduras,100,g,731,18.1,2.4,72.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/68.htm
+68-xls,"Castaña de Pará, pepita, cruda",Verduras,,Verduras,100,g,731,18.1,2.4,72.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+7,"Cebada, grano, mondado, perlado, hervido",Cereales y tuberculos,,Cereales y tuberculos,100,g,82,3.8,16.5,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/7.htm
+71,"Coliflor, pimpollo, fresco, crudo - Brassica oleracea Acephala DC",Verduras,,Verduras,100,g,31,2.4,4.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/71.htm
+71-xls,"Coliflor, pimpollo, fresco, crudo",Verduras,,Verduras,100,g,31,2.4,4.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+73,"Escarola crespa, hoja, cruda - Cichorioum endivia",Verduras,,Verduras,100,g,24,1.6,4,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/73.htm
+73-xls,"Escarola crespa, hoja, cruda",Verduras,,Verduras,100,g,24,1.6,4,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+74,"Esparrago, tallo tierno, fresco, crudo - Asparagus officinalis",Verduras,,Verduras,100,g,26,2.2,3.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/74.htm
+74-xls,"Esparrago, tallo tierno, fresco, crudo",Verduras,,Verduras,100,g,26,2.2,3.9,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+77,"Garbanzo, grano entero, seco, hervido - Cicer arietinum",Verduras,,Verduras,100,g,125,6.1,20.2,2.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/77.htm
+77-xls,"Garbanzo, grano entero, seco, hervido",Verduras,,Verduras,100,g,125,6.1,20.2,2.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+78,"Habas, semilla inmadura, fresca, cruda - Vicia faba",Verduras,,Verduras,100,g,99,6.7,16.3,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/78.htm
+78-xls,"Habas, semilla inmadura, fresca, cruda",Verduras,,Verduras,100,g,99,6.7,16.3,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+79,"Hinojo, tallo, fresco, crudo - Foeniculum vulgare Gaerth",Verduras,,Verduras,100,g,24,1.9,3.6,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/79.htm
+79-xls,"Hinojo, tallo, fresco, crudo",Verduras,,Verduras,100,g,24,1.9,3.6,0.2,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+8,"Cebada, harina ""Genser"", cruda",Cereales y tuberculos,,Cereales y tuberculos,100,g,328,10.2,68,1.7,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/8.htm
+80,"Lenteja, semilla entera, seca, cruda - Lens esculenta",Verduras,,Verduras,100,g,350,20.8,64.8,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/80.htm
+80-xls,"Lenteja, semilla entera, seca, cruda",Verduras,,Verduras,100,g,350,20.8,64.8,0.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+81,"Maní, semilla con piel, crudo - Arachis Hypogea",Verduras,,Verduras,100,g,576,33.2,11.1,44.3,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/81.htm
+81-xls,"Maní, semilla con piel, crudo",Verduras,,Verduras,100,g,576,33.2,11.1,44.3,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+82,"Maní, semilla sin piel, tostado",Verduras,,Verduras,100,g,592,34.8,10.8,45.5,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/82.htm
+83,"Mastuerzo (hoja y pecíolo), fresco, crudo - Lepidium sativum",Verduras,,Verduras,100,g,51,4.2,5.3,1.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/83.htm
+83-xls,"Mastuerzo (hoja y pecíolo), fresco, crudo",Verduras,,Verduras,100,g,51,4.2,5.3,1.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+86,"Nuez, pepita - Juglans regia",Verduras,,Verduras,100,g,715,13.9,13.2,67.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/86.htm
+86-xls,"Nuez, pepita",Verduras,,Verduras,100,g,715,13.9,13.2,67.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+89,"Papa, pulpa sin cáscara, frita, bastón",Verduras,,Verduras,100,g,162,2.9,23.6,6.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/89.htm
+9,"Centeno, harina, clara, cruda",Cereales y tuberculos,,Cereales y tuberculos,100,g,332,8.9,72.2,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/9.htm
+90,"Pepino, pulpa, fresco, crudo - Cucumis sativus",Verduras,,Verduras,100,g,15,0.7,2.7,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/90.htm
+90-xls,"Pepino, pulpa, fresco, crudo",Verduras,,Verduras,100,g,15,0.7,2.7,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+91,"Perejil, hoja, fresco, crudo - Petroselium sativus Hoffm",Verduras,,Verduras,100,g,60,3.7,9,1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/91.htm
+91-xls,"Perejil, hoja, fresco, crudo",Verduras,,Verduras,100,g,60,3.7,9,1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+92,"Piñon de araucaria, pepita, crudo",Verduras,,Verduras,100,g,221,14.6,37.9,1.2,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/92.htm
+93,"Pistacho, pepita, crudo - Pistacia Vera",Verduras,,Verduras,100,g,648,22.3,18.1,54,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/93.htm
+93-xls,"Pistacho, pepita, crudo",Verduras,,Verduras,100,g,648,22.3,18.1,54,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+94,"Poroto, semilla, seco, crudo - Phaseolus vulgaris",Verduras,,Verduras,100,g,290,23.9,42.3,2.8,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/94.htm
+94-xls,"Poroto, semilla, seco, crudo",Verduras,,Verduras,100,g,290,23.9,42.3,2.8,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+95,"Poroto, semilla, enlatado - Phaseolus vulgaris",Verduras,,Verduras,100,g,89,8.4,11.9,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/95.htm
+95-xls,"Poroto, semilla, enlatado",Verduras,,Verduras,100,g,89,8.4,11.9,0.9,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+96,"Puerro (bulbo, tallo y hojas), fresco, crudo - Allium porrum",Verduras,,Verduras,100,g,45,2.5,7.9,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/96.htm
+96-xls,"Puerro (bulbo, tallo y hojas), fresco, crudo",Verduras,,Verduras,100,g,45,2.5,7.9,0.4,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+97,"Quinua, semilla, cruda - Chenopodium quinoa vild",Verduras,,Verduras,100,g,354,13.8,63.3,5.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/97.htm
+97-xls,"Quinua, semilla, cruda",Verduras,,Verduras,100,g,354,13.8,63.3,5.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls
+98,"Quinua, harina",Verduras,,Verduras,100,g,341,4.4,78.7,1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/98.htm
+99,"Rabanito, raiz, fresco, crudo - Raphanus sativus",Verduras,,Verduras,100,g,29,1.3,5.8,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Codigo/99.htm
+99-xls,"Rabanito, raiz, fresco, crudo",Verduras,,Verduras,100,g,29,1.3,5.8,0.1,https://www.argenfood.unlu.edu.ar/Tablas/Grupo/Vegetales.xls

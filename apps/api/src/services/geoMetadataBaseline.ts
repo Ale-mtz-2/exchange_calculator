@@ -9,12 +9,14 @@ import { safeSchema } from '../utils/sql.js';
 const appSchema = safeSchema(env.DB_APP_SCHEMA);
 const nutritionSchema = safeSchema(env.DB_NUTRITION_SCHEMA);
 
-const SUPPORTED_SYSTEMS = ['mx_smae', 'us_usda'] as const;
+const SUPPORTED_SYSTEMS = ['mx_smae', 'us_usda', 'es_exchange', 'ar_exchange'] as const;
 type SupportedSystemId = (typeof SUPPORTED_SYSTEMS)[number];
 
 const SYSTEM_NAME_MATCHERS: Record<SupportedSystemId, string[]> = {
   mx_smae: ['smae', 'mex'],
   us_usda: ['usda', 'united states', 'usa'],
+  es_exchange: ['bedca', 'espanola', 'espana', 'spain', 'es exchange', 'es_exchange'],
+  ar_exchange: ['argenfoods', 'argentina', 'ar exchange', 'ar_exchange'],
 };
 
 type AppSystemRow = {

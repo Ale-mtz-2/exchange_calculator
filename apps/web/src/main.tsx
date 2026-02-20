@@ -7,6 +7,36 @@ import './index.css';
 
 const MIN_SPLASH_MS = 1200;
 const EXIT_SPLASH_MS = 450;
+const ONRENDER_HOST = 'exchange-calculator-web.onrender.com';
+
+const normalizeOrigin = (value: string): string => value.trim().replace(/\/+$/, '');
+
+const enforceCanonicalOrigin = (): void => {
+  const canonicalOriginRaw = import.meta.env.VITE_CANONICAL_ORIGIN;
+  if (!canonicalOriginRaw) {
+    return;
+  }
+
+  let canonicalOrigin: string;
+  try {
+    canonicalOrigin = normalizeOrigin(new URL(canonicalOriginRaw).origin);
+  } catch {
+    console.warn('[canonical-origin-invalid]', { value: canonicalOriginRaw });
+    return;
+  }
+
+  const currentOrigin = normalizeOrigin(window.location.origin);
+  if (currentOrigin === canonicalOrigin) {
+    return;
+  }
+
+  if (window.location.hostname !== ONRENDER_HOST) {
+    return;
+  }
+
+  const nextUrl = `${canonicalOrigin}${window.location.pathname}${window.location.search}${window.location.hash}`;
+  window.location.replace(nextUrl);
+};
 
 const Root = (): JSX.Element => {
   const [splashPhase, setSplashPhase] = useState<'loading' | 'exiting' | 'done'>('loading');
@@ -54,6 +84,8 @@ const Root = (): JSX.Element => {
 
   return <App />;
 };
+
+enforceCanonicalOrigin();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

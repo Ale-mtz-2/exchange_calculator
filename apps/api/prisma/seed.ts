@@ -1,4 +1,4 @@
-import 'dotenv/config';
+﻿import 'dotenv/config';
 
 import { PrismaClient } from '@prisma/client';
 import {
@@ -15,12 +15,14 @@ import { syncGeoMetadataBaselineWithPrisma } from '../src/services/geoMetadataBa
 
 const prisma = new PrismaClient();
 
-const SUPPORTED_SYSTEMS = ['mx_smae', 'us_usda'] as const;
+const SUPPORTED_SYSTEMS = ['mx_smae', 'us_usda', 'es_exchange', 'ar_exchange'] as const;
 type SupportedSystemId = (typeof SUPPORTED_SYSTEMS)[number];
 
 const SYSTEM_NAME_MATCHERS: Record<SupportedSystemId, string[]> = {
   mx_smae: ['smae', 'mex'],
   us_usda: ['usda', 'united states', 'usa'],
+  es_exchange: ['espana', 'spain', 'bedca', 'es_exchange'],
+  ar_exchange: ['argentina', 'argenfoods', 'ar_exchange'],
 };
 
 const MX_CLASSIFICATION_RULES = [
@@ -61,6 +63,8 @@ const MX_CLASSIFICATION_RULES = [
 const SOURCE_KEYWORDS_BY_SYSTEM: Record<string, string[]> = {
   mx_smae: ['smae', 'mex'],
   us_usda: ['usda', 'usa', 'united states'],
+  es_exchange: ['bedca', 'aesan', 'espana', 'spain'],
+  ar_exchange: ['argenfoods', 'argentina'],
 };
 
 type NutritionSystemRow = {
@@ -138,85 +142,114 @@ const sourcePriorityForSystem = (systemId: string, sourceName: string | null): n
 };
 
 const seedNutritionTables = async (): Promise<void> => {
-  // Populate systems
   await prisma.$executeRawUnsafe(`
     INSERT INTO nutrition.exchange_systems (id, name, country_code)
-    VALUES 
+    VALUES
       (1, 'Sistema Mexicano de Alimentos Equivalentes (SMAE)', 'MX'),
-      (2, 'USDA Food Central', 'US')
+      (2, 'USDA FoodData Central', 'US'),
+      (3, 'Base de Datos Espanola de Composicion de Alimentos (BEDCA)', 'ES'),
+      (4, 'Tabla Argentina de Composicion de Alimentos (Argenfoods)', 'AR')
     ON CONFLICT (id) DO UPDATE SET
       name = EXCLUDED.name,
       country_code = EXCLUDED.country_code;
   `);
 
-  // Populate data_sources
   await prisma.$executeRawUnsafe(`
     INSERT INTO nutrition.data_sources (id, name)
-    VALUES 
+    VALUES
       (1, 'SMAE'),
-      (2, 'USDA')
+      (2, 'USDA'),
+      (3, 'BEDCA'),
+      (4, 'ARGENFOODS')
     ON CONFLICT (id) DO UPDATE SET
       name = EXCLUDED.name;
   `);
 
-  // Populate groups for SMAE (system_id=1)
   const groups = [
-    { id: 1, name: 'Verduras', code: 'vegetable' },
-    { id: 2, name: 'Frutas', code: 'fruit' },
-    { id: 3, name: 'Cereales y Tubérculos', code: 'carb' },
-    { id: 4, name: 'Leguminosas', code: 'legume' },
-    { id: 5, name: 'Alimentos de Origen Animal', code: 'protein' },
-    { id: 6, name: 'Leche', code: 'milk' },
-    { id: 7, name: 'Aceites y Grasas', code: 'fat' },
-    { id: 8, name: 'Azúcares', code: 'sugar' },
-    { id: 9, name: 'Alimentos Libres de Energía', code: 'free' },
-    { id: 10, name: 'Bebidas Alcohólicas', code: 'alcohol' },
+    { id: 1, systemId: 1, name: 'Verduras' },
+    { id: 2, systemId: 1, name: 'Frutas' },
+    { id: 3, systemId: 1, name: 'Cereales y Tuberculos' },
+    { id: 4, systemId: 1, name: 'Leguminosas' },
+    { id: 5, systemId: 1, name: 'Alimentos de Origen Animal' },
+    { id: 6, systemId: 1, name: 'Leche' },
+    { id: 7, systemId: 1, name: 'Aceites y Grasas' },
+    { id: 8, systemId: 1, name: 'Azucares' },
+    { id: 9, systemId: 1, name: 'Alimentos Libres de Energia' },
+    { id: 10, systemId: 1, name: 'Bebidas Alcoholicas' },
+
+    { id: 1201, systemId: 2, name: 'Vegetables' },
+    { id: 1202, systemId: 2, name: 'Fruits' },
+    { id: 1203, systemId: 2, name: 'Cereals and Tubers' },
+    { id: 1204, systemId: 2, name: 'Legumes' },
+    { id: 1205, systemId: 2, name: 'Animal Protein' },
+    { id: 1206, systemId: 2, name: 'Milk and Dairy' },
+    { id: 1207, systemId: 2, name: 'Fats and Oils' },
+    { id: 1208, systemId: 2, name: 'Sugars and Sweets' },
+
+    { id: 1301, systemId: 3, name: 'Verduras' },
+    { id: 1302, systemId: 3, name: 'Frutas' },
+    { id: 1303, systemId: 3, name: 'Cereales y Tuberculos' },
+    { id: 1304, systemId: 3, name: 'Legumbres' },
+    { id: 1305, systemId: 3, name: 'Proteinas de origen animal' },
+    { id: 1306, systemId: 3, name: 'Leche y lacteos' },
+    { id: 1307, systemId: 3, name: 'Aceites y grasas' },
+    { id: 1308, systemId: 3, name: 'Azucares y dulces' },
+
+    { id: 1401, systemId: 4, name: 'Verduras' },
+    { id: 1402, systemId: 4, name: 'Frutas' },
+    { id: 1403, systemId: 4, name: 'Cereales y tuberculos' },
+    { id: 1404, systemId: 4, name: 'Legumbres' },
+    { id: 1405, systemId: 4, name: 'Proteinas de origen animal' },
+    { id: 1406, systemId: 4, name: 'Leche y lacteos' },
+    { id: 1407, systemId: 4, name: 'Aceites y grasas' },
+    { id: 1408, systemId: 4, name: 'Azucares y dulces' },
   ];
 
   for (const group of groups) {
-    await prisma.$executeRawUnsafe(`
-      INSERT INTO nutrition.exchange_groups (id, system_id, name)
-      VALUES ($1, 1, $2)
-      ON CONFLICT (id) DO UPDATE SET
-        name = EXCLUDED.name,
-        system_id = 1;
-    `, group.id, group.name);
+    await prisma.$executeRawUnsafe(
+      `
+        INSERT INTO nutrition.exchange_groups (id, system_id, name)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (id) DO UPDATE SET
+          name = EXCLUDED.name,
+          system_id = EXCLUDED.system_id;
+      `,
+      group.id,
+      group.systemId,
+      group.name,
+    );
   }
 
-  // Populate subgroups for SMAE
-  // I need IDs for subgroups too. I'll pick safe IDs (100+).
-  // Mappings based on `inferSubgroupCodeFromText`
-  // Parent Group IDs from above.
   const subgroups = [
-    // Cereales (3)
     { id: 301, parentId: 3, name: 'Cereales sin Grasa', code: 'cereal_sin_grasa' },
     { id: 302, parentId: 3, name: 'Cereales con Grasa', code: 'cereal_con_grasa' },
-    // AOA (5)
     { id: 501, parentId: 5, name: 'AOA Muy Bajo Aporte de Grasa', code: 'aoa_muy_bajo_grasa' },
     { id: 502, parentId: 5, name: 'AOA Bajo Aporte de Grasa', code: 'aoa_bajo_grasa' },
     { id: 503, parentId: 5, name: 'AOA Moderado Aporte de Grasa', code: 'aoa_moderado_grasa' },
     { id: 504, parentId: 5, name: 'AOA Alto Aporte de Grasa', code: 'aoa_alto_grasa' },
-    // Leche (6)
     { id: 601, parentId: 6, name: 'Leche Descremada', code: 'leche_descremada' },
     { id: 602, parentId: 6, name: 'Leche Semidescremada', code: 'leche_semidescremada' },
     { id: 603, parentId: 6, name: 'Leche Entera', code: 'leche_entera' },
-    { id: 604, parentId: 6, name: 'Leche con Azúcar', code: 'leche_con_azucar' },
-    // Grasas (7)
-    { id: 701, parentId: 7, name: 'Grasas sin Proteína', code: 'grasa_sin_proteina' },
-    { id: 702, parentId: 7, name: 'Grasas con Proteína', code: 'grasa_con_proteina' },
-    // Azúcares (8)
-    { id: 801, parentId: 8, name: 'Azúcares sin Grasa', code: 'azucar_sin_grasa' },
-    { id: 802, parentId: 8, name: 'Azúcares con Grasa', code: 'azucar_con_grasa' },
+    { id: 604, parentId: 6, name: 'Leche con Azucar', code: 'leche_con_azucar' },
+    { id: 701, parentId: 7, name: 'Grasas sin Proteina', code: 'grasa_sin_proteina' },
+    { id: 702, parentId: 7, name: 'Grasas con Proteina', code: 'grasa_con_proteina' },
+    { id: 801, parentId: 8, name: 'Azucares sin Grasa', code: 'azucar_sin_grasa' },
+    { id: 802, parentId: 8, name: 'Azucares con Grasa', code: 'azucar_con_grasa' },
   ];
 
   for (const sub of subgroups) {
-    await prisma.$executeRawUnsafe(`
-      INSERT INTO nutrition.exchange_subgroups (id, exchange_group_id, name)
-      VALUES ($1, $2, $3)
-      ON CONFLICT (id) DO UPDATE SET
-        exchange_group_id = EXCLUDED.exchange_group_id,
-        name = EXCLUDED.name;
-    `, sub.id, sub.parentId, sub.name);
+    await prisma.$executeRawUnsafe(
+      `
+        INSERT INTO nutrition.exchange_subgroups (id, exchange_group_id, name)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (id) DO UPDATE SET
+          exchange_group_id = EXCLUDED.exchange_group_id,
+          name = EXCLUDED.name;
+      `,
+      sub.id,
+      sub.parentId,
+      sub.name,
+    );
   }
 };
 
@@ -523,3 +556,4 @@ seed()
     await prisma.$disconnect();
     process.exit(1);
   });
+

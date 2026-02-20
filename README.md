@@ -78,6 +78,7 @@ Esto crea y usa el schema `equivalentes_app` sin modificar estructura de `nutrit
 
 - `VITE_API_URL="http://localhost:4000"`
 - `VITE_SHOW_ADMIN_LINK="true"`
+- `VITE_CANONICAL_ORIGIN="http://localhost:5173"` (en produccion: `https://exchange-calculator.fitpilot.fit`)
 
 ## Scripts
 
@@ -188,13 +189,31 @@ Se validó en este entorno:
 - Configurar CORS con `WEB_ORIGINS` (CSV) y usar `WEB_ORIGIN` como fallback de compatibilidad.
 - Producción recomendada (dominio canónico):
   - `WEB_ORIGINS="https://exchange-calculator.fitpilot.fit"`
-- Transición temporal (si se necesita):
-  - `WEB_ORIGINS="https://exchange-calculator.fitpilot.fit,https://exchange-calculator-web.onrender.com"`
+- Mantener CORS estricto sin `onrender` en allowlist.
 - Configurar redirección 301 del dominio técnico `exchange-calculator-web.onrender.com` al dominio canónico.
+- Frontend: configurar `VITE_CANONICAL_ORIGIN="https://exchange-calculator.fitpilot.fit"` para fallback de redirección en runtime.
 - Recomendado por visibilidad:
   - `app.tudominio.com` con `VITE_SHOW_ADMIN_LINK=false`.
   - `admin.tudominio.com` con `VITE_SHOW_ADMIN_LINK=false` (el botón aparece por host `admin.*`).
 - Runbook recomendado de producción: `docs/DEPLOY-RUNBOOK-RENDER.md`.
+
+## Carga de catalogos oficiales (US/ES/AR)
+
+1. Importar catalogos canónicos:
+
+```bash
+corepack pnpm --filter @equivalentes/api catalog:import:us
+corepack pnpm --filter @equivalentes/api catalog:import:es
+corepack pnpm --filter @equivalentes/api catalog:import:ar
+```
+
+2. Reconstruir bucket profiles por sistema (version arbitraria `YYYYMMDD`):
+
+```bash
+corepack pnpm --filter @equivalentes/api sync:bucket-profiles --version 20260220 --system us_usda
+corepack pnpm --filter @equivalentes/api sync:bucket-profiles --version 20260220 --system es_exchange
+corepack pnpm --filter @equivalentes/api sync:bucket-profiles --version 20260220 --system ar_exchange
+```
 
 ### Opción B (único servidor)
 

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Router } from 'express';
 import { z } from 'zod';
 
@@ -143,6 +144,92 @@ type LeadDbRow = {
 
 const appSchema = safeSchema(env.DB_APP_SCHEMA);
 let loggedLeadFallback = false;
+let loggedLeadStorageUnavailable = false;
+let cachedStore: LeadStore | null = null;
+
+const inMemoryLeadStore = (() => {
+  const byId = new Map<string, LeadRecord>();
+  const latestByCid = new Map<string, string>();
+
+  return {
+    findFirst: async ({ where }: { where: { cid: string } }) => {
+      const id = latestByCid.get(where.cid);
+      if (!id) return null;
+      return byId.get(id) ?? null;
+    },
+    create: async ({ data }: { data: LeadWriteInput }) => {
+      const now = new Date();
+      const id = randomUUID();
+      const next: LeadRecord = {
+        id,
+        cid: data.cid ?? null,
+        name: data.name,
+        email: data.email ?? null,
+        whatsapp: data.whatsapp ?? null,
+        birthDate: data.birthDate ?? null,
+        waistCm: data.waistCm ?? null,
+        hasDiabetes: data.hasDiabetes ?? false,
+        hasHypertension: data.hasHypertension ?? false,
+        hasDyslipidemia: data.hasDyslipidemia ?? false,
+        trainingWindow: data.trainingWindow ?? 'none',
+        usesDairyInSnacks: data.usesDairyInSnacks ?? true,
+        termsAccepted: data.termsAccepted ?? false,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      byId.set(id, next);
+      if (next.cid) {
+        latestByCid.set(next.cid, id);
+      }
+      return next;
+    },
+    update: async ({ where, data }: { where: { id: string }; data: LeadWriteInput }) => {
+      const existing = byId.get(where.id);
+      if (!existing) {
+        throw new Error(`Lead not found for id=${where.id}`);
+      }
+
+      const next: LeadRecord = {
+        ...existing,
+        cid: data.cid ?? null,
+        name: data.name,
+        email: data.email ?? null,
+        whatsapp: data.whatsapp ?? null,
+        birthDate: data.birthDate ?? null,
+        waistCm: data.waistCm ?? null,
+        hasDiabetes: data.hasDiabetes ?? false,
+        hasHypertension: data.hasHypertension ?? false,
+        hasDyslipidemia: data.hasDyslipidemia ?? false,
+        trainingWindow: data.trainingWindow ?? 'none',
+        usesDairyInSnacks: data.usesDairyInSnacks ?? true,
+        termsAccepted: data.termsAccepted ?? false,
+        updatedAt: new Date(),
+      };
+
+      byId.set(where.id, next);
+      if (next.cid) {
+        latestByCid.set(next.cid, where.id);
+      }
+      return next;
+    },
+  } satisfies LeadStore;
+})();
+
+type PgErrorLike = {
+  code?: string;
+  message?: string;
+};
+
+const isMissingLeadsTableError = (error: unknown): boolean => {
+  const typed = error as PgErrorLike | undefined;
+  if (typed?.code === '42P01') {
+    return true;
+  }
+
+  const message = typed?.message?.toLowerCase() ?? '';
+  return message.includes('leads') && message.includes('does not exist');
+};
 
 const toLeadRecord = (row: LeadDbRow): LeadRecord => ({
   id: row.id,
@@ -317,10 +404,15 @@ const createPgLeadStore = (): LeadStore => ({
   },
 });
 
-const getLeadStore = (): LeadStore => {
+const getLeadStore = async (): Promise<LeadStore> => {
+  if (cachedStore) {
+    return cachedStore;
+  }
+
   const delegate = (prisma as unknown as { lead?: LeadStore }).lead;
   if (delegate) {
-    return delegate;
+    cachedStore = delegate;
+    return cachedStore;
   }
 
   if (!loggedLeadFallback) {
@@ -330,22 +422,64 @@ const getLeadStore = (): LeadStore => {
     loggedLeadFallback = true;
   }
 
-  return createPgLeadStore();
+  const sqlStore = createPgLeadStore();
+  try {
+    await sqlStore.findFirst({
+      where: { cid: '__lead_store_probe__' },
+      orderBy: { updatedAt: 'desc' },
+    });
+    cachedStore = sqlStore;
+    return cachedStore;
+  } catch (error) {
+    if (isMissingLeadsTableError(error)) {
+      if (!loggedLeadStorageUnavailable) {
+        console.warn('[leads-store-unavailable]', {
+          reason: 'Table not found. Using in-memory fallback store.',
+        });
+        loggedLeadStorageUnavailable = true;
+      }
+      cachedStore = inMemoryLeadStore;
+      return cachedStore;
+    }
+
+    throw error;
+  }
+};
+
+const runWithLeadStore = async <T>(operation: (store: LeadStore) => Promise<T>): Promise<T> => {
+  const store = await getLeadStore();
+  try {
+    return await operation(store);
+  } catch (error) {
+    if (isMissingLeadsTableError(error)) {
+      if (!loggedLeadStorageUnavailable) {
+        console.warn('[leads-store-unavailable]', {
+          reason: 'Table not found during lead operation. Using in-memory fallback store.',
+        });
+        loggedLeadStorageUnavailable = true;
+      }
+      cachedStore = inMemoryLeadStore;
+      return operation(inMemoryLeadStore);
+    }
+
+    throw error;
+  }
 };
 
 leadsRouter.get('/by-cid/:cid', async (req, res) => {
   try {
-    const leads = getLeadStore();
     const cid = req.params.cid?.trim();
     if (!cid) {
       res.status(400).json({ error: 'CID invalido' });
       return;
     }
 
-    const lead = await leads.findFirst({
-      where: { cid },
-      orderBy: { updatedAt: 'desc' },
-    });
+    const lead = await runWithLeadStore((store) =>
+      store.findFirst({
+        where: { cid },
+        orderBy: { updatedAt: 'desc' },
+      }),
+    );
 
     if (!lead) {
       res.status(404).json({ error: 'Lead no encontrado' });
@@ -377,7 +511,6 @@ leadsRouter.get('/by-cid/:cid', async (req, res) => {
 
 leadsRouter.put('/by-cid/:cid', async (req, res) => {
   try {
-    const leads = getLeadStore();
     const cid = req.params.cid?.trim();
     if (!cid) {
       res.status(400).json({ error: 'CID invalido' });
@@ -385,10 +518,12 @@ leadsRouter.put('/by-cid/:cid', async (req, res) => {
     }
 
     const data = upsertLeadByCidSchema.parse(req.body);
-    const existing = await leads.findFirst({
-      where: { cid },
-      orderBy: { updatedAt: 'desc' },
-    });
+    const existing = await runWithLeadStore((store) =>
+      store.findFirst({
+        where: { cid },
+        orderBy: { updatedAt: 'desc' },
+      }),
+    );
 
     const payload = {
       cid,
@@ -405,14 +540,16 @@ leadsRouter.put('/by-cid/:cid', async (req, res) => {
       ...(data.termsAccepted !== undefined ? { termsAccepted: data.termsAccepted } : {}),
     };
 
-    const lead = existing
-      ? await leads.update({
-        where: { id: existing.id },
-        data: payload,
-      })
-      : await leads.create({
-        data: payload,
-      });
+    const lead = await runWithLeadStore((store) =>
+      existing
+        ? store.update({
+          where: { id: existing.id },
+          data: payload,
+        })
+        : store.create({
+          data: payload,
+        }),
+    );
 
     res.json({
       id: lead.id,
@@ -444,25 +581,26 @@ leadsRouter.put('/by-cid/:cid', async (req, res) => {
 
 leadsRouter.post('/', async (req, res) => {
   try {
-    const leads = getLeadStore();
     const data = postLeadSchema.parse(req.body);
 
-    const lead = await leads.create({
-      data: {
-        ...(data.cid ? { cid: data.cid } : {}),
-        name: data.name.trim(),
-        email: normalizeNullableText(data.email || undefined),
-        whatsapp: normalizeNullableText(data.whatsapp || undefined),
-        birthDate: toDateOnly(data.birthDate),
-        ...(data.waistCm !== undefined ? { waistCm: data.waistCm } : {}),
-        hasDiabetes: data.hasDiabetes ?? false,
-        hasHypertension: data.hasHypertension ?? false,
-        hasDyslipidemia: data.hasDyslipidemia ?? false,
-        trainingWindow: data.trainingWindow ?? 'none',
-        usesDairyInSnacks: data.usesDairyInSnacks ?? true,
-        termsAccepted: data.termsAccepted,
-      },
-    });
+    const lead = await runWithLeadStore((store) =>
+      store.create({
+        data: {
+          ...(data.cid ? { cid: data.cid } : {}),
+          name: data.name.trim(),
+          email: normalizeNullableText(data.email || undefined),
+          whatsapp: normalizeNullableText(data.whatsapp || undefined),
+          birthDate: toDateOnly(data.birthDate),
+          ...(data.waistCm !== undefined ? { waistCm: data.waistCm } : {}),
+          hasDiabetes: data.hasDiabetes ?? false,
+          hasHypertension: data.hasHypertension ?? false,
+          hasDyslipidemia: data.hasDyslipidemia ?? false,
+          trainingWindow: data.trainingWindow ?? 'none',
+          usesDairyInSnacks: data.usesDairyInSnacks ?? true,
+          termsAccepted: data.termsAccepted,
+        },
+      }),
+    );
 
     res.status(201).json(lead);
   } catch (error) {

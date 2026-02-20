@@ -43,8 +43,8 @@ const LEGUME_KEYWORDS = [
 const SYSTEM_NAME_MATCHERS: Record<ExchangeSystemId, string[]> = {
   mx_smae: ['smae', 'mex'],
   us_usda: ['usda', 'united states', 'usa'],
-  es_exchange: ['espana', 'spain', 'es exchange', 'es_exchange'],
-  ar_exchange: ['argentina', 'ar exchange', 'ar_exchange'],
+  es_exchange: ['bedca', 'espanola', 'espana', 'spain', 'es exchange', 'es_exchange'],
+  ar_exchange: ['argenfoods', 'argentina', 'ar exchange', 'ar_exchange'],
 };
 
 type GroupMeta = {
@@ -498,3 +498,4 @@ export const loadFoodsForSystemIdV2 = async (
   systemId: ExchangeSystemId,
 ): Promise<CatalogV2Result> =>
   loadFoodsCached({ systemId });
+
