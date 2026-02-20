@@ -5,16 +5,16 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-  schemas  = ["equivalentes_app"]
+  schemas  = ["equivalentes_app", "nutrition", "public"]
 }
 
 model TrackingEvent {
-  id        String   @id @default(uuid())
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   cid       String
   eventType String   @map("event_type")
   meta      Json?
   userAgent String?  @map("user_agent")
-  ip        String?
+  ip        String?  @db.Inet
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   @@index([cid, createdAt], map: "idx_tracking_events_cid_created_at")
@@ -24,13 +24,12 @@ model TrackingEvent {
 }
 
 model KcalFormula {
-  id          String   @id
-  name        String
-  description String?
-  isActive    Boolean  @default(true) @map("is_active")
-  sortOrder   Int      @default(0) @map("sort_order")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
+  id             String          @id
+  name           String
+  description    String?
+  isActive       Boolean         @default(true) @map("is_active")
+  sortOrder      Int             @default(0) @map("sort_order")
+  createdAt      DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
   generatedPlans GeneratedPlan[]
 
   @@map("kcal_formulas")
@@ -38,17 +37,17 @@ model KcalFormula {
 }
 
 model ExchangeSystem {
-  id          String   @id
-  countryCode String   @map("country_code") @db.Char(2)
-  name        String
-  source      String?
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id                          String                       @id
+  countryCode                 String                       @map("country_code") @db.Char(2)
+  name                        String
+  source                      String?
+  isActive                    Boolean                      @default(true) @map("is_active")
+  createdAt                   DateTime                     @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  subgroupSelectionPolicies   SubgroupSelectionPolicy[]
-  kcalSelectionPolicies       KcalSelectionPolicy[]
-  subgroupClassificationRules SubgroupClassificationRule[]
   generatedPlans              GeneratedPlan[]
+  kcalSelectionPolicies       KcalSelectionPolicy?
+  subgroupClassificationRules SubgroupClassificationRule[]
+  subgroupSelectionPolicies   SubgroupSelectionPolicy[]
 
   @@map("exchange_systems")
   @@schema("equivalentes_app")
@@ -65,21 +64,6 @@ model CountryState {
   @@schema("equivalentes_app")
 }
 
-model FoodExchangeOverride {
-  foodId               Int      @map("food_id")
-  systemId             String   @map("system_id")
-  groupId              Int?     @map("group_id")
-  subgroupId           Int?     @map("subgroup_id")
-  equivalentPortionQty Decimal? @map("equivalent_portion_qty") @db.Decimal(10, 2)
-  portionUnit          String?  @map("portion_unit")
-  isActive             Boolean  @default(true) @map("is_active")
-  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  @@id([foodId, systemId])
-  @@map("food_exchange_overrides")
-  @@schema("equivalentes_app")
-}
-
 model FoodGeoWeight {
   id          BigInt   @id @default(autoincrement())
   foodId      Int      @map("food_id")
@@ -88,6 +72,7 @@ model FoodGeoWeight {
   weight      Decimal  @default(0) @db.Decimal(10, 2)
   source      String?
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  foods       foods    @relation(fields: [foodId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_food_geo_weights_food")
 
   @@index([countryCode, stateCode, foodId], map: "idx_food_geo_weights_country_state_food")
   @@map("food_geo_weights")
@@ -101,6 +86,7 @@ model FoodProfileTag {
   tagValue  String   @map("tag_value")
   weight    Decimal? @db.Decimal(10, 2)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  foods     foods    @relation(fields: [foodId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_food_profile_tags_food")
 
   @@index([foodId, tagType], map: "idx_food_profile_tags_food_type")
   @@map("food_profile_tags")
@@ -108,17 +94,17 @@ model FoodProfileTag {
 }
 
 model SubgroupSelectionPolicy {
-  id             BigInt   @id @default(autoincrement())
-  systemId       String   @map("system_id")
-  goal           String
-  dietPattern    String   @map("diet_pattern")
-  subgroupId     Int?     @map("subgroup_id")
-  targetSharePct Decimal  @map("target_share_pct") @db.Decimal(5, 2)
-  scoreAdjustment Decimal @map("score_adjustment") @db.Decimal(10, 2)
-  isActive       Boolean  @default(true) @map("is_active")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  system ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  id                 BigInt              @id @default(autoincrement())
+  systemId           String              @map("system_id")
+  goal               String
+  dietPattern        String              @map("diet_pattern")
+  targetSharePct     Decimal             @map("target_share_pct") @db.Decimal(5, 2)
+  scoreAdjustment    Decimal             @default(0) @map("score_adjustment") @db.Decimal(10, 2)
+  isActive           Boolean             @default(true) @map("is_active")
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  subgroupId         Int?                @map("subgroup_id")
+  exchange_subgroups exchange_subgroups? @relation(fields: [subgroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_subgroup_selection_policies_subgroup_id")
+  system             ExchangeSystem      @relation(fields: [systemId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([systemId, goal, dietPattern, subgroupId], map: "uq_subgroup_selection_policy_subgroup_id")
   @@index([systemId, goal, dietPattern], map: "idx_subgroup_selection_policy_lookup")
@@ -127,20 +113,19 @@ model SubgroupSelectionPolicy {
 }
 
 model KcalSelectionPolicy {
-  id                   BigInt   @id @default(autoincrement())
-  systemId             String   @unique(map: "uq_kcal_selection_policy_system") @map("system_id")
-  lowTargetKcal        Int      @default(1600) @map("low_target_kcal")
-  highTargetKcal       Int      @default(3000) @map("high_target_kcal")
-  minTolerancePct      Decimal  @default(0.2) @map("min_tolerance_pct") @db.Decimal(5, 2)
-  maxTolerancePct      Decimal  @default(0.6) @map("max_tolerance_pct") @db.Decimal(5, 2)
-  minToleranceKcal     Int      @default(25) @map("min_tolerance_kcal")
-  softPenaltyPer10Pct  Decimal  @default(2.5) @map("soft_penalty_per_10pct") @db.Decimal(6, 2)
-  hardOutlierMultiplier Decimal @default(2.8) @map("hard_outlier_multiplier") @db.Decimal(6, 2)
-  excludeHardOutliers  Boolean  @default(true) @map("exclude_hard_outliers")
-  isActive             Boolean  @default(true) @map("is_active")
-  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  system ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  id                    BigInt         @id @default(autoincrement())
+  systemId              String         @unique(map: "uq_kcal_selection_policy_system") @map("system_id")
+  lowTargetKcal         Int            @default(1600) @map("low_target_kcal")
+  highTargetKcal        Int            @default(3000) @map("high_target_kcal")
+  minTolerancePct       Decimal        @default(0.20) @map("min_tolerance_pct") @db.Decimal(5, 2)
+  maxTolerancePct       Decimal        @default(0.60) @map("max_tolerance_pct") @db.Decimal(5, 2)
+  minToleranceKcal      Int            @default(25) @map("min_tolerance_kcal")
+  softPenaltyPer10Pct   Decimal        @default(2.50) @map("soft_penalty_per_10pct") @db.Decimal(6, 2)
+  hardOutlierMultiplier Decimal        @default(2.80) @map("hard_outlier_multiplier") @db.Decimal(6, 2)
+  excludeHardOutliers   Boolean        @default(true) @map("exclude_hard_outliers")
+  isActive              Boolean        @default(true) @map("is_active")
+  createdAt             DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+  system                ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([systemId, isActive], map: "idx_kcal_selection_policy_system_active")
   @@map("kcal_selection_policies")
@@ -148,31 +133,32 @@ model KcalSelectionPolicy {
 }
 
 model SubgroupClassificationRule {
-  id               BigInt   @id @default(autoincrement())
-  systemId         String   @map("system_id")
-  parentGroupId    Int?     @map("parent_group_id")
-  subgroupId       Int?     @map("subgroup_id")
-  minFatPer7gPro   Decimal  @map("min_fat_per_7g_pro") @db.Decimal(10, 4)
-  maxFatPer7gPro   Decimal? @map("max_fat_per_7g_pro") @db.Decimal(10, 4)
-  priority         Int
-  isActive         Boolean  @default(true) @map("is_active")
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  system ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Cascade)
+  id                 BigInt              @id @default(autoincrement())
+  systemId           String              @map("system_id")
+  minFatPer7gPro     Decimal             @map("min_fat_per_7g_pro") @db.Decimal(10, 4)
+  maxFatPer7gPro     Decimal?            @map("max_fat_per_7g_pro") @db.Decimal(10, 4)
+  priority           Int
+  isActive           Boolean             @default(true) @map("is_active")
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  parentGroupId      Int?                @map("parent_group_id")
+  subgroupId         Int?                @map("subgroup_id")
+  exchange_groups    exchange_groups?    @relation(fields: [parentGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_subgroup_classification_rules_parent_group_id")
+  exchange_subgroups exchange_subgroups? @relation(fields: [subgroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_subgroup_classification_rules_subgroup_id")
+  system             ExchangeSystem      @relation(fields: [systemId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@unique([systemId, parentGroupId, subgroupId, priority], map: "uq_subgroup_classification_rule_by_ids")
-  @@index([systemId, parentGroupId, priority], map: "idx_subgroup_classification_rule_by_parent_id")
   @@map("subgroup_classification_rules")
   @@schema("equivalentes_app")
 }
 
 model ExchangeSourcePriority {
-  id           BigInt   @id @default(autoincrement())
-  systemId     String   @map("system_id")
-  dataSourceId Int      @map("data_source_id")
-  priority     Int      @default(100)
-  isActive     Boolean  @default(true) @map("is_active")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id           BigInt       @id @default(autoincrement())
+  systemId     String       @map("system_id")
+  dataSourceId Int          @map("data_source_id")
+  priority     Int          @default(100)
+  isActive     Boolean      @default(true) @map("is_active")
+  createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  data_sources data_sources @relation(fields: [dataSourceId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_exchange_source_priorities_data_source")
 
   @@unique([systemId, dataSourceId], map: "uq_exchange_source_priorities_system_source")
   @@index([systemId, isActive, priority], map: "idx_exchange_source_priorities_lookup")
@@ -181,18 +167,19 @@ model ExchangeSourcePriority {
 }
 
 model ExchangeBucketProfile {
-  id             BigInt   @id @default(autoincrement())
-  profileVersion String   @map("profile_version")
-  systemId       String   @map("system_id")
-  bucketType     String   @map("bucket_type")
-  bucketId       Int      @map("bucket_id")
-  parentGroupId  Int?     @map("parent_group_id")
-  choG           Decimal  @map("cho_g") @db.Decimal(10, 2)
-  proG           Decimal  @map("pro_g") @db.Decimal(10, 2)
-  fatG           Decimal  @map("fat_g") @db.Decimal(10, 2)
-  kcal           Int
-  sampleSize     Int      @map("sample_size")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  id              BigInt           @id @default(autoincrement())
+  profileVersion  String           @map("profile_version")
+  systemId        String           @map("system_id")
+  bucketType      String           @map("bucket_type")
+  bucketId        Int              @map("bucket_id")
+  parentGroupId   Int?             @map("parent_group_id")
+  choG            Decimal          @map("cho_g") @db.Decimal(10, 2)
+  proG            Decimal          @map("pro_g") @db.Decimal(10, 2)
+  fatG            Decimal          @map("fat_g") @db.Decimal(10, 2)
+  kcal            Int
+  sampleSize      Int              @map("sample_size")
+  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  exchange_groups exchange_groups? @relation(fields: [parentGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_exchange_bucket_profiles_parent_group")
 
   @@unique([profileVersion, systemId, bucketType, bucketId], map: "uq_exchange_bucket_profiles_version_system_bucket")
   @@index([systemId, profileVersion, bucketType, bucketId], map: "idx_exchange_bucket_profiles_lookup")
@@ -201,20 +188,19 @@ model ExchangeBucketProfile {
 }
 
 model GeneratedPlan {
-  id          String   @id @default(uuid())
-  cid         String
-  countryCode String   @map("country_code") @db.Char(2)
-  stateCode   String   @map("state_code")
-  systemId    String   @map("system_id")
-  formulaId   String   @map("formula_id")
-  inputs      Json
-  targets     Json
-  equivalents Json
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  system          ExchangeSystem @relation(fields: [systemId], references: [id], onDelete: Restrict)
-  formula         KcalFormula    @relation(fields: [formulaId], references: [id], onDelete: Restrict)
+  id              String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cid             String
+  countryCode     String                        @map("country_code") @db.Char(2)
+  stateCode       String                        @map("state_code")
+  systemId        String                        @map("system_id")
+  formulaId       String                        @map("formula_id")
+  inputs          Json
+  targets         Json
+  equivalents     Json
+  createdAt       DateTime                      @default(now()) @map("created_at") @db.Timestamptz(6)
   recommendations GeneratedPlanRecommendation[]
+  formula         KcalFormula                   @relation(fields: [formulaId], references: [id], onUpdate: NoAction)
+  system          ExchangeSystem                @relation(fields: [systemId], references: [id], onUpdate: NoAction)
 
   @@index([cid, createdAt], map: "idx_generated_plans_cid_created_at")
   @@map("generated_plans")
@@ -222,40 +208,1432 @@ model GeneratedPlan {
 }
 
 model GeneratedPlanRecommendation {
-  id         BigInt   @id @default(autoincrement())
-  planId     String   @map("plan_id")
-  foodId     Int      @map("food_id")
-  groupCode  String   @map("group_code")
-  rankScore  Decimal  @map("rank_score") @db.Decimal(10, 2)
+  id         BigInt        @id @default(autoincrement())
+  planId     String        @map("plan_id") @db.Uuid
+  foodId     Int           @map("food_id")
+  groupCode  String        @map("group_code")
+  rankScore  Decimal       @map("rank_score") @db.Decimal(10, 2)
   reasons    Json
-  isExtended Boolean  @default(false) @map("is_extended")
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  plan GeneratedPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  isExtended Boolean       @default(false) @map("is_extended")
+  createdAt  DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  foods      foods         @relation(fields: [foodId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  plan       GeneratedPlan @relation(fields: [planId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@index([planId, groupCode], map: "idx_plan_recommendations_plan_group")
   @@map("generated_plan_recommendations")
   @@schema("equivalentes_app")
 }
 
-model Lead {
-  id        String   @id @default(uuid())
-  cid       String?
-  name      String
-  email     String?
-  whatsapp  String?
-  birthDate DateTime? @map("birth_date") @db.Date
-  waistCm   Decimal?  @map("waist_cm") @db.Decimal(6, 2)
-  hasDiabetes Boolean  @default(false) @map("has_diabetes")
-  hasHypertension Boolean  @default(false) @map("has_hypertension")
-  hasDyslipidemia Boolean  @default(false) @map("has_dyslipidemia")
-  trainingWindow String @default("none") @map("training_window")
-  usesDairyInSnacks Boolean @default(true) @map("uses_dairy_in_snacks")
-  termsAccepted Boolean  @default(false) @map("terms_accepted")
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218193843_smae_fnv_active {
+  id                Int?
+  food_id           Int?
+  data_source_id    Int?
+  calories_kcal     Decimal?  @db.Decimal(8, 1)
+  protein_g         Decimal?  @db.Decimal(8, 1)
+  carbs_g           Decimal?  @db.Decimal(8, 1)
+  fat_g             Decimal?  @db.Decimal(8, 1)
+  base_serving_size Decimal?  @db.Decimal(6, 2)
+  base_unit         String?   @db.VarChar(20)
+  state             String?   @db.VarChar(20)
+  notes             String?
+  deleted_at        DateTime? @db.Timestamptz(6)
+  created_at        DateTime? @db.Timestamptz(6)
+  fiber_g           Decimal?  @db.Decimal(8, 1)
+  glycemic_index    Decimal?  @db.Decimal(8, 1)
+  glycemic_load     Decimal?  @db.Decimal(8, 1)
 
-  @@index([cid], map: "idx_leads_cid")
-  @@map("leads")
+  @@ignore
   @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218193843_smae_foods {
+  id                   Int?
+  name                 String?  @db.VarChar(255)
+  brand                String?  @db.VarChar(100)
+  category_id          Int?
+  exchange_group_id    Int?
+  is_recipe            Boolean?
+  base_serving_size    Decimal? @db.Decimal(10, 2)
+  base_unit            String?  @db.VarChar(20)
+  calories_kcal        Decimal? @db.Decimal(10, 2)
+  protein_g            Decimal? @db.Decimal(10, 2)
+  carbs_g              Decimal? @db.Decimal(10, 2)
+  fat_g                Decimal? @db.Decimal(10, 2)
+  exchange_subgroup_id Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218193843_smae_overrides {
+  food_id                Int?
+  system_id              String?
+  equivalent_portion_qty Decimal?  @db.Decimal(10, 2)
+  portion_unit           String?
+  is_active              Boolean?
+  created_at             DateTime? @db.Timestamptz(6)
+  group_id               Int?
+  subgroup_id            Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218194945_smae_fnv_active {
+  id                Int?
+  food_id           Int?
+  data_source_id    Int?
+  calories_kcal     Decimal?  @db.Decimal(8, 1)
+  protein_g         Decimal?  @db.Decimal(8, 1)
+  carbs_g           Decimal?  @db.Decimal(8, 1)
+  fat_g             Decimal?  @db.Decimal(8, 1)
+  base_serving_size Decimal?  @db.Decimal(6, 2)
+  base_unit         String?   @db.VarChar(20)
+  state             String?   @db.VarChar(20)
+  notes             String?
+  deleted_at        DateTime? @db.Timestamptz(6)
+  created_at        DateTime? @db.Timestamptz(6)
+  fiber_g           Decimal?  @db.Decimal(8, 1)
+  glycemic_index    Decimal?  @db.Decimal(8, 1)
+  glycemic_load     Decimal?  @db.Decimal(8, 1)
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218194945_smae_foods {
+  id                   Int?
+  name                 String?  @db.VarChar(255)
+  brand                String?  @db.VarChar(100)
+  category_id          Int?
+  exchange_group_id    Int?
+  is_recipe            Boolean?
+  base_serving_size    Decimal? @db.Decimal(10, 2)
+  base_unit            String?  @db.VarChar(20)
+  calories_kcal        Decimal? @db.Decimal(10, 2)
+  protein_g            Decimal? @db.Decimal(10, 2)
+  carbs_g              Decimal? @db.Decimal(10, 2)
+  fat_g                Decimal? @db.Decimal(10, 2)
+  exchange_subgroup_id Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218194945_smae_overrides {
+  food_id                Int?
+  system_id              String?
+  equivalent_portion_qty Decimal?  @db.Decimal(10, 2)
+  portion_unit           String?
+  is_active              Boolean?
+  created_at             DateTime? @db.Timestamptz(6)
+  group_id               Int?
+  subgroup_id            Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218195833_smae_fnv_active {
+  id                Int?
+  food_id           Int?
+  data_source_id    Int?
+  calories_kcal     Decimal?  @db.Decimal(8, 1)
+  protein_g         Decimal?  @db.Decimal(8, 1)
+  carbs_g           Decimal?  @db.Decimal(8, 1)
+  fat_g             Decimal?  @db.Decimal(8, 1)
+  base_serving_size Decimal?  @db.Decimal(6, 2)
+  base_unit         String?   @db.VarChar(20)
+  state             String?   @db.VarChar(20)
+  notes             String?
+  deleted_at        DateTime? @db.Timestamptz(6)
+  created_at        DateTime? @db.Timestamptz(6)
+  fiber_g           Decimal?  @db.Decimal(8, 1)
+  glycemic_index    Decimal?  @db.Decimal(8, 1)
+  glycemic_load     Decimal?  @db.Decimal(8, 1)
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218195833_smae_foods {
+  id                   Int?
+  name                 String?  @db.VarChar(255)
+  brand                String?  @db.VarChar(100)
+  category_id          Int?
+  exchange_group_id    Int?
+  is_recipe            Boolean?
+  base_serving_size    Decimal? @db.Decimal(10, 2)
+  base_unit            String?  @db.VarChar(20)
+  calories_kcal        Decimal? @db.Decimal(10, 2)
+  protein_g            Decimal? @db.Decimal(10, 2)
+  carbs_g              Decimal? @db.Decimal(10, 2)
+  fat_g                Decimal? @db.Decimal(10, 2)
+  exchange_subgroup_id Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218195833_smae_overrides {
+  food_id                Int?
+  system_id              String?
+  equivalent_portion_qty Decimal?  @db.Decimal(10, 2)
+  portion_unit           String?
+  is_active              Boolean?
+  created_at             DateTime? @db.Timestamptz(6)
+  group_id               Int?
+  subgroup_id            Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218203039_smae_fnv_active {
+  id                Int?
+  food_id           Int?
+  data_source_id    Int?
+  calories_kcal     Decimal?  @db.Decimal(8, 1)
+  protein_g         Decimal?  @db.Decimal(8, 1)
+  carbs_g           Decimal?  @db.Decimal(8, 1)
+  fat_g             Decimal?  @db.Decimal(8, 1)
+  base_serving_size Decimal?  @db.Decimal(6, 2)
+  base_unit         String?   @db.VarChar(20)
+  state             String?   @db.VarChar(20)
+  notes             String?
+  deleted_at        DateTime? @db.Timestamptz(6)
+  created_at        DateTime? @db.Timestamptz(6)
+  fiber_g           Decimal?  @db.Decimal(8, 1)
+  glycemic_index    Decimal?  @db.Decimal(8, 1)
+  glycemic_load     Decimal?  @db.Decimal(8, 1)
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218203039_smae_foods {
+  id                   Int?
+  name                 String?  @db.VarChar(255)
+  brand                String?  @db.VarChar(100)
+  category_id          Int?
+  exchange_group_id    Int?
+  is_recipe            Boolean?
+  base_serving_size    Decimal? @db.Decimal(10, 2)
+  base_unit            String?  @db.VarChar(20)
+  calories_kcal        Decimal? @db.Decimal(10, 2)
+  protein_g            Decimal? @db.Decimal(10, 2)
+  carbs_g              Decimal? @db.Decimal(10, 2)
+  fat_g                Decimal? @db.Decimal(10, 2)
+  exchange_subgroup_id Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218203039_smae_overrides {
+  food_id                Int?
+  system_id              String?
+  equivalent_portion_qty Decimal?  @db.Decimal(10, 2)
+  portion_unit           String?
+  is_active              Boolean?
+  created_at             DateTime? @db.Timestamptz(6)
+  group_id               Int?
+  subgroup_id            Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218203219_smae_fnv_active {
+  id                Int?
+  food_id           Int?
+  data_source_id    Int?
+  calories_kcal     Decimal?  @db.Decimal(8, 1)
+  protein_g         Decimal?  @db.Decimal(8, 1)
+  carbs_g           Decimal?  @db.Decimal(8, 1)
+  fat_g             Decimal?  @db.Decimal(8, 1)
+  base_serving_size Decimal?  @db.Decimal(6, 2)
+  base_unit         String?   @db.VarChar(20)
+  state             String?   @db.VarChar(20)
+  notes             String?
+  deleted_at        DateTime? @db.Timestamptz(6)
+  created_at        DateTime? @db.Timestamptz(6)
+  fiber_g           Decimal?  @db.Decimal(8, 1)
+  glycemic_index    Decimal?  @db.Decimal(8, 1)
+  glycemic_load     Decimal?  @db.Decimal(8, 1)
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218203219_smae_foods {
+  id                   Int?
+  name                 String?  @db.VarChar(255)
+  brand                String?  @db.VarChar(100)
+  category_id          Int?
+  exchange_group_id    Int?
+  is_recipe            Boolean?
+  base_serving_size    Decimal? @db.Decimal(10, 2)
+  base_unit            String?  @db.VarChar(20)
+  calories_kcal        Decimal? @db.Decimal(10, 2)
+  protein_g            Decimal? @db.Decimal(10, 2)
+  carbs_g              Decimal? @db.Decimal(10, 2)
+  fat_g                Decimal? @db.Decimal(10, 2)
+  exchange_subgroup_id Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218203219_smae_overrides {
+  food_id                Int?
+  system_id              String?
+  equivalent_portion_qty Decimal?  @db.Decimal(10, 2)
+  portion_unit           String?
+  is_active              Boolean?
+  created_at             DateTime? @db.Timestamptz(6)
+  group_id               Int?
+  subgroup_id            Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218203515_smae_fnv_active {
+  id                Int?
+  food_id           Int?
+  data_source_id    Int?
+  calories_kcal     Decimal?  @db.Decimal(8, 1)
+  protein_g         Decimal?  @db.Decimal(8, 1)
+  carbs_g           Decimal?  @db.Decimal(8, 1)
+  fat_g             Decimal?  @db.Decimal(8, 1)
+  base_serving_size Decimal?  @db.Decimal(6, 2)
+  base_unit         String?   @db.VarChar(20)
+  state             String?   @db.VarChar(20)
+  notes             String?
+  deleted_at        DateTime? @db.Timestamptz(6)
+  created_at        DateTime? @db.Timestamptz(6)
+  fiber_g           Decimal?  @db.Decimal(8, 1)
+  glycemic_index    Decimal?  @db.Decimal(8, 1)
+  glycemic_load     Decimal?  @db.Decimal(8, 1)
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218203515_smae_foods {
+  id                   Int?
+  name                 String?  @db.VarChar(255)
+  brand                String?  @db.VarChar(100)
+  category_id          Int?
+  exchange_group_id    Int?
+  is_recipe            Boolean?
+  base_serving_size    Decimal? @db.Decimal(10, 2)
+  base_unit            String?  @db.VarChar(20)
+  calories_kcal        Decimal? @db.Decimal(10, 2)
+  protein_g            Decimal? @db.Decimal(10, 2)
+  carbs_g              Decimal? @db.Decimal(10, 2)
+  fat_g                Decimal? @db.Decimal(10, 2)
+  exchange_subgroup_id Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218203515_smae_overrides {
+  food_id                Int?
+  system_id              String?
+  equivalent_portion_qty Decimal?  @db.Decimal(10, 2)
+  portion_unit           String?
+  is_active              Boolean?
+  created_at             DateTime? @db.Timestamptz(6)
+  group_id               Int?
+  subgroup_id            Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218203838_smae_fnv_active {
+  id                Int?
+  food_id           Int?
+  data_source_id    Int?
+  calories_kcal     Decimal?  @db.Decimal(8, 1)
+  protein_g         Decimal?  @db.Decimal(8, 1)
+  carbs_g           Decimal?  @db.Decimal(8, 1)
+  fat_g             Decimal?  @db.Decimal(8, 1)
+  base_serving_size Decimal?  @db.Decimal(6, 2)
+  base_unit         String?   @db.VarChar(20)
+  state             String?   @db.VarChar(20)
+  notes             String?
+  deleted_at        DateTime? @db.Timestamptz(6)
+  created_at        DateTime? @db.Timestamptz(6)
+  fiber_g           Decimal?  @db.Decimal(8, 1)
+  glycemic_index    Decimal?  @db.Decimal(8, 1)
+  glycemic_load     Decimal?  @db.Decimal(8, 1)
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218203838_smae_foods {
+  id                   Int?
+  name                 String?  @db.VarChar(255)
+  brand                String?  @db.VarChar(100)
+  category_id          Int?
+  exchange_group_id    Int?
+  is_recipe            Boolean?
+  base_serving_size    Decimal? @db.Decimal(10, 2)
+  base_unit            String?  @db.VarChar(20)
+  calories_kcal        Decimal? @db.Decimal(10, 2)
+  protein_g            Decimal? @db.Decimal(10, 2)
+  carbs_g              Decimal? @db.Decimal(10, 2)
+  fat_g                Decimal? @db.Decimal(10, 2)
+  exchange_subgroup_id Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218203838_smae_overrides {
+  food_id                Int?
+  system_id              String?
+  equivalent_portion_qty Decimal?  @db.Decimal(10, 2)
+  portion_unit           String?
+  is_active              Boolean?
+  created_at             DateTime? @db.Timestamptz(6)
+  group_id               Int?
+  subgroup_id            Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218211811_smae_fnv_active {
+  id                Int?
+  food_id           Int?
+  data_source_id    Int?
+  calories_kcal     Decimal?  @db.Decimal(8, 1)
+  protein_g         Decimal?  @db.Decimal(8, 1)
+  carbs_g           Decimal?  @db.Decimal(8, 1)
+  fat_g             Decimal?  @db.Decimal(8, 1)
+  base_serving_size Decimal?  @db.Decimal(6, 2)
+  base_unit         String?   @db.VarChar(20)
+  state             String?   @db.VarChar(20)
+  notes             String?
+  deleted_at        DateTime? @db.Timestamptz(6)
+  created_at        DateTime? @db.Timestamptz(6)
+  fiber_g           Decimal?  @db.Decimal(8, 1)
+  glycemic_index    Decimal?  @db.Decimal(8, 1)
+  glycemic_load     Decimal?  @db.Decimal(8, 1)
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218211811_smae_foods {
+  id                   Int?
+  name                 String?  @db.VarChar(255)
+  brand                String?  @db.VarChar(100)
+  category_id          Int?
+  exchange_group_id    Int?
+  is_recipe            Boolean?
+  base_serving_size    Decimal? @db.Decimal(10, 2)
+  base_unit            String?  @db.VarChar(20)
+  calories_kcal        Decimal? @db.Decimal(10, 2)
+  protein_g            Decimal? @db.Decimal(10, 2)
+  carbs_g              Decimal? @db.Decimal(10, 2)
+  fat_g                Decimal? @db.Decimal(10, 2)
+  exchange_subgroup_id Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218211811_smae_overrides {
+  food_id                Int?
+  system_id              String?
+  equivalent_portion_qty Decimal?  @db.Decimal(10, 2)
+  portion_unit           String?
+  is_active              Boolean?
+  created_at             DateTime? @db.Timestamptz(6)
+  group_id               Int?
+  subgroup_id            Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218234500_mx_fnv_active {
+  id                Int?
+  food_id           Int?
+  data_source_id    Int?
+  calories_kcal     Decimal?  @db.Decimal(8, 1)
+  protein_g         Decimal?  @db.Decimal(8, 1)
+  carbs_g           Decimal?  @db.Decimal(8, 1)
+  fat_g             Decimal?  @db.Decimal(8, 1)
+  base_serving_size Decimal?  @db.Decimal(6, 2)
+  base_unit         String?   @db.VarChar(20)
+  state             String?   @db.VarChar(20)
+  notes             String?
+  deleted_at        DateTime? @db.Timestamptz(6)
+  created_at        DateTime? @db.Timestamptz(6)
+  fiber_g           Decimal?  @db.Decimal(8, 1)
+  glycemic_index    Decimal?  @db.Decimal(8, 1)
+  glycemic_load     Decimal?  @db.Decimal(8, 1)
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218234500_mx_foods {
+  id                   Int?
+  name                 String?  @db.VarChar(255)
+  brand                String?  @db.VarChar(100)
+  category_id          Int?
+  exchange_group_id    Int?
+  is_recipe            Boolean?
+  base_serving_size    Decimal? @db.Decimal(10, 2)
+  base_unit            String?  @db.VarChar(20)
+  calories_kcal        Decimal? @db.Decimal(10, 2)
+  protein_g            Decimal? @db.Decimal(10, 2)
+  carbs_g              Decimal? @db.Decimal(10, 2)
+  fat_g                Decimal? @db.Decimal(10, 2)
+  exchange_subgroup_id Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260218234500_mx_overrides {
+  food_id                Int?
+  system_id              String?
+  equivalent_portion_qty Decimal?  @db.Decimal(10, 2)
+  portion_unit           String?
+  is_active              Boolean?
+  created_at             DateTime? @db.Timestamptz(6)
+  group_id               Int?
+  subgroup_id            Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260219035756_smae_fnv_active {
+  id                Int?
+  food_id           Int?
+  data_source_id    Int?
+  calories_kcal     Decimal?  @db.Decimal(8, 1)
+  protein_g         Decimal?  @db.Decimal(8, 1)
+  carbs_g           Decimal?  @db.Decimal(8, 1)
+  fat_g             Decimal?  @db.Decimal(8, 1)
+  base_serving_size Decimal?  @db.Decimal(6, 2)
+  base_unit         String?   @db.VarChar(20)
+  state             String?   @db.VarChar(20)
+  notes             String?
+  deleted_at        DateTime? @db.Timestamptz(6)
+  created_at        DateTime? @db.Timestamptz(6)
+  fiber_g           Decimal?  @db.Decimal(8, 1)
+  glycemic_index    Decimal?  @db.Decimal(8, 1)
+  glycemic_load     Decimal?  @db.Decimal(8, 1)
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260219035756_smae_foods {
+  id                   Int?
+  name                 String?  @db.VarChar(255)
+  brand                String?  @db.VarChar(100)
+  category_id          Int?
+  exchange_group_id    Int?
+  is_recipe            Boolean?
+  base_serving_size    Decimal? @db.Decimal(10, 2)
+  base_unit            String?  @db.VarChar(20)
+  calories_kcal        Decimal? @db.Decimal(10, 2)
+  protein_g            Decimal? @db.Decimal(10, 2)
+  carbs_g              Decimal? @db.Decimal(10, 2)
+  fat_g                Decimal? @db.Decimal(10, 2)
+  exchange_subgroup_id Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model backup_20260219035756_smae_overrides {
+  food_id                Int?
+  system_id              String?
+  equivalent_portion_qty Decimal?  @db.Decimal(10, 2)
+  portion_unit           String?
+  is_active              Boolean?
+  created_at             DateTime? @db.Timestamptz(6)
+  group_id               Int?
+  subgroup_id            Int?
+
+  @@ignore
+  @@schema("equivalentes_app")
+}
+
+
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model client_menu_calendar {
+  id                                                        Int       @id @default(autoincrement())
+  client_id                                                 Int
+  menu_id                                                   Int
+  assigned_date                                             DateTime? @db.Date
+  assignment_start_date                                     DateTime  @db.Date
+  assignment_end_date                                       DateTime  @db.Date
+  created_at                                                DateTime? @default(now()) @db.Timestamptz(6)
+  menu_id_selected_client                                   Int?
+  professional_id                                           Int?
+  users_client_menu_calendar_client_idTousers               users     @relation("client_menu_calendar_client_idTousers", fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_calendar_client")
+  menus_client_menu_calendar_menu_idTomenus                 menus     @relation("client_menu_calendar_menu_idTomenus", fields: [menu_id], references: [id], onDelete: Cascade, map: "fk_calendar_menu")
+  menus_client_menu_calendar_menu_id_selected_clientTomenus menus?    @relation("client_menu_calendar_menu_id_selected_clientTomenus", fields: [menu_id_selected_client], references: [id], onUpdate: NoAction, map: "fk_calendar_menu_selected")
+  users_client_menu_calendar_professional_idTousers         users?    @relation("client_menu_calendar_professional_idTousers", fields: [professional_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_calendar_professional")
+
+  @@index([client_id, assigned_date], map: "idx_calendar_client_date")
+  @@schema("nutrition")
+}
+
+model client_records {
+  id                 Int       @id @default(autoincrement())
+  client_id          Int
+  medical_conditions String?
+  notes              String?
+  preferences        Json?
+  created_at         DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime? @default(now()) @db.Timestamptz(6)
+  users              users     @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("nutrition")
+}
+
+model daily_targets {
+  id                 Int                      @id @default(autoincrement())
+  user_id            Int?
+  start_date         DateTime?                @default(dbgenerated("CURRENT_DATE")) @db.Date
+  end_date           DateTime?                @db.Date
+  target_calories    Int?
+  target_protein_g   Int?
+  target_carbs_g     Int?
+  target_fat_g       Int?
+  is_active          Boolean?                 @default(true)
+  meals              Int?
+  calculation_method calculation_method_enum?
+  appointment_id     Int?
+  appointments       appointments?            @relation(fields: [appointment_id], references: [id], onUpdate: NoAction)
+
+  @@schema("nutrition")
+}
+
+model data_sources {
+  id                         Int                      @id @default(autoincrement())
+  name                       String                   @db.VarChar(100)
+  exchange_source_priorities ExchangeSourcePriority[]
+  food_nutrition_values      food_nutrition_values[]
+
+  @@schema("nutrition")
+}
+
+model exchange_groups {
+  id                            Int                          @id @default(autoincrement())
+  system_id                     Int?
+  name                          String                       @db.VarChar(100)
+  avg_calories                  Int?
+  color_code                    String?                      @db.VarChar(7)
+  exchange_bucket_profiles      ExchangeBucketProfile[]
+
+  subgroup_classification_rules SubgroupClassificationRule[]
+  exchange_systems              exchange_systems?            @relation(fields: [system_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  exchange_subgroups            exchange_subgroups[]
+  foods                         foods[]
+  meal_plan_exchanges           meal_plan_exchanges[]
+  menu_items                    menu_items[]
+  recipe_exchanges              recipe_exchanges[]
+
+  @@schema("nutrition")
+}
+
+model exchange_subgroups {
+  id                            Int                          @id @default(autoincrement())
+  exchange_group_id             Int
+  name                          String                       @db.VarChar(100)
+  created_at                    DateTime?                    @default(now()) @db.Timestamptz(6)
+
+  subgroup_classification_rules SubgroupClassificationRule[]
+  subgroup_selection_policies   SubgroupSelectionPolicy[]
+  exchange_groups               exchange_groups              @relation(fields: [exchange_group_id], references: [id], onDelete: Cascade, map: "fk_subgroup_group")
+  foods                         foods[]
+
+  @@schema("nutrition")
+}
+
+model exchange_systems {
+  id                    Int                     @id @default(autoincrement())
+  name                  String                  @db.VarChar(100)
+  country_code          String?                 @db.VarChar(3)
+  exchange_groups       exchange_groups[]
+  professional_settings professional_settings[]
+
+  @@schema("nutrition")
+}
+
+model food_categories {
+  id    Int     @id @default(autoincrement())
+  name  String  @db.VarChar(100)
+  icon  String? @db.VarChar(50)
+  foods foods[]
+
+  @@schema("nutrition")
+}
+
+model food_logs {
+  id              BigInt         @id @default(autoincrement())
+  user_id         Int?
+  food_id         Int?
+  date            DateTime?      @default(dbgenerated("CURRENT_DATE")) @db.Date
+  meal_type       String?        @db.VarChar(20)
+  quantity        Decimal?       @db.Decimal(10, 2)
+  serving_unit_id Int?
+  logged_at       DateTime?      @default(now()) @db.Timestamp(6)
+  foods           foods?         @relation(fields: [food_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  serving_units   serving_units? @relation(fields: [serving_unit_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@index([user_id, date], map: "idx_food_logs_user_date")
+  @@schema("nutrition")
+}
+
+model food_micronutrient_values {
+  id                      Int                   @id @default(autoincrement())
+  food_nutrition_value_id Int
+  micronutrient_id        Int
+  amount                  Decimal?              @db.Decimal(8, 2)
+  created_at              DateTime?             @default(now()) @db.Timestamp(6)
+  food_nutrition_values   food_nutrition_values @relation(fields: [food_nutrition_value_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_food_nutrition")
+  micronutrients          micronutrients        @relation(fields: [micronutrient_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_micronutrient")
+
+  @@unique([food_nutrition_value_id, micronutrient_id])
+  @@schema("nutrition")
+}
+
+model food_nutrition_values {
+  id                        Int                         @id @default(autoincrement())
+  food_id                   Int
+  data_source_id            Int
+  calories_kcal             Decimal?                    @db.Decimal(8, 1)
+  protein_g                 Decimal?                    @db.Decimal(8, 1)
+  carbs_g                   Decimal?                    @db.Decimal(8, 1)
+  fat_g                     Decimal?                    @db.Decimal(8, 1)
+  base_serving_size         Decimal?                    @default(100) @db.Decimal(6, 2)
+  base_unit                 String?                     @default("g") @db.VarChar(20)
+  state                     String?                     @default("standard") @db.VarChar(20)
+  notes                     String?
+  deleted_at                DateTime?                   @db.Timestamptz(6)
+  created_at                DateTime?                   @db.Timestamptz(6)
+  fiber_g                   Decimal?                    @db.Decimal(8, 1)
+  glycemic_index            Decimal?                    @db.Decimal(8, 1)
+  glycemic_load             Decimal?                    @db.Decimal(8, 1)
+  food_micronutrient_values food_micronutrient_values[]
+  data_sources              data_sources                @relation(fields: [data_source_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  foods                     foods                       @relation(fields: [food_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([food_id, data_source_id, state])
+  @@schema("nutrition")
+}
+
+model foods {
+  id                             Int                           @id @default(autoincrement())
+  name                           String                        @unique(map: "idx_unique_name") @db.VarChar(255)
+  brand                          String?                       @db.VarChar(100)
+  category_id                    Int?
+  exchange_group_id              Int?
+  is_recipe                      Boolean?                      @default(false)
+
+  exchange_subgroup_id           Int?
+
+  food_geo_weights               FoodGeoWeight[]
+  food_profile_tags              FoodProfileTag[]
+  generated_plan_recommendations GeneratedPlanRecommendation[]
+  food_logs                      food_logs[]
+  food_nutrition_values          food_nutrition_values[]
+  exchange_subgroups             exchange_subgroups?           @relation(fields: [exchange_subgroup_id], references: [id], map: "fk_food_subgroup")
+  food_categories                food_categories?              @relation(fields: [category_id], references: [id], onUpdate: SetNull)
+  exchange_groups                exchange_groups?              @relation(fields: [exchange_group_id], references: [id], onUpdate: SetNull)
+  menu_items                     menu_items[]
+  recipe_foods                   recipe_foods[]
+  serving_units                  serving_units[]
+
+  @@schema("nutrition")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model meal_plan_exchanges {
+  id                Int              @id @default(autoincrement())
+  meal_plan_meal_id Int?
+  exchange_group_id Int?
+  quantity          Int
+  updated_at        DateTime?        @default(now()) @db.Timestamp(6)
+  deleted_at        DateTime?        @db.Timestamp(6)
+  exchange_groups   exchange_groups? @relation(fields: [exchange_group_id], references: [id], onUpdate: SetNull)
+  meal_plan_meals   meal_plan_meals? @relation(fields: [meal_plan_meal_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("nutrition")
+}
+
+model meal_plan_meals {
+  id                  Int                   @id @default(autoincrement())
+  meal_plan_id        Int
+  meal_name           String                @db.VarChar(50)
+  sort_order          Int
+  updated_at          DateTime?             @default(now()) @db.Timestamp(6)
+  deleted_at          DateTime?             @db.Timestamp(6)
+  meal_plan_exchanges meal_plan_exchanges[]
+  meal_plans          meal_plans            @relation(fields: [meal_plan_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("nutrition")
+}
+
+model meal_plans {
+  id              Int               @id @default(autoincrement())
+  name            String            @db.VarChar(100)
+  description     String?
+  created_by      Int?
+  is_template     Boolean?          @default(false)
+  created_at      DateTime?         @default(now()) @db.Timestamp(6)
+  updated_at      DateTime?         @default(now()) @db.Timestamp(6)
+  deleted_at      DateTime?         @db.Timestamp(6)
+  meal_plan_meals meal_plan_meals[]
+  menus           menus[]
+
+  @@schema("nutrition")
+}
+
+model menu_drafts {
+  id                                       String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  professional_id                          Int
+  client_id                                Int?
+  json_data                                Json
+  last_autosave                            DateTime?               @default(now()) @db.Timestamp(6)
+  is_ai_generated                          Boolean?                @default(true)
+  status                                   menu_draft_status_enum? @default(pending)
+  applied_at                               DateTime?               @db.Timestamp(6)
+  users_menu_drafts_client_idTousers       users?                  @relation("menu_drafts_client_idTousers", fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_client")
+  users_menu_drafts_professional_idTousers users                   @relation("menu_drafts_professional_idTousers", fields: [professional_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_professional")
+
+  @@schema("nutrition")
+}
+
+model menu_items {
+  id                                             Int              @id @default(autoincrement())
+  menu_meal_id                                   Int?
+  exchange_group_id                              Int?
+  food_id                                        Int?
+  serving_unit_id                                Int?
+  quantity                                       Int?             @default(1)
+  recipe_id                                      Int?
+  equivalent_quantity                            Decimal?         @db.Decimal(5, 2)
+  exchange_groups                                exchange_groups? @relation(fields: [exchange_group_id], references: [id], onUpdate: SetNull)
+  foods                                          foods?           @relation(fields: [food_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  menu_meals_menu_items_menu_meal_idTomenu_meals menu_meals?      @relation("menu_items_menu_meal_idTomenu_meals", fields: [menu_meal_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  menu_meals_menu_items_recipe_idTomenu_meals    menu_meals?      @relation("menu_items_recipe_idTomenu_meals", fields: [recipe_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  serving_units                                  serving_units?   @relation(fields: [serving_unit_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("nutrition")
+}
+
+model menu_meals {
+  id                                             Int          @id @default(autoincrement())
+  menu_id                                        Int?
+  name                                           String?      @db.VarChar(50)
+  source_meal_plan_meal_id                       Int?
+  menu_items_menu_items_menu_meal_idTomenu_meals menu_items[] @relation("menu_items_menu_meal_idTomenu_meals")
+  menu_items_menu_items_recipe_idTomenu_meals    menu_items[] @relation("menu_items_recipe_idTomenu_meals")
+  menus                                          menus?       @relation(fields: [menu_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("nutrition")
+}
+
+model menus {
+  id                                                                       Int                    @id @default(autoincrement())
+  meal_plan_id                                                             Int?
+  client_id                                                                Int?
+  start_date                                                               DateTime?              @db.Date
+  end_date                                                                 DateTime?              @db.Date
+  created_at                                                               DateTime?              @default(now()) @db.Timestamp(6)
+  created_by                                                               Int?
+  is_reusable                                                              Boolean?
+  description_                                                             String?                @map("description ") @db.VarChar(255)
+  title                                                                    String?                @db.VarChar(150)
+  client_menu_calendar_client_menu_calendar_menu_idTomenus                 client_menu_calendar[] @relation("client_menu_calendar_menu_idTomenus")
+  client_menu_calendar_client_menu_calendar_menu_id_selected_clientTomenus client_menu_calendar[] @relation("client_menu_calendar_menu_id_selected_clientTomenus")
+  menu_meals                                                               menu_meals[]
+  meal_plans                                                               meal_plans?            @relation(fields: [meal_plan_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                                                                    users?                 @relation(fields: [created_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "menus_user_id_fkey")
+
+  @@schema("nutrition")
+}
+
+model micronutrients {
+  id                        Int                         @id @default(autoincrement())
+  name                      String                      @db.VarChar(100)
+  unit                      String                      @db.VarChar(20)
+  category                  String?                     @db.VarChar(50)
+  created_at                DateTime?                   @default(now()) @db.Timestamp(6)
+  food_micronutrient_values food_micronutrient_values[]
+
+  @@schema("nutrition")
+}
+
+model professional_settings {
+  professional_id              Int               @id
+  preferred_exchange_system_id Int?
+  created_at                   DateTime?         @default(now()) @db.Timestamp(6)
+  exchange_systems             exchange_systems? @relation(fields: [preferred_exchange_system_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("nutrition")
+}
+
+model recipe_exchanges {
+  id                Int              @id @default(autoincrement())
+  recipe_id         Int?
+  exchange_group_id Int?
+  quantity          Int
+  exchange_groups   exchange_groups? @relation(fields: [exchange_group_id], references: [id], onUpdate: SetNull)
+  recipes           recipes?         @relation(fields: [recipe_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("nutrition")
+}
+
+model recipe_foods {
+  id              Int            @id @default(autoincrement())
+  recipe_id       Int?
+  food_id         Int?
+  serving_unit_id Int?
+  quantity        Decimal        @db.Decimal(6, 2)
+  foods           foods?         @relation(fields: [food_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  recipes         recipes?       @relation(fields: [recipe_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  serving_units   serving_units? @relation(fields: [serving_unit_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("nutrition")
+}
+
+model recipes {
+  id               Int                @id @default(autoincrement())
+  name             String             @db.VarChar(100)
+  description      String?
+  created_by       Int?
+  is_template      Boolean?           @default(true)
+  created_at       DateTime?          @db.Timestamptz(6)
+  deleted_at       DateTime?          @db.Timestamptz(6)
+  recipe_exchanges recipe_exchanges[]
+  recipe_foods     recipe_foods[]
+
+  @@schema("nutrition")
+}
+
+model serving_units {
+  id               Int            @id @default(autoincrement())
+  food_id          Int?
+  unit_name        String         @db.VarChar(50)
+  gram_equivalent  Decimal        @db.Decimal(10, 2)
+  is_exchange_unit Boolean?       @default(false)
+  food_logs        food_logs[]
+  menu_items       menu_items[]
+  recipe_foods     recipe_foods[]
+  foods            foods?         @relation(fields: [food_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("nutrition")
+}
+
+model affiliate_codes {
+  id                  Int                  @id @default(autoincrement())
+  code                String               @unique @db.VarChar(20)
+  user_id             Int                  @unique
+  discount_percent    Int?                 @default(20)
+  commission_percent  Int?                 @default(25)
+  is_active           Boolean?             @default(true)
+  created_at          DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime?            @default(now()) @db.Timestamptz(6)
+  deleted_at          DateTime?            @db.Timestamptz(6)
+  users               users                @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  influencer_profiles influencer_profiles?
+  subscriptions       subscriptions[]
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model allergens {
+  id               Int                @id @default(autoincrement())
+  name             String             @db.VarChar(100)
+  type             String?            @db.VarChar(20)
+  created_at       DateTime?          @default(now()) @db.Timestamptz(6)
+  client_allergens client_allergens[]
+
+  @@schema("public")
+}
+
+model appointment_drafts {
+  appointment_id Int                           @unique
+  stage          appointment_draft_stage_enum?
+  json_state     Json?
+  updated_at     DateTime?                     @default(now()) @db.Timestamptz(6)
+  created_at     DateTime?                     @default(now()) @db.Timestamptz(6)
+  id             String                        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  duration       Int?                          @default(0)
+  appointments   appointments                  @relation(fields: [appointment_id], references: [id], onDelete: Cascade)
+
+  @@schema("public")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model appointments {
+  id                 Int                 @id @default(autoincrement())
+  professional_id    Int
+  client_id          Int
+  scheduled_at       DateTime            @db.Timestamp(6)
+  duration_minutes   Int?                @default(60)
+  status             String?             @default("scheduled") @db.VarChar(20)
+  title              String?             @db.VarChar(150)
+  meeting_link       String?
+  notes              String?
+  deleted_at         DateTime?           @db.Timestamptz(6)
+  start_date         DateTime?           @db.Timestamp(6)
+  end_date           DateTime?           @db.Timestamp(6)
+  effective_duration Int?
+  is_intake          Boolean             @default(false)
+  type               service_type_enum?  @default(NUTRITION)
+  daily_targets      daily_targets[]
+  appointment_drafts appointment_drafts?
+  client_metrics     client_metrics[]
+
+  @@schema("public")
+}
+
+model availability_slots {
+  id              Int       @id @default(autoincrement())
+  professional_id Int
+  day_of_week     Int?
+  start_time      DateTime? @db.Time(6)
+  end_time        DateTime? @db.Time(6)
+  is_active       Boolean?  @default(true)
+  deleted_at      DateTime? @db.Timestamptz(6)
+
+  @@schema("public")
+}
+
+model client_allergens {
+  client_id   Int
+  allergen_id Int
+  allergens   allergens @relation(fields: [allergen_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users       users     @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@id([client_id, allergen_id])
+  @@schema("public")
+}
+
+model client_goals {
+  id         Int       @id @default(autoincrement())
+  client_id  Int
+  goal_id    Int
+  is_primary Boolean?  @default(false)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  users      users     @relation(fields: [client_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  goals      goals     @relation(fields: [goal_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([client_id, goal_id])
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model client_health_metrics {
+  id                    BigInt    @id @default(autoincrement())
+  user_id               Int
+  recorded_at           DateTime? @default(now()) @db.Timestamptz(6)
+  glucose_mg_dl         Int?
+  glucose_context       String?   @db.VarChar(20)
+  systolic_mmhg         Int?
+  diastolic_mmhg        Int?
+  heart_rate_bpm        Int?
+  oxygen_saturation_pct Decimal?  @db.Decimal(4, 1)
+  notes                 String?
+  users                 users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_health_metrics")
+
+  @@index([user_id, recorded_at], map: "idx_health_metrics_user_date")
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model client_injuries {
+  id             Int                 @id @default(autoincrement())
+  user_id        Int
+  name           String              @db.VarChar(150)
+  body_part      String              @db.VarChar(100)
+  severity       Int?
+  status         injury_status_enum? @default(active)
+  limitations    String?
+  diagnosis_date DateTime?           @db.Date
+  recovery_date  DateTime?           @db.Date
+  created_at     DateTime?           @default(now()) @db.Timestamptz(6)
+  users          users               @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_user_injuries")
+
+  @@schema("public")
+}
+
+model client_metrics {
+  id                  BigInt        @id @default(autoincrement())
+  user_id             Int
+  date                DateTime?     @default(dbgenerated("CURRENT_DATE")) @db.Date
+  logged_at           DateTime?     @default(now()) @db.Timestamp(6)
+  weight_kg           Decimal?      @db.Decimal(5, 2)
+  height_cm           Decimal?      @db.Decimal(5, 2)
+  body_fat_pct        Decimal?      @db.Decimal(4, 1)
+  muscle_mass_kg      Decimal?      @db.Decimal(5, 2)
+  visceral_fat        Decimal?      @db.Decimal(4, 1)
+  water_pct           Decimal?      @db.Decimal(4, 1)
+  waist_cm            Decimal?      @db.Decimal(5, 1)
+  hip_cm              Decimal?      @db.Decimal(5, 1)
+  chest_cm            Decimal?      @db.Decimal(5, 1)
+  arm_left_cm         Decimal?      @db.Decimal(5, 1)
+  arm_right_cm        Decimal?      @db.Decimal(5, 1)
+  thigh_left_cm       Decimal?      @db.Decimal(5, 1)
+  thigh_right_cm      Decimal?      @db.Decimal(5, 1)
+  calf_left_cm        Decimal?      @db.Decimal(5, 1)
+  calf_right_cm       Decimal?      @db.Decimal(5, 1)
+  notes               String?
+  recorded_by_user_id Int?
+  appointment_id      Int?
+  appointments        appointments? @relation(fields: [appointment_id], references: [id], onUpdate: NoAction)
+
+  @@index([user_id, date], map: "idx_metrics_user_date")
+  @@schema("public")
+}
+
+model goals {
+  id               Int                        @id @default(autoincrement())
+  code             String                     @unique @db.VarChar(50)
+  name             String                     @db.VarChar(100)
+  description      String?
+  created_at       DateTime?                  @default(now()) @db.Timestamptz(6)
+  adjustment_type  goal_adjustment_type_enum? @default(percent)
+  adjustment_value Int?                       @default(0)
+  carbs_ratio      Decimal?                   @db.Decimal(3, 2)
+  fat_ratio        Decimal?                   @db.Decimal(3, 2)
+  protein_ratio    Decimal?                   @db.Decimal(3, 2)
+  client_goals     client_goals[]
+
+  @@schema("public")
+}
+
+model influencer_profiles {
+  user_id            Int             @id
+  commission_percent Int?            @default(20)
+  discount_percent   Int?            @default(20)
+  bank_info          Json?
+  tax_id             String?         @db.VarChar(20)
+  balance_due        Decimal?        @default(0) @db.Decimal(10, 2)
+  total_paid         Decimal?        @default(0) @db.Decimal(10, 2)
+  created_at         DateTime?       @default(now()) @db.Timestamptz(6)
+  is_active          Boolean?        @default(true)
+  affiliate_codes    affiliate_codes @relation(fields: [user_id], references: [user_id], map: "fk_influencer_affiliate")
+  users              users           @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "fk_influencer_user")
+
+  @@schema("public")
+}
+
+model intake_submissions {
+  id            Int       @id @default(autoincrement())
+  user_id       Int
+  form_version  String?   @db.VarChar(20)
+  raw_responses Json
+  submitted_at  DateTime? @default(now()) @db.Timestamptz(6)
+  users         users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_user_intake")
+
+  @@schema("public")
+}
+
+model plans {
+  id               Int             @id @default(autoincrement())
+  name             String          @db.VarChar(100)
+  price_monthly    Decimal?        @db.Decimal(10, 2)
+  access_nutrition Boolean?        @default(false)
+  access_training  Boolean?        @default(false)
+  is_active        Boolean?        @default(true)
+  subscriptions    subscriptions[]
+
+  @@schema("public")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model professional_clients {
+  id                                                Int               @id @default(autoincrement())
+  professional_id                                   Int
+  client_id                                         Int
+  service_type                                      service_type_enum
+  start_date                                        DateTime?         @default(dbgenerated("CURRENT_DATE")) @db.Date
+  end_date                                          DateTime?         @db.Date
+  is_active                                         Boolean?          @default(true)
+  deleted_at                                        DateTime?         @db.Timestamptz(6)
+  status                                            String            @default("active") @db.VarChar(20)
+  users_professional_clients_client_idTousers       users             @relation("professional_clients_client_idTousers", fields: [client_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users_professional_clients_professional_idTousers users             @relation("professional_clients_professional_idTousers", fields: [professional_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([professional_id, client_id, service_type])
+  @@index([client_id], map: "idx_prof_clients_client")
+  @@index([professional_id], map: "idx_prof_clients_prof")
+  @@schema("public")
+}
+
+model professional_profiles {
+  user_id        Int      @id
+  title          String?  @db.VarChar(100)
+  biography      String?
+  specialties    String[]
+  license_number String?  @db.VarChar(50)
+  work_address   String?
+  social_media   Json?
+
+  @@schema("public")
+}
+
+model refresh_tokens {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  token      String    @unique @db.VarChar(512)
+  expires_at DateTime  @db.Timestamptz(6)
+  is_revoked Boolean?  @default(false)
+  user_agent String?
+  ip_address String?   @db.VarChar(45)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([token], map: "idx_refresh_tokens_token")
+  @@index([user_id], map: "idx_refresh_tokens_user")
+  @@schema("public")
+}
+
+model subscriptions {
+  id                Int              @id @default(autoincrement())
+  user_id           Int
+  plan_id           Int
+  status            String?          @default("active") @db.VarChar(20)
+  start_date        DateTime?        @default(now()) @db.Timestamp(6)
+  end_date          DateTime         @db.Timestamp(6)
+  auto_renew        Boolean?         @default(true)
+  deleted_at        DateTime?        @db.Timestamptz(6)
+  affiliate_code_id Int?
+  affiliate_codes   affiliate_codes? @relation(fields: [affiliate_code_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  plans             plans            @relation(fields: [plan_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+model user_activation_tokens {
+  id         Int       @id @default(autoincrement())
+  user_id    Int
+  token      String    @unique @db.VarChar(50)
+  expires_at DateTime  @db.Timestamptz(6)
+  used_at    DateTime? @db.Timestamptz(6)
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  users      users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@schema("public")
+}
+
+model user_professional_roles {
+  user_id Int
+  role    professional_role_enum
+  users   users                  @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([user_id, role])
+  @@unique([user_id, role], map: "idx_unique_userid_role")
+  @@schema("public")
+}
+
+model users {
+  id                                                               Int                       @id @default(autoincrement())
+  name                                                             String                    @db.VarChar(100)
+  email                                                            String?                   @unique @db.VarChar(150)
+  password                                                         String?                   @db.VarChar(255)
+  created_at                                                       DateTime?                 @default(now()) @db.Timestamptz(6)
+  updated_at                                                       DateTime?                 @default(now()) @db.Timestamptz(6)
+  is_active                                                        Boolean?                  @default(true)
+  role                                                             user_role_enum?
+  phone_number                                                     String?                   @db.VarChar(15)
+  profile_picture                                                  String?                   @db.VarChar(500)
+  deleted_at                                                       DateTime?                 @db.Timestamptz(6)
+  lastname                                                         String?                   @db.VarChar(200)
+  username                                                         String?                   @db.VarChar(40)
+  is_phone_verified                                                Boolean?                  @default(false)
+  onboarding_status                                                onboarding_status_enum?   @default(pending)
+  onboarding_completed_at                                          DateTime?                 @db.Timestamptz(6)
+  genre                                                            user_genre_enum?
+  date_of_birth                                                    DateTime?                 @db.Date
+  client_menu_calendar_client_menu_calendar_client_idTousers       client_menu_calendar[]    @relation("client_menu_calendar_client_idTousers")
+  client_menu_calendar_client_menu_calendar_professional_idTousers client_menu_calendar[]    @relation("client_menu_calendar_professional_idTousers")
+  client_records                                                   client_records[]
+  menu_drafts_menu_drafts_client_idTousers                         menu_drafts[]             @relation("menu_drafts_client_idTousers")
+  menu_drafts_menu_drafts_professional_idTousers                   menu_drafts[]             @relation("menu_drafts_professional_idTousers")
+  menus                                                            menus[]
+  affiliate_codes                                                  affiliate_codes?
+  client_allergens                                                 client_allergens[]
+  client_goals                                                     client_goals[]
+  client_health_metrics                                            client_health_metrics[]
+  client_injuries                                                  client_injuries[]
+  influencer_profiles                                              influencer_profiles?
+  intake_submissions                                               intake_submissions[]
+  professional_clients_professional_clients_client_idTousers       professional_clients[]    @relation("professional_clients_client_idTousers")
+  professional_clients_professional_clients_professional_idTousers professional_clients[]    @relation("professional_clients_professional_idTousers")
+  refresh_tokens                                                   refresh_tokens[]
+  user_activation_tokens                                           user_activation_tokens[]
+  user_professional_roles                                          user_professional_roles[]
+
+  @@index([email], map: "idx_users_email")
+  @@schema("public")
+}
+
+enum calculation_method_enum {
+  MIFFLIN_ST_JEOR
+  HARRIS_BENEDICT
+  KATCH_MCARDLE
+
+  @@schema("nutrition")
+}
+
+enum menu_draft_status_enum {
+  pending
+  applied
+  expired
+
+  @@schema("nutrition")
+}
+
+enum appointment_draft_stage_enum {
+  metrics
+  progress
+  targets
+  planning
+  closing
+  notes
+
+  @@schema("public")
+}
+
+enum appointmentstatus {
+  scheduled
+  confirmed
+  completed
+  cancelled
+  no_show
+
+  @@schema("public")
+}
+
+enum difficulty_enum {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+
+  @@schema("public")
+}
+
+enum exercise_type_enum {
+  MULTIARTICULAR
+  MONOARTICULAR
+
+  @@schema("public")
+}
+
+enum goal_adjustment_type_enum {
+  percent
+  fixed_kcal
+
+  @@schema("public")
+}
+
+enum injury_status_enum {
+  active
+  recovering
+  resolved
+  chronic
+
+  @@schema("public")
+}
+
+enum onboarding_status_enum {
+  pending
+  in_progress
+  completed
+
+  @@schema("public")
+}
+
+enum professional_role_enum {
+  NUTRITIONIST
+  TRAINER
+
+  @@schema("public")
+}
+
+enum professional_role_enum_old {
+  NUTRICIONIST
+  TRAINER
+
+  @@schema("public")
+}
+
+enum service_type_enum {
+  NUTRITION
+  TRAINING
+  BOTH
+
+  @@schema("public")
+}
+
+enum user_genre_enum {
+  man
+  female
+
+  @@schema("public")
+}
+
+enum user_role_enum {
+  CLIENT
+  PROFESSIONAL
+  ADMIN
+  INFLUENCER
+
+  @@schema("public")
 }

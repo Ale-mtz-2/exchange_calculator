@@ -67,21 +67,10 @@ type RawFoodRow = {
   exchange_group_id: number | null;
   exchange_group_name: string | null;
   category_name: string | null;
-  base_serving_size: number | null;
   base_unit: string | null;
 };
 
-type OverrideRow = {
-  food_id: number;
-  group_id: number | null;
-  subgroup_id: number | null;
-  equivalent_portion_qty: number | null;
-  portion_unit: string | null;
-};
 
-type InactiveOverrideRow = {
-  food_id: number;
-};
 
 type ClassificationRuleRow = {
   subgroup_id: number | null;
@@ -292,7 +281,7 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
   const shouldClassifyMx = isSmaeSubgroupsEnabled && options.systemId === 'mx_smae';
   const nutritionSystemId = await resolveNutritionSystemId(options.systemId);
 
-  const [canonicalValues, foodsResult, groupsResult, subgroupsResult, overridesResult, inactiveOverridesResult, rulesResult, tagsResult, geoWeightsResult] =
+  const [canonicalValues, foodsResult, groupsResult, subgroupsResult, rulesResult, tagsResult, geoWeightsResult] =
     await Promise.all([
       resolveCanonicalNutritionValues(options.systemId),
       nutritionPool.query<RawFoodRow>(
@@ -303,12 +292,7 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
             f.exchange_group_id,
             ng.name AS exchange_group_name,
             fc.name AS category_name,
-            CASE
-              WHEN f.base_serving_size IS NOT NULL AND f.base_serving_size > 0
-                THEN f.base_serving_size::float8
-              ELSE NULL
-            END AS base_serving_size,
-            NULLIF(BTRIM(f.base_unit), '') AS base_unit
+            fc.name AS category_name
           FROM ${nutritionSchema}.foods f
           LEFT JOIN ${nutritionSchema}.food_categories fc ON fc.id = f.category_id
           LEFT JOIN ${nutritionSchema}.exchange_groups ng ON ng.id = f.exchange_group_id
@@ -340,31 +324,7 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
         `,
         [nutritionSystemId],
       ),
-      nutritionPool.query<OverrideRow>(
-        `
-          SELECT
-            food_id,
-            group_id,
-            subgroup_id,
-            equivalent_portion_qty::float8,
-            portion_unit
-          FROM ${appSchema}.food_exchange_overrides
-          WHERE system_id = $1
-            AND is_active = true;
-        `,
-        [options.systemId],
-      ),
-      options.systemId === 'mx_smae'
-        ? nutritionPool.query<InactiveOverrideRow>(
-          `
-            SELECT food_id
-            FROM ${appSchema}.food_exchange_overrides
-            WHERE system_id = $1
-              AND is_active = false;
-          `,
-          [options.systemId],
-        )
-        : Promise.resolve({ rows: [] as InactiveOverrideRow[] }),
+
       shouldClassifyMx
         ? nutritionPool.query<ClassificationRuleRow>(
           `
@@ -413,12 +373,7 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
   const { subgroupsById, subgroupIdByLegacyCode } = buildSubgroupMaps(subgroupsResult.rows);
   const classificationRules = buildClassificationRules(rulesResult.rows);
 
-  const overrideByFood = new Map<number, OverrideRow>(
-    overridesResult.rows.map((row) => [row.food_id, row]),
-  );
-  const inactiveOverrideFoodIds = new Set<number>(
-    inactiveOverridesResult.rows.map((row) => row.food_id),
-  );
+
   const geoWeightByFood = new Map<number, number>(
     geoWeightsResult.rows.map((row) => [row.food_id, row.weight]),
   );
@@ -427,25 +382,16 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
   const foods: FoodItemV2[] = [];
 
   for (const row of foodsResult.rows) {
-    if (inactiveOverrideFoodIds.has(row.id)) continue;
-
     const canonical = canonicalValues.get(row.id);
     if (!canonical) continue;
 
-    const override = overrideByFood.get(row.id);
+    const override = null; // overrideByFood.get(row.id);
     const proteinG = canonical.proteinG;
     const carbsG = canonical.carbsG;
     const fatG = canonical.fatG;
 
-    let groupId = override?.group_id ?? row.exchange_group_id;
-    let subgroupId = override?.subgroup_id ?? null;
-
-    if (subgroupId) {
-      const subgroup = subgroupsById.get(subgroupId);
-      if (subgroup) {
-        groupId = subgroup.parentGroupId;
-      }
-    }
+    let groupId = row.exchange_group_id;
+    let subgroupId = null;
 
     if (shouldClassifyMx && !subgroupId) {
       const groupFamily = inferGroupCodeFromText(row.exchange_group_name ?? row.category_name ?? '');
@@ -482,13 +428,9 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
     const subgroupKey = subgroupId ? `subgroup:${subgroupId}` : undefined;
     const legacySubgroupCode = subgroupId ? subgroupsById.get(subgroupId)?.legacyCode : undefined;
     const servingQty =
-      normalizePortionQty(override?.equivalent_portion_qty) ??
-      normalizePortionQty(row.base_serving_size) ??
       normalizePortionQty(canonical.servingQty) ??
       100;
     const servingUnit =
-      normalizePortionUnit(override?.portion_unit) ??
-      normalizePortionUnit(row.base_unit) ??
       normalizePortionUnit(canonical.servingUnit) ??
       'g';
 

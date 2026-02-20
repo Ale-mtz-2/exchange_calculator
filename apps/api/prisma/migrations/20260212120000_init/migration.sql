@@ -1,5 +1,103 @@
 CREATE SCHEMA IF NOT EXISTS equivalentes_app;
 
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "nutrition";
+
+-- CreateTable
+CREATE TABLE IF NOT EXISTS "nutrition"."data_sources" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+    CONSTRAINT "data_sources_pkey" PRIMARY KEY ("id")
+);
+
+
+-- CreateTable
+CREATE TABLE IF NOT EXISTS "nutrition"."exchange_systems" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+    "country_code" VARCHAR(3),
+    CONSTRAINT "exchange_systems_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE IF NOT EXISTS "nutrition"."exchange_groups" (
+
+    "id" SERIAL NOT NULL,
+    "system_id" INTEGER,
+    "name" VARCHAR(100) NOT NULL,
+    "avg_calories" INTEGER,
+    "color_code" VARCHAR(7),
+    CONSTRAINT "exchange_groups_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE IF NOT EXISTS "nutrition"."exchange_subgroups" (
+    "id" SERIAL NOT NULL,
+    "exchange_group_id" INTEGER NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+    "created_at" TIMESTAMPTZ(6) DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "exchange_subgroups_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE IF NOT EXISTS "nutrition"."food_categories" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(100) NOT NULL,
+    "icon" VARCHAR(50),
+    CONSTRAINT "food_categories_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE IF NOT EXISTS "nutrition"."foods" (
+    "id" SERIAL NOT NULL,
+    "name" VARCHAR(255) NOT NULL,
+    "brand" VARCHAR(100),
+    "category_id" INTEGER,
+    "exchange_group_id" INTEGER,
+    "is_recipe" BOOLEAN DEFAULT false,
+    "base_serving_size" DECIMAL(10,2) DEFAULT 100,
+    "base_unit" VARCHAR(20) DEFAULT 'g',
+    "calories_kcal" DECIMAL(10,2),
+    "protein_g" DECIMAL(10,2),
+    "carbs_g" DECIMAL(10,2),
+    "fat_g" DECIMAL(10,2),
+    "exchange_subgroup_id" INTEGER,
+    CONSTRAINT "foods_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE IF NOT EXISTS "nutrition"."food_nutrition_values" (
+    "id" SERIAL NOT NULL,
+    "food_id" INTEGER NOT NULL,
+    "data_source_id" INTEGER NOT NULL,
+    "calories_kcal" DECIMAL(8,1),
+    "protein_g" DECIMAL(8,1),
+    "carbs_g" DECIMAL(8,1),
+    "fat_g" DECIMAL(8,1),
+    "base_serving_size" DECIMAL(6,2) DEFAULT 100,
+    "base_unit" VARCHAR(20) DEFAULT 'g',
+    "state" VARCHAR(20) DEFAULT 'standard',
+    "notes" TEXT,
+    "deleted_at" TIMESTAMPTZ(6),
+    "created_at" TIMESTAMPTZ(6),
+    "fiber_g" DECIMAL(8,1),
+    "glycemic_index" DECIMAL(8,1),
+    "glycemic_load" DECIMAL(8,1),
+    CONSTRAINT "food_nutrition_values_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE IF NOT EXISTS "nutrition"."serving_units" (
+    "id" SERIAL NOT NULL,
+    "food_id" INTEGER,
+    "unit_name" VARCHAR(50) NOT NULL,
+    "gram_equivalent" DECIMAL(10,2) NOT NULL,
+    "is_exchange_unit" BOOLEAN DEFAULT false,
+    CONSTRAINT "serving_units_pkey" PRIMARY KEY ("id")
+);
+
+
+
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE IF NOT EXISTS equivalentes_app.tracking_events (

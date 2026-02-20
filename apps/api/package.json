@@ -21,6 +21,9 @@
     "smae:apply-curation": "tsx src/scripts/applySmaeFoodCuration.ts",
     "smae:validate-curation": "tsx src/scripts/validateSmaeFoodCuration.ts"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
   "dependencies": {
     "@equivalentes/shared": "workspace:*",
     "@prisma/client": "^6.17.1",

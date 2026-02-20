@@ -137,6 +137,89 @@ const sourcePriorityForSystem = (systemId: string, sourceName: string | null): n
   return keywords.length;
 };
 
+const seedNutritionTables = async (): Promise<void> => {
+  // Populate systems
+  await prisma.$executeRawUnsafe(`
+    INSERT INTO nutrition.exchange_systems (id, name, country_code)
+    VALUES 
+      (1, 'Sistema Mexicano de Alimentos Equivalentes (SMAE)', 'MX'),
+      (2, 'USDA Food Central', 'US')
+    ON CONFLICT (id) DO UPDATE SET
+      name = EXCLUDED.name,
+      country_code = EXCLUDED.country_code;
+  `);
+
+  // Populate data_sources
+  await prisma.$executeRawUnsafe(`
+    INSERT INTO nutrition.data_sources (id, name)
+    VALUES 
+      (1, 'SMAE'),
+      (2, 'USDA')
+    ON CONFLICT (id) DO UPDATE SET
+      name = EXCLUDED.name;
+  `);
+
+  // Populate groups for SMAE (system_id=1)
+  const groups = [
+    { id: 1, name: 'Verduras', code: 'vegetable' },
+    { id: 2, name: 'Frutas', code: 'fruit' },
+    { id: 3, name: 'Cereales y Tubérculos', code: 'carb' },
+    { id: 4, name: 'Leguminosas', code: 'legume' },
+    { id: 5, name: 'Alimentos de Origen Animal', code: 'protein' },
+    { id: 6, name: 'Leche', code: 'milk' },
+    { id: 7, name: 'Aceites y Grasas', code: 'fat' },
+    { id: 8, name: 'Azúcares', code: 'sugar' },
+    { id: 9, name: 'Alimentos Libres de Energía', code: 'free' },
+    { id: 10, name: 'Bebidas Alcohólicas', code: 'alcohol' },
+  ];
+
+  for (const group of groups) {
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO nutrition.exchange_groups (id, system_id, name)
+      VALUES ($1, 1, $2)
+      ON CONFLICT (id) DO UPDATE SET
+        name = EXCLUDED.name,
+        system_id = 1;
+    `, group.id, group.name);
+  }
+
+  // Populate subgroups for SMAE
+  // I need IDs for subgroups too. I'll pick safe IDs (100+).
+  // Mappings based on `inferSubgroupCodeFromText`
+  // Parent Group IDs from above.
+  const subgroups = [
+    // Cereales (3)
+    { id: 301, parentId: 3, name: 'Cereales sin Grasa', code: 'cereal_sin_grasa' },
+    { id: 302, parentId: 3, name: 'Cereales con Grasa', code: 'cereal_con_grasa' },
+    // AOA (5)
+    { id: 501, parentId: 5, name: 'AOA Muy Bajo Aporte de Grasa', code: 'aoa_muy_bajo_grasa' },
+    { id: 502, parentId: 5, name: 'AOA Bajo Aporte de Grasa', code: 'aoa_bajo_grasa' },
+    { id: 503, parentId: 5, name: 'AOA Moderado Aporte de Grasa', code: 'aoa_moderado_grasa' },
+    { id: 504, parentId: 5, name: 'AOA Alto Aporte de Grasa', code: 'aoa_alto_grasa' },
+    // Leche (6)
+    { id: 601, parentId: 6, name: 'Leche Descremada', code: 'leche_descremada' },
+    { id: 602, parentId: 6, name: 'Leche Semidescremada', code: 'leche_semidescremada' },
+    { id: 603, parentId: 6, name: 'Leche Entera', code: 'leche_entera' },
+    { id: 604, parentId: 6, name: 'Leche con Azúcar', code: 'leche_con_azucar' },
+    // Grasas (7)
+    { id: 701, parentId: 7, name: 'Grasas sin Proteína', code: 'grasa_sin_proteina' },
+    { id: 702, parentId: 7, name: 'Grasas con Proteína', code: 'grasa_con_proteina' },
+    // Azúcares (8)
+    { id: 801, parentId: 8, name: 'Azúcares sin Grasa', code: 'azucar_sin_grasa' },
+    { id: 802, parentId: 8, name: 'Azúcares con Grasa', code: 'azucar_con_grasa' },
+  ];
+
+  for (const sub of subgroups) {
+    await prisma.$executeRawUnsafe(`
+      INSERT INTO nutrition.exchange_subgroups (id, exchange_group_id, name)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (id) DO UPDATE SET
+        exchange_group_id = EXCLUDED.exchange_group_id,
+        name = EXCLUDED.name;
+    `, sub.id, sub.parentId, sub.name);
+  }
+};
+
 const loadNutritionMappings = async (): Promise<NutritionMappings> => {
   const [systems, groups, subgroups] = await Promise.all([
     prisma.$queryRawUnsafe<NutritionSystemRow[]>(`
@@ -206,283 +289,11 @@ const loadNutritionMappings = async (): Promise<NutritionMappings> => {
   };
 };
 
-const seedMxDefaultOverrides = async (
-  groupIdByCodeBySystem: Map<string, Map<string, number>>,
-  subgroupIdByCodeBySystem: Map<string, Map<string, number>>,
-): Promise<void> => {
-  const rows = await prisma.$queryRawUnsafe<MxClassificationRow[]>(`
-    WITH latest_nutri AS (
-      SELECT DISTINCT ON (fnv.food_id)
-        fnv.food_id,
-        COALESCE(fnv.protein_g, 0)::float8 AS protein_g,
-        COALESCE(fnv.carbs_g, 0)::float8 AS carbs_g,
-        COALESCE(fnv.fat_g, 0)::float8 AS fat_g
-      FROM nutrition.food_nutrition_values fnv
-      LEFT JOIN nutrition.data_sources ds ON ds.id = fnv.data_source_id
-      WHERE fnv.deleted_at IS NULL
-      ORDER BY fnv.food_id,
-        CASE WHEN fnv.state = 'standard' THEN 0 ELSE 1 END,
-        CASE
-          WHEN COALESCE(ds.name, '') ILIKE '%smae%' THEN 0
-          WHEN COALESCE(ds.name, '') ILIKE '%mex%' THEN 1
-          ELSE 2
-        END,
-        fnv.id DESC
-    ),
-    serving_candidates AS (
-      SELECT
-        su.food_id,
-        su.gram_equivalent::float8 AS serving_qty,
-        CASE
-          WHEN su.gram_equivalent <> 100 THEN 1
-          WHEN translate(lower(COALESCE(su.unit_name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun')
-            ~ '(pieza|rebanad|taza|cucharad|envase|vaso|unidad)' THEN 1
-          ELSE 0
-        END AS is_high_conf,
-        CASE
-          WHEN translate(lower(COALESCE(su.unit_name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun') LIKE '%porcion equivalente%' THEN 1
-          WHEN translate(lower(COALESCE(su.unit_name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun') LIKE '%porcion estandar%' THEN 1
-          ELSE 0
-        END AS is_generic,
-        su.id
-      FROM nutrition.serving_units su
-      WHERE su.is_exchange_unit = true
-        AND su.gram_equivalent IS NOT NULL
-        AND su.gram_equivalent > 0
-    ),
-    best_serving AS (
-      SELECT DISTINCT ON (sc.food_id)
-        sc.food_id,
-        sc.serving_qty,
-        sc.is_high_conf
-      FROM serving_candidates sc
-      ORDER BY sc.food_id,
-        sc.is_high_conf DESC,
-        CASE WHEN sc.is_high_conf = 1 AND sc.is_generic = 0 THEN 0 ELSE 1 END,
-        CASE WHEN sc.serving_qty <> 100 THEN 0 ELSE 1 END,
-        sc.id ASC
-    ),
-    base AS (
-      SELECT
-        f.id AS food_id,
-        translate(lower(COALESCE(f.name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun') AS food_name_norm,
-        translate(lower(COALESCE(fc.name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun') AS category_name_norm,
-        translate(lower(COALESCE(ng.name, '')), 'áéíóúäëïöüñ', 'aeiouaeioun') AS exchange_group_name_norm,
-        COALESCE(ln.protein_g, f.protein_g, 0)::float8 AS protein_g,
-        COALESCE(ln.carbs_g, f.carbs_g, 0)::float8 AS carbs_g,
-        COALESCE(ln.fat_g, f.fat_g, 0)::float8 AS fat_g,
-        CASE
-          WHEN f.base_serving_size IS NOT NULL AND f.base_serving_size > 0
-            THEN f.base_serving_size::float8
-          ELSE NULL
-        END AS current_serving_qty,
-        NULLIF(BTRIM(f.base_unit), '') AS current_serving_unit,
-        bs.serving_qty AS serving_qty_candidate,
-        bs.is_high_conf AS serving_is_high_conf
-      FROM nutrition.foods f
-      LEFT JOIN nutrition.food_categories fc ON fc.id = f.category_id
-      LEFT JOIN nutrition.exchange_groups ng ON ng.id = f.exchange_group_id
-      LEFT JOIN latest_nutri ln ON ln.food_id = f.id
-      LEFT JOIN best_serving bs ON bs.food_id = f.id
-    ),
-    classified AS (
-      SELECT
-        b.food_id,
-        b.current_serving_qty,
-        b.current_serving_unit,
-        b.serving_qty_candidate,
-        b.serving_is_high_conf,
-        b.protein_g,
-        b.carbs_g,
-        b.fat_g,
-        CASE
-          WHEN (b.exchange_group_name_norm LIKE '%grasa%' OR b.category_name_norm LIKE '%grasa%') THEN 'fat'
-          WHEN (b.exchange_group_name_norm LIKE '%verdura%' OR b.category_name_norm LIKE '%verdura%') THEN 'vegetable'
-          WHEN (b.exchange_group_name_norm LIKE '%fruta%' OR b.category_name_norm LIKE '%fruta%') THEN 'fruit'
-          WHEN (b.exchange_group_name_norm LIKE '%leche%' OR b.category_name_norm LIKE '%lacteo%') THEN 'milk'
-          WHEN (b.exchange_group_name_norm LIKE '%azucar%' OR b.category_name_norm LIKE '%azucar%') THEN 'sugar'
-          WHEN (b.exchange_group_name_norm LIKE '%prote%' OR b.category_name_norm LIKE '%prote%') THEN
-            CASE
-              WHEN (
-                b.food_name_norm ~ '(frijol|lenteja|garbanzo|haba|edamame|soya|soja|alubia|judia|chicharo|chichar)'
-                OR b.category_name_norm LIKE '%legum%'
-                OR (b.protein_g >= 6 AND b.carbs_g >= 10 AND b.fat_g <= 6)
-              ) THEN 'legume'
-              ELSE 'protein'
-            END
-          ELSE 'carb'
-        END AS group_code,
-        CASE
-          WHEN (
-            (b.exchange_group_name_norm LIKE '%prote%' OR b.category_name_norm LIKE '%prote%')
-            AND NOT (
-              b.food_name_norm ~ '(frijol|lenteja|garbanzo|haba|edamame|soya|soja|alubia|judia|chicharo|chichar)'
-              OR b.category_name_norm LIKE '%legum%'
-              OR (b.protein_g >= 6 AND b.carbs_g >= 10 AND b.fat_g <= 6)
-            )
-          ) THEN
-            CASE
-              WHEN ((b.fat_g / GREATEST(b.protein_g, 0.1)) * 7) < 1.5 THEN 'aoa_muy_bajo_grasa'
-              WHEN ((b.fat_g / GREATEST(b.protein_g, 0.1)) * 7) < 4 THEN 'aoa_bajo_grasa'
-              WHEN ((b.fat_g / GREATEST(b.protein_g, 0.1)) * 7) < 7 THEN 'aoa_moderado_grasa'
-              ELSE 'aoa_alto_grasa'
-            END
-          WHEN (b.exchange_group_name_norm LIKE '%cereal%' OR b.category_name_norm LIKE '%cereal%' OR b.category_name_norm LIKE '%tuberc%')
-            THEN CASE WHEN b.fat_g <= 1 THEN 'cereal_sin_grasa' ELSE 'cereal_con_grasa' END
-          WHEN (b.exchange_group_name_norm LIKE '%leche%' OR b.category_name_norm LIKE '%lacteo%')
-            THEN CASE
-              WHEN b.carbs_g > 20 THEN 'leche_con_azucar'
-              WHEN b.fat_g <= 2 THEN 'leche_descremada'
-              WHEN b.fat_g <= 5 THEN 'leche_semidescremada'
-              ELSE 'leche_entera'
-            END
-          WHEN (b.exchange_group_name_norm LIKE '%azucar%' OR b.category_name_norm LIKE '%azucar%')
-            THEN CASE WHEN b.fat_g <= 1 THEN 'azucar_sin_grasa' ELSE 'azucar_con_grasa' END
-          WHEN (b.exchange_group_name_norm LIKE '%grasa%' OR b.category_name_norm LIKE '%grasa%')
-            THEN CASE WHEN b.protein_g >= 1.5 THEN 'grasa_con_proteina' ELSE 'grasa_sin_proteina' END
-          ELSE NULL
-        END AS subgroup_code
-      FROM base b
-    ),
-    targets AS (
-      SELECT
-        c.*,
-        CASE
-          WHEN c.subgroup_code = 'aoa_muy_bajo_grasa' THEN 7
-          WHEN c.subgroup_code = 'aoa_bajo_grasa' THEN 7
-          WHEN c.subgroup_code = 'aoa_moderado_grasa' THEN 7
-          WHEN c.subgroup_code = 'aoa_alto_grasa' THEN 7
-          WHEN c.subgroup_code = 'cereal_sin_grasa' THEN 15
-          WHEN c.subgroup_code = 'cereal_con_grasa' THEN 15
-          WHEN c.subgroup_code = 'leche_con_azucar' THEN 30
-          WHEN c.subgroup_code IN ('leche_descremada', 'leche_semidescremada', 'leche_entera') THEN 12
-          WHEN c.subgroup_code IN ('azucar_sin_grasa', 'azucar_con_grasa') THEN 10
-          WHEN c.group_code = 'vegetable' THEN 4
-          WHEN c.group_code = 'fruit' THEN 15
-          WHEN c.group_code = 'carb' THEN 15
-          WHEN c.group_code = 'milk' THEN 12
-          WHEN c.group_code = 'sugar' THEN 10
-          WHEN c.group_code = 'legume' THEN 20
-          ELSE NULL
-        END::float8 AS target_cho,
-        CASE
-          WHEN c.group_code = 'legume' THEN 8
-          WHEN c.subgroup_code LIKE 'aoa_%' THEN 7
-          ELSE NULL
-        END::float8 AS target_pro,
-        CASE
-          WHEN c.subgroup_code IN ('grasa_sin_proteina', 'grasa_con_proteina') THEN 5
-          WHEN c.group_code = 'fat' THEN 5
-          ELSE NULL
-        END::float8 AS target_fat
-      FROM classified c
-    ),
-    estimated AS (
-      SELECT
-        t.*,
-        GREATEST(
-          COALESCE(CASE WHEN t.target_cho IS NOT NULL AND t.target_cho > 0 THEN 100.0 * t.target_cho / GREATEST(t.carbs_g, 0.1) END, 0),
-          COALESCE(CASE WHEN t.target_pro IS NOT NULL AND t.target_pro > 0 THEN 100.0 * t.target_pro / GREATEST(t.protein_g, 0.1) END, 0),
-          COALESCE(CASE WHEN t.target_fat IS NOT NULL AND t.target_fat > 0 THEN 100.0 * t.target_fat / GREATEST(t.fat_g, 0.1) END, 0)
-        ) AS target_serving_raw
-      FROM targets t
-    ),
-    resolved AS (
-      SELECT
-        e.food_id,
-        e.group_code,
-        e.subgroup_code,
-        ROUND(
-          CASE
-            WHEN e.current_serving_qty IS NOT NULL
-              AND e.current_serving_qty > 0
-              AND ABS(e.current_serving_qty - 100) > 0.0001
-              THEN e.current_serving_qty
-            WHEN e.serving_is_high_conf = 1
-              AND e.serving_qty_candidate IS NOT NULL
-              AND e.serving_qty_candidate > 0
-              THEN e.serving_qty_candidate
-            WHEN e.target_serving_raw IS NOT NULL
-              AND e.target_serving_raw > 0
-              THEN CASE
-                WHEN e.group_code = 'vegetable' THEN LEAST(250, GREATEST(40, e.target_serving_raw))
-                WHEN e.group_code = 'fruit' THEN LEAST(250, GREATEST(60, e.target_serving_raw))
-                WHEN e.group_code = 'carb' THEN LEAST(200, GREATEST(20, e.target_serving_raw))
-                WHEN e.group_code = 'legume' THEN LEAST(180, GREATEST(30, e.target_serving_raw))
-                WHEN e.group_code = 'protein' THEN LEAST(120, GREATEST(20, e.target_serving_raw))
-                WHEN e.group_code = 'milk' THEN LEAST(350, GREATEST(100, e.target_serving_raw))
-                WHEN e.group_code = 'fat' THEN LEAST(30, GREATEST(5, e.target_serving_raw))
-                WHEN e.group_code = 'sugar' THEN LEAST(80, GREATEST(5, e.target_serving_raw))
-                ELSE LEAST(300, GREATEST(10, e.target_serving_raw))
-              END
-            ELSE CASE
-              WHEN e.group_code = 'vegetable' THEN 100
-              WHEN e.group_code = 'fruit' THEN 120
-              WHEN e.group_code = 'carb' THEN 150
-              WHEN e.group_code = 'legume' THEN 100
-              WHEN e.group_code = 'protein' THEN 100
-              WHEN e.group_code = 'milk' THEN 240
-              WHEN e.group_code = 'fat' THEN 15
-              WHEN e.group_code = 'sugar' THEN 10
-              ELSE 100
-            END
-          END::numeric,
-          2
-        )::float8 AS serving_qty,
-        CASE
-          WHEN e.current_serving_qty IS NOT NULL
-            AND e.current_serving_qty > 0
-            AND ABS(e.current_serving_qty - 100) > 0.0001
-            THEN COALESCE(e.current_serving_unit, CASE WHEN e.group_code = 'milk' THEN 'ml' ELSE 'g' END)
-          WHEN e.group_code = 'milk' THEN 'ml'
-          ELSE 'g'
-        END AS serving_unit
-      FROM estimated e
-    )
-    SELECT food_id, group_code, subgroup_code, serving_qty, serving_unit
-    FROM resolved;
-  `);
 
-  const groupMap = groupIdByCodeBySystem.get('mx_smae');
-  const subgroupMap = subgroupIdByCodeBySystem.get('mx_smae');
-  if (!groupMap || !subgroupMap) {
-    throw new Error('Missing nutrition mappings for mx_smae');
-  }
-
-  for (const row of rows) {
-    const groupId = groupMap.get(row.group_code);
-    if (!groupId) continue;
-
-    const subgroupId = row.subgroup_code ? subgroupMap.get(row.subgroup_code) ?? null : null;
-
-    await prisma.foodExchangeOverride.upsert({
-      where: {
-        foodId_systemId: {
-          foodId: row.food_id,
-          systemId: 'mx_smae',
-        },
-      },
-      update: {
-        groupId,
-        subgroupId,
-        equivalentPortionQty: row.serving_qty,
-        portionUnit: row.serving_unit,
-        isActive: true,
-      },
-      create: {
-        foodId: row.food_id,
-        systemId: 'mx_smae',
-        groupId,
-        subgroupId,
-        equivalentPortionQty: row.serving_qty,
-        portionUnit: row.serving_unit,
-        isActive: true,
-      },
-    });
-  }
-};
 
 const seed = async (): Promise<void> => {
+  await seedNutritionTables();
+
   const {
     groupIdByCodeBySystem,
     subgroupIdByCodeBySystem,
@@ -657,7 +468,7 @@ const seed = async (): Promise<void> => {
     skipDuplicates: true,
   });
 
-  await seedMxDefaultOverrides(groupIdByCodeBySystem, subgroupIdByCodeBySystem);
+
 
   const dataSources = await prisma.$queryRawUnsafe<Array<{ id: number; name: string | null }>>(`
     SELECT id, name
