@@ -63,6 +63,7 @@ Esto crea y usa el schema `equivalentes_app` sin modificar estructura de `nutrit
 - `PG_CONNECTION_TIMEOUT_MS=10000`
 - `PG_MAX_USES=750`
 - `WEB_ORIGIN="http://localhost:5173"`
+- `WEB_ORIGINS="http://localhost:5173"` (CSV opcional; si se define, tiene prioridad sobre `WEB_ORIGIN`)
 - `ADMIN_USER="admin"`
 - `ADMIN_PASS="changeme"`
 - `DB_APP_SCHEMA="equivalentes_app"`
@@ -184,7 +185,12 @@ Se validó en este entorno:
 
 - API: Render / Fly / Railway
 - Web: Vercel / Cloudflare Pages
-- Configurar CORS (`WEB_ORIGIN`) al dominio frontend.
+- Configurar CORS con `WEB_ORIGINS` (CSV) y usar `WEB_ORIGIN` como fallback de compatibilidad.
+- Producción recomendada (dominio canónico):
+  - `WEB_ORIGINS="https://exchange-calculator.fitpilot.fit"`
+- Transición temporal (si se necesita):
+  - `WEB_ORIGINS="https://exchange-calculator.fitpilot.fit,https://exchange-calculator-web.onrender.com"`
+- Configurar redirección 301 del dominio técnico `exchange-calculator-web.onrender.com` al dominio canónico.
 - Recomendado por visibilidad:
   - `app.tudominio.com` con `VITE_SHOW_ADMIN_LINK=false`.
   - `admin.tudominio.com` con `VITE_SHOW_ADMIN_LINK=false` (el botón aparece por host `admin.*`).

@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 
 import { buildInfo } from './config/buildInfo.js';
+import { isOriginAllowed, parseAllowedOrigins } from './config/cors.js';
 import { env } from './config/env.js';
 import { basicAuthMiddleware } from './middleware/basicAuth.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -13,9 +14,24 @@ import { plansRouter } from './routes/plans.js';
 
 export const app = express();
 
+const allowedOrigins = parseAllowedOrigins({
+  webOrigin: env.WEB_ORIGIN,
+  ...(env.WEB_ORIGINS ? { webOriginsCsv: env.WEB_ORIGINS } : {}),
+});
+
 app.use(
   cors({
-    origin: env.WEB_ORIGIN,
+    origin: (origin, callback) => {
+      if (isOriginAllowed(origin ?? undefined, allowedOrigins)) {
+        callback(null, true);
+        return;
+      }
+
+      console.warn('[cors-origin-blocked]', {
+        origin,
+      });
+      callback(null, false);
+    },
     credentials: false,
   }),
 );

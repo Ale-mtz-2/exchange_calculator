@@ -385,7 +385,6 @@ const fetchFoodsForOptions = async (options: CatalogV2FetchOptions): Promise<Cat
     const canonical = canonicalValues.get(row.id);
     if (!canonical) continue;
 
-    const override = null; // overrideByFood.get(row.id);
     const proteinG = canonical.proteinG;
     const carbsG = canonical.carbsG;
     const fatG = canonical.fatG;

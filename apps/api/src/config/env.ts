@@ -14,6 +14,7 @@ const envSchema = z.object({
   PG_CONNECTION_TIMEOUT_MS: z.coerce.number().int().positive().max(120000).default(10000),
   PG_MAX_USES: z.coerce.number().int().positive().max(100000).default(750),
   WEB_ORIGIN: z.string().url().default('http://localhost:5173'),
+  WEB_ORIGINS: z.string().optional(),
   ADMIN_USER: z.string().min(1).default('admin'),
   ADMIN_PASS: z.string().min(1).default('changeme'),
   DB_APP_SCHEMA: z.string().min(1).default('equivalentes_app'),

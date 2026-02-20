@@ -25,6 +25,20 @@ Confirmar que Render este apuntando a `main`.
 
 Si no coinciden, el build falla.
 
+### 2.1) Variables CORS y dominio canónico
+
+Configurar en Render:
+
+- `WEB_ORIGINS="https://exchange-calculator.fitpilot.fit"`
+
+Notas:
+
+- `WEB_ORIGINS` es una lista CSV de orígenes permitidos para CORS.
+- Si `WEB_ORIGINS` no existe, API usa `WEB_ORIGIN` como fallback de compatibilidad.
+- En transición puedes permitir dos dominios:
+  - `WEB_ORIGINS="https://exchange-calculator.fitpilot.fit,https://exchange-calculator-web.onrender.com"`
+- Política recomendada: mantener `exchange-calculator.fitpilot.fit` como canónico y redirigir `exchange-calculator-web.onrender.com` con 301.
+
 ## 3) Post-deploy DB checklist (produccion)
 
 Ejecutar en shell del servicio (o job controlado):
@@ -47,6 +61,10 @@ No usar `db:setup` en produccion ya existente.
    - `subgroupsBySystem`
    - `subgroupPoliciesBySystem`
 3. `POST /api/plans/generate` -> `201`.
+4. Preflight CORS permitido desde dominio canónico:
+   - `OPTIONS /api/options` con header `Origin: https://exchange-calculator.fitpilot.fit` debe devolver `204` y `access-control-allow-origin` igual al origin enviado.
+5. Preflight CORS bloqueado para origen no permitido:
+   - `OPTIONS /api/options` con un origin fuera de `WEB_ORIGINS` no debe devolver `access-control-allow-origin` válido para ese origen.
 
 ## 5) Monitoreo de regresiones (10-15 min)
 
