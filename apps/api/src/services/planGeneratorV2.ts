@@ -527,6 +527,7 @@ export const generateEquivalentPlanV2 = async (
         ...(catalogBucket?.bucketType === 'subgroup' && typeof catalogBucket.parentGroupId === 'number'
           ? { parentGroupId: catalogBucket.parentGroupId }
           : {}),
+        kcalPerExchange: bucket.exchangesPerDay > 0 ? bucket.kcal / bucket.exchangesPerDay : 0,
         exchangesPerDay: bucket.exchangesPerDay,
       };
     }),

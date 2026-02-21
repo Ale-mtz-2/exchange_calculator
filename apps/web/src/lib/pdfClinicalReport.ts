@@ -76,6 +76,11 @@ const prepTimeLabelMap: Record<PatientProfile['prepTimeLevel'], string> = {
   long: 'Largo',
 };
 
+const planningFocusLabelMap: Record<PatientProfile['planningFocus'], string> = {
+  clinical: 'Clinico',
+  hybrid_sport: 'Clinico + Deportivo (simetrico)',
+};
+
 const macroPercent = (valueG: number, totalKcal: number, factor: number): number => {
   if (totalKcal <= 0) return 0;
   return round(((valueG * factor) / totalKcal) * 100, 1);
@@ -330,6 +335,7 @@ export const downloadClinicalPdf = async ({
   rightY = drawLabelValue(doc, rightX, rightY + 2, 'Patron', dietPatternLabelMap[profile.dietPattern]);
   rightY = drawLabelValue(doc, rightX, rightY + 2, 'Ventana entrenamiento', profile.trainingWindow);
   rightY = drawLabelValue(doc, rightX, rightY + 2, 'Lacteos en colacion', profile.usesDairyInSnacks ? 'Si' : 'No');
+  rightY = drawLabelValue(doc, rightX, rightY + 2, 'Enfoque del plan', planningFocusLabelMap[profile.planningFocus]);
   rightY = drawLabelValue(
     doc,
     rightX,

@@ -65,6 +65,7 @@ describe('leads routes', () => {
       hasDyslipidemia: false,
       trainingWindow: 'none',
       usesDairyInSnacks: true,
+      planningFocus: 'hybrid_sport',
       termsAccepted: false,
       createdAt: new Date('2026-02-18T10:00:00.000Z'),
       updatedAt: new Date('2026-02-18T10:00:00.000Z'),
@@ -94,12 +95,14 @@ describe('leads routes', () => {
           fullName: 'Paciente Uno',
           hasDiabetes: false,
           trainingWindow: 'none',
+          planningFocus: 'hybrid_sport',
         }),
       });
       const createBody = await createResponse.json();
 
       expect(createResponse.status).toBe(200);
       expect(createBody.fullName).toBe('Paciente Uno');
+      expect(createBody.planningFocus).toBe('hybrid_sport');
       expect(mockPrisma.lead.create).toHaveBeenCalledTimes(1);
 
       const updateResponse = await fetch(`http://127.0.0.1:${port}/api/leads/by-cid/guest_abc`, {

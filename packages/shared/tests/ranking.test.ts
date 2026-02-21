@@ -14,6 +14,7 @@ const baseProfile: PatientProfile = {
   hasDyslipidemia: false,
   trainingWindow: 'none',
   usesDairyInSnacks: true,
+  planningFocus: 'clinical',
   goal: 'maintain',
   goalDeltaKgPerWeek: 0,
   sex: 'female',

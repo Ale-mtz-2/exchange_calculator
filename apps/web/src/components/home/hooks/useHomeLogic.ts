@@ -157,6 +157,7 @@ export function useHomeLogic() {
                     hasDyslipidemia: lead.hasDyslipidemia,
                     trainingWindow: lead.trainingWindow,
                     usesDairyInSnacks: lead.usesDairyInSnacks,
+                    planningFocus: lead.planningFocus,
                 }));
             })
             .catch(() => {
@@ -318,6 +319,7 @@ export function useHomeLogic() {
                 bucketType: bucket.bucketType,
                 bucketId: bucket.bucketId,
                 ...(typeof bucket.parentGroupId === 'number' ? { parentGroupId: bucket.parentGroupId } : {}),
+                kcalPerExchange: bucket.kcalPerExchange,
                 exchangesPerDay: bucket.exchangesPerDay,
             })),
             plan.profile,
@@ -613,6 +615,7 @@ export function useHomeLogic() {
                         hasDyslipidemia: normalizedProfile.hasDyslipidemia,
                         trainingWindow: normalizedProfile.trainingWindow,
                         usesDairyInSnacks: normalizedProfile.usesDairyInSnacks,
+                        planningFocus: normalizedProfile.planningFocus,
                         termsAccepted: leadByCid?.termsAccepted ?? false,
                     });
                     setLeadByCid(resolvedLead);

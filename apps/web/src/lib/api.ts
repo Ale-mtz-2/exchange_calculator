@@ -217,6 +217,7 @@ export type LeadInput = {
   hasDyslipidemia?: boolean;
   trainingWindow?: PatientProfile['trainingWindow'];
   usesDairyInSnacks?: boolean;
+  planningFocus?: PatientProfile['planningFocus'];
   termsAccepted: boolean;
 };
 
@@ -236,6 +237,7 @@ export type LeadByCidPayload = {
   hasDyslipidemia: boolean;
   trainingWindow: PatientProfile['trainingWindow'];
   usesDairyInSnacks: boolean;
+  planningFocus: PatientProfile['planningFocus'];
   termsAccepted: boolean;
   createdAt: string;
   updatedAt: string;
@@ -252,6 +254,7 @@ export type UpsertLeadByCidInput = {
   hasDyslipidemia?: boolean;
   trainingWindow?: PatientProfile['trainingWindow'];
   usesDairyInSnacks?: boolean;
+  planningFocus?: PatientProfile['planningFocus'];
   termsAccepted?: boolean;
 };
 

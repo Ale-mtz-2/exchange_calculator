@@ -53,6 +53,8 @@ export type EventMetaExport = {
   itemsCount: number;
 };
 
+export type PlanningFocus = 'clinical' | 'hybrid_sport';
+
 export type PatientProfile = {
   fullName: string;
   birthDate: string | null;
@@ -62,6 +64,7 @@ export type PatientProfile = {
   hasDyslipidemia: boolean;
   trainingWindow: TrainingWindow;
   usesDairyInSnacks: boolean;
+  planningFocus: PlanningFocus;
   goal: Goal;
   goalDeltaKgPerWeek: number;
   sex: Sex;
@@ -193,6 +196,7 @@ export type MealDistributionBucketInput = {
   bucketType?: BucketType;
   bucketId?: number;
   parentGroupId?: number;
+  kcalPerExchange?: number;
   exchangesPerDay: number;
 };
 

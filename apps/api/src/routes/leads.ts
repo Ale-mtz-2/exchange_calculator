@@ -10,6 +10,7 @@ import { safeSchema } from '../utils/sql.js';
 export const leadsRouter = Router();
 
 const trainingWindowSchema = z.enum(['none', 'morning', 'afternoon', 'evening']);
+const planningFocusSchema = z.enum(['clinical', 'hybrid_sport']);
 
 const normalizeNullableText = (value: string | undefined): string | null => {
   const normalized = value?.trim();
@@ -38,6 +39,7 @@ const postLeadSchema = z
     hasDyslipidemia: z.boolean().optional(),
     trainingWindow: trainingWindowSchema.optional(),
     usesDairyInSnacks: z.boolean().optional(),
+    planningFocus: planningFocusSchema.optional(),
     termsAccepted: z.literal(true, {
       errorMap: () => ({ message: 'Debes aceptar terminos y condiciones' }),
     }),
@@ -63,6 +65,7 @@ const upsertLeadByCidSchema = z
     hasDyslipidemia: z.boolean().optional(),
     trainingWindow: trainingWindowSchema.optional(),
     usesDairyInSnacks: z.boolean().optional(),
+    planningFocus: planningFocusSchema.optional(),
     termsAccepted: z.boolean().optional(),
   })
   .refine(
@@ -77,6 +80,7 @@ const upsertLeadByCidSchema = z
       data.hasDyslipidemia !== undefined ||
       data.trainingWindow !== undefined ||
       data.usesDairyInSnacks !== undefined ||
+      data.planningFocus !== undefined ||
       data.termsAccepted !== undefined,
     {
       message: 'Debes enviar al menos un campo para actualizar',
@@ -84,6 +88,7 @@ const upsertLeadByCidSchema = z
   );
 
 type TrainingWindow = z.infer<typeof trainingWindowSchema>;
+type PlanningFocus = z.infer<typeof planningFocusSchema>;
 
 type LeadRecord = {
   id: string;
@@ -98,6 +103,7 @@ type LeadRecord = {
   hasDyslipidemia: boolean;
   trainingWindow: TrainingWindow;
   usesDairyInSnacks: boolean;
+  planningFocus: PlanningFocus;
   termsAccepted: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -115,6 +121,7 @@ type LeadWriteInput = {
   hasDyslipidemia?: boolean;
   trainingWindow?: TrainingWindow;
   usesDairyInSnacks?: boolean;
+  planningFocus?: PlanningFocus;
   termsAccepted?: boolean;
 };
 
@@ -137,6 +144,7 @@ type LeadDbRow = {
   has_dyslipidemia: boolean;
   training_window: TrainingWindow;
   uses_dairy_in_snacks: boolean;
+  planning_focus: PlanningFocus;
   terms_accepted: boolean;
   created_at: Date;
   updated_at: Date;
@@ -173,6 +181,7 @@ const inMemoryLeadStore = (() => {
         hasDyslipidemia: data.hasDyslipidemia ?? false,
         trainingWindow: data.trainingWindow ?? 'none',
         usesDairyInSnacks: data.usesDairyInSnacks ?? true,
+        planningFocus: data.planningFocus ?? 'clinical',
         termsAccepted: data.termsAccepted ?? false,
         createdAt: now,
         updatedAt: now,
@@ -203,6 +212,7 @@ const inMemoryLeadStore = (() => {
         hasDyslipidemia: data.hasDyslipidemia ?? false,
         trainingWindow: data.trainingWindow ?? 'none',
         usesDairyInSnacks: data.usesDairyInSnacks ?? true,
+        planningFocus: data.planningFocus ?? 'clinical',
         termsAccepted: data.termsAccepted ?? false,
         updatedAt: new Date(),
       };
@@ -249,6 +259,7 @@ const toLeadRecord = (row: LeadDbRow): LeadRecord => ({
   hasDyslipidemia: row.has_dyslipidemia,
   trainingWindow: row.training_window,
   usesDairyInSnacks: row.uses_dairy_in_snacks,
+  planningFocus: row.planning_focus,
   termsAccepted: row.terms_accepted,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
@@ -271,6 +282,7 @@ const createPgLeadStore = (): LeadStore => ({
           has_dyslipidemia,
           training_window,
           uses_dairy_in_snacks,
+          planning_focus,
           terms_accepted,
           created_at,
           updated_at
@@ -300,9 +312,10 @@ const createPgLeadStore = (): LeadStore => ({
           has_dyslipidemia,
           training_window,
           uses_dairy_in_snacks,
+          planning_focus,
           terms_accepted
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
         RETURNING
           id,
           cid,
@@ -316,6 +329,7 @@ const createPgLeadStore = (): LeadStore => ({
           has_dyslipidemia,
           training_window,
           uses_dairy_in_snacks,
+          planning_focus,
           terms_accepted,
           created_at,
           updated_at;
@@ -332,6 +346,7 @@ const createPgLeadStore = (): LeadStore => ({
         data.hasDyslipidemia ?? false,
         data.trainingWindow ?? 'none',
         data.usesDairyInSnacks ?? true,
+        data.planningFocus ?? 'clinical',
         data.termsAccepted ?? false,
       ],
     );
@@ -359,7 +374,8 @@ const createPgLeadStore = (): LeadStore => ({
           has_dyslipidemia = $10,
           training_window = $11,
           uses_dairy_in_snacks = $12,
-          terms_accepted = $13
+          planning_focus = $13,
+          terms_accepted = $14
         WHERE id = $1
         RETURNING
           id,
@@ -374,6 +390,7 @@ const createPgLeadStore = (): LeadStore => ({
           has_dyslipidemia,
           training_window,
           uses_dairy_in_snacks,
+          planning_focus,
           terms_accepted,
           created_at,
           updated_at;
@@ -391,6 +408,7 @@ const createPgLeadStore = (): LeadStore => ({
         data.hasDyslipidemia ?? false,
         data.trainingWindow ?? 'none',
         data.usesDairyInSnacks ?? true,
+        data.planningFocus ?? 'clinical',
         data.termsAccepted ?? false,
       ],
     );
@@ -499,6 +517,7 @@ leadsRouter.get('/by-cid/:cid', async (req, res) => {
       hasDyslipidemia: lead.hasDyslipidemia,
       trainingWindow: lead.trainingWindow,
       usesDairyInSnacks: lead.usesDairyInSnacks,
+      planningFocus: lead.planningFocus,
       termsAccepted: lead.termsAccepted,
       createdAt: lead.createdAt,
       updatedAt: lead.updatedAt,
@@ -537,6 +556,7 @@ leadsRouter.put('/by-cid/:cid', async (req, res) => {
       ...(data.hasDyslipidemia !== undefined ? { hasDyslipidemia: data.hasDyslipidemia } : {}),
       ...(data.trainingWindow !== undefined ? { trainingWindow: data.trainingWindow } : {}),
       ...(data.usesDairyInSnacks !== undefined ? { usesDairyInSnacks: data.usesDairyInSnacks } : {}),
+      ...(data.planningFocus !== undefined ? { planningFocus: data.planningFocus } : {}),
       ...(data.termsAccepted !== undefined ? { termsAccepted: data.termsAccepted } : {}),
     };
 
@@ -564,6 +584,7 @@ leadsRouter.put('/by-cid/:cid', async (req, res) => {
       hasDyslipidemia: lead.hasDyslipidemia,
       trainingWindow: lead.trainingWindow,
       usesDairyInSnacks: lead.usesDairyInSnacks,
+      planningFocus: lead.planningFocus,
       termsAccepted: lead.termsAccepted,
       createdAt: lead.createdAt,
       updatedAt: lead.updatedAt,
@@ -597,6 +618,7 @@ leadsRouter.post('/', async (req, res) => {
           hasDyslipidemia: data.hasDyslipidemia ?? false,
           trainingWindow: data.trainingWindow ?? 'none',
           usesDairyInSnacks: data.usesDairyInSnacks ?? true,
+          planningFocus: data.planningFocus ?? 'clinical',
           termsAccepted: data.termsAccepted,
         },
       }),

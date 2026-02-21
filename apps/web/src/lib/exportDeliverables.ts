@@ -48,6 +48,11 @@ const prepTimeLabelMap: Record<PatientProfile['prepTimeLevel'], string> = {
   long: 'Largo',
 };
 
+const planningFocusLabelMap: Record<PatientProfile['planningFocus'], string> = {
+  clinical: 'Clinico',
+  hybrid_sport: 'Clinico + Deportivo (simetrico)',
+};
+
 const pad = (value: number): string => String(value).padStart(2, '0');
 
 const sanitizeValue = (value: string): string =>
@@ -119,6 +124,7 @@ export const buildSummaryCsvRows = ({
     dislipidemia: profile.hasDyslipidemia ? 'si' : 'no',
     ventana_entrenamiento: profile.trainingWindow,
     lacteos_en_colacion: profile.usesDairyInSnacks ? 'si' : 'no',
+    enfoque_plan: planningFocusLabelMap[profile.planningFocus],
     objetivo: goalLabelMap[profile.goal],
     meta_kg_semana: profile.goalDeltaKgPerWeek,
     sexo: sexLabelMap[profile.sex],

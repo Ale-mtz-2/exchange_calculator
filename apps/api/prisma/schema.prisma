@@ -36,6 +36,7 @@ model Lead {
   hasDyslipidemia  Boolean   @default(false) @map("has_dyslipidemia")
   trainingWindow   String    @default("none") @map("training_window")
   usesDairyInSnacks Boolean  @default(true) @map("uses_dairy_in_snacks")
+  planningFocus    String    @default("clinical") @map("planning_focus")
   termsAccepted    Boolean   @default(false) @map("terms_accepted")
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime  @default(now()) @map("updated_at") @db.Timestamptz(6)

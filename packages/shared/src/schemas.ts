@@ -15,6 +15,7 @@ export const kcalFormulaIdSchema = z.enum([
 ]);
 
 export const goalSchema = z.enum(['maintain', 'lose_fat', 'gain_muscle']);
+export const planningFocusSchema = z.enum(['clinical', 'hybrid_sport']);
 
 const WEEKLY_HEALTHY_RANGES = {
   lose_fat: { min: 0.25, max: 0.75 },
@@ -65,6 +66,7 @@ const rawPatientProfileSchema = z.object({
   hasDyslipidemia: z.boolean().optional().default(false),
   trainingWindow: z.enum(['none', 'morning', 'afternoon', 'evening']).optional().default('none'),
   usesDairyInSnacks: z.boolean().optional().default(true),
+  planningFocus: planningFocusSchema.optional().default('clinical'),
   goal: goalSchema,
   goalDeltaKgPerWeek: z.number().min(0).max(1).optional(),
   sex: z.enum(['male', 'female']),
@@ -95,6 +97,7 @@ export const patientProfileSchema = rawPatientProfileSchema.transform((profile) 
   hasDyslipidemia: profile.hasDyslipidemia,
   trainingWindow: profile.trainingWindow,
   usesDairyInSnacks: profile.usesDairyInSnacks,
+  planningFocus: profile.planningFocus,
   goal: profile.goal,
   goalDeltaKgPerWeek: normalizeWeeklyGoalDelta(
     profile.goal,

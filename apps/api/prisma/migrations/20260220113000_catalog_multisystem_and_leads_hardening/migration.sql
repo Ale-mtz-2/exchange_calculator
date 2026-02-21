@@ -1,4 +1,4 @@
-﻿CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 CREATE TABLE IF NOT EXISTS equivalentes_app.leads (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

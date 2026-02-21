@@ -11,6 +11,7 @@ const basePayload = {
   hasDyslipidemia: false,
   trainingWindow: 'none' as const,
   usesDairyInSnacks: true,
+  planningFocus: 'clinical' as const,
   goal: 'lose_fat' as const,
   sex: 'female' as const,
   age: 32,
@@ -89,5 +90,6 @@ describe('patientProfileSchema', () => {
     expect(parsed.waistCm).toBeNull();
     expect(parsed.trainingWindow).toBe('none');
     expect(parsed.usesDairyInSnacks).toBe(true);
+    expect(parsed.planningFocus).toBe('clinical');
   });
 });

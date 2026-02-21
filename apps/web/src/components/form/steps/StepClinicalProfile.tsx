@@ -59,6 +59,20 @@ export const StepClinicalProfile = ({
           <option value="evening">Noche</option>
         </select>
       </label>
+
+      <label className={fieldLabelClass}>
+        Enfoque del plan
+        <select
+          className={selectClass}
+          value={profile.planningFocus}
+          onChange={(event) =>
+            onProfileChange('planningFocus', event.target.value as PatientProfile['planningFocus'])
+          }
+        >
+          <option value="clinical">Clinico</option>
+          <option value="hybrid_sport">Clinico + Deportivo (simetrico)</option>
+        </select>
+      </label>
     </div>
 
     <div className="grid gap-2 rounded-xl border border-sky/15 bg-sky-50/30 p-3">

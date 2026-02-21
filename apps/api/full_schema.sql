@@ -76,12 +76,14 @@ CREATE TABLE "equivalentes_app"."leads" (
     "has_dyslipidemia" BOOLEAN NOT NULL DEFAULT false,
     "training_window" TEXT NOT NULL DEFAULT 'none',
     "uses_dairy_in_snacks" BOOLEAN NOT NULL DEFAULT true,
+    "planning_focus" TEXT NOT NULL DEFAULT 'clinical',
     "terms_accepted" BOOLEAN NOT NULL DEFAULT false,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "leads_pkey" PRIMARY KEY ("id"),
-    CONSTRAINT "ck_leads_training_window" CHECK ("training_window" IN ('none', 'morning', 'afternoon', 'evening'))
+    CONSTRAINT "ck_leads_training_window" CHECK ("training_window" IN ('none', 'morning', 'afternoon', 'evening')),
+    CONSTRAINT "ck_leads_planning_focus" CHECK ("planning_focus" IN ('clinical', 'hybrid_sport'))
 );
 
 -- CreateTable

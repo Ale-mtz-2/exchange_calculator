@@ -58,6 +58,11 @@ const prepTimeLabelMap: Record<PatientProfile['prepTimeLevel'], string> = {
   long: 'Largo',
 };
 
+const planningFocusLabelMap: Record<PatientProfile['planningFocus'], string> = {
+  clinical: 'Clinico',
+  hybrid_sport: 'Clinico + Deportivo (simetrico)',
+};
+
 const SummaryCard = ({
   title,
   lines,
@@ -176,6 +181,7 @@ export const StepReview = ({
             `Nacimiento: ${profile.birthDate || 'Sin dato'}`,
             `Edad calculada: ${derivedAge ?? 'Sin dato'} anios`,
             `Ventana entrenamiento: ${profile.trainingWindow}`,
+            `Enfoque del plan: ${planningFocusLabelMap[profile.planningFocus]}`,
             `Diabetes: ${profile.hasDiabetes ? 'Si' : 'No'}`,
             `Hipertension: ${profile.hasHypertension ? 'Si' : 'No'}`,
             `Dislipidemia: ${profile.hasDyslipidemia ? 'Si' : 'No'}`,
