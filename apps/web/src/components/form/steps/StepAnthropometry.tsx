@@ -36,16 +36,22 @@ export const StepAnthropometry = ({
     </label>
 
     <label className={fieldLabelClass}>
-      Edad
+      Cintura (cm)
       <input
         className={inputClass}
         type="number"
-        min={15}
-        max={90}
-        value={profile.age}
-        onChange={(event) => onProfileChange('age', Number(event.target.value))}
+        min={40}
+        max={250}
+        step="0.1"
+        value={profile.waistCm ?? ''}
+        onChange={(event) =>
+          onProfileChange('waistCm', event.target.value ? Number(event.target.value) : null)
+        }
+        placeholder="Opcional"
       />
-      {showErrors && errors.age ? <span className={fieldErrorClass}>{errors.age}</span> : null}
+      {showErrors && errors.waistCm ? (
+        <span className={fieldErrorClass}>{errors.waistCm}</span>
+      ) : null}
     </label>
 
     <label className={fieldLabelClass}>
@@ -116,4 +122,3 @@ export const StepAnthropometry = ({
     </label>
   </div>
 );
-

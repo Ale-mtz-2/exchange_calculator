@@ -1,5 +1,6 @@
 import type { PatientProfile } from '@equivalentes/shared';
 
+import type { PersonalPreferences } from '../../../lib/personalPreferences';
 import {
   fieldErrorClass,
   fieldLabelClass,
@@ -10,32 +11,26 @@ import type { StepFieldErrors } from '../validators';
 
 type StepClinicalProfileProps = {
   profile: PatientProfile;
+  personalPreferences: PersonalPreferences;
   showErrors: boolean;
   errors: StepFieldErrors;
   onProfileChange: <K extends keyof PatientProfile>(field: K, value: PatientProfile[K]) => void;
+  onPersonalPreferenceChange: <K extends keyof PersonalPreferences>(
+    field: K,
+    value: PersonalPreferences[K],
+  ) => void;
 };
 
 export const StepClinicalProfile = ({
   profile,
+  personalPreferences,
   showErrors,
   errors,
   onProfileChange,
+  onPersonalPreferenceChange,
 }: StepClinicalProfileProps): JSX.Element => (
   <div className="grid gap-4">
     <div className="grid gap-3 md:grid-cols-2">
-      <label className={`${fieldLabelClass} md:col-span-2`}>
-        Nombre completo
-        <input
-          className={inputClass}
-          value={profile.fullName}
-          onChange={(event) => onProfileChange('fullName', event.target.value)}
-          placeholder="Nombre y apellidos"
-        />
-        {showErrors && errors.fullName ? (
-          <span className={fieldErrorClass}>{errors.fullName}</span>
-        ) : null}
-      </label>
-
       <label className={fieldLabelClass}>
         Fecha de nacimiento
         <input
@@ -46,25 +41,6 @@ export const StepClinicalProfile = ({
         />
         {showErrors && errors.birthDate ? (
           <span className={fieldErrorClass}>{errors.birthDate}</span>
-        ) : null}
-      </label>
-
-      <label className={fieldLabelClass}>
-        Cintura (cm)
-        <input
-          className={inputClass}
-          type="number"
-          min={40}
-          max={250}
-          step="0.1"
-          value={profile.waistCm ?? ''}
-          onChange={(event) =>
-            onProfileChange('waistCm', event.target.value ? Number(event.target.value) : null)
-          }
-          placeholder="Opcional"
-        />
-        {showErrors && errors.waistCm ? (
-          <span className={fieldErrorClass}>{errors.waistCm}</span>
         ) : null}
       </label>
 
@@ -111,13 +87,47 @@ export const StepClinicalProfile = ({
         />
         Dislipidemia
       </label>
+    </div>
+
+    <div className="grid gap-2 rounded-xl border border-sky/15 bg-sky-50/30 p-3">
+      <p className="text-xs font-semibold text-slate-700">Preferencias personales</p>
       <label className="inline-flex items-center gap-2 text-sm text-slate-700">
         <input
           checked={profile.usesDairyInSnacks}
           onChange={(event) => onProfileChange('usesDairyInSnacks', event.target.checked)}
           type="checkbox"
         />
-        Usar lacteos en colaciones
+        Incluir lacteos en colaciones
+      </label>
+      <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+        <input
+          checked={personalPreferences.prefersSweetSnacks}
+          onChange={(event) =>
+            onPersonalPreferenceChange('prefersSweetSnacks', event.target.checked)
+          }
+          type="checkbox"
+        />
+        Prefiere colaciones dulces
+      </label>
+      <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+        <input
+          checked={personalPreferences.prefersSavorySnacks}
+          onChange={(event) =>
+            onPersonalPreferenceChange('prefersSavorySnacks', event.target.checked)
+          }
+          type="checkbox"
+        />
+        Prefiere colaciones saladas
+      </label>
+      <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+        <input
+          checked={personalPreferences.avoidsUltraProcessed}
+          onChange={(event) =>
+            onPersonalPreferenceChange('avoidsUltraProcessed', event.target.checked)
+          }
+          type="checkbox"
+        />
+        Evita ultraprocesados
       </label>
     </div>
   </div>

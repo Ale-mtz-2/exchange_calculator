@@ -4,6 +4,7 @@ import { GoalDeltaHoldBar } from '../../GoalDeltaHoldBar';
 import {
   fieldErrorClass,
   fieldLabelClass,
+  inputClass,
   selectClass,
 } from '../formStyles';
 import type { StepFieldErrors, WeeklyGoalSetting } from '../validators';
@@ -14,6 +15,7 @@ type StepGoalProps = {
   formulas: { id: KcalFormulaId; name: string; description: string }[];
   showErrors: boolean;
   errors: StepFieldErrors;
+  onFullNameChange: (value: string) => void;
   onGoalChange: (goal: PatientProfile['goal']) => void;
   onGoalDeltaChange: (value: number) => void;
   onFormulaChange: (formulaId: PatientProfile['formulaId']) => void;
@@ -25,11 +27,25 @@ export const StepGoal = ({
   formulas,
   showErrors,
   errors,
+  onFullNameChange,
   onGoalChange,
   onGoalDeltaChange,
   onFormulaChange,
 }: StepGoalProps): JSX.Element => (
   <div className="grid gap-4">
+    <label className={fieldLabelClass}>
+      Nombre completo
+      <input
+        className={inputClass}
+        value={profile.fullName}
+        onChange={(event) => onFullNameChange(event.target.value)}
+        placeholder="Nombre y apellidos"
+      />
+      {showErrors && errors.fullName ? (
+        <span className={fieldErrorClass}>{errors.fullName}</span>
+      ) : null}
+    </label>
+
     <div className="grid gap-3 md:grid-cols-2">
       <label className={fieldLabelClass}>
         Objetivo
@@ -77,4 +93,3 @@ export const StepGoal = ({
     ) : null}
   </div>
 );
-

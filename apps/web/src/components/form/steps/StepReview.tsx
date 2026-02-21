@@ -1,6 +1,11 @@
 import type { PatientProfile } from '@equivalentes/shared';
 
+import {
+  formatPersonalPreferencesSummary,
+  type PersonalPreferences,
+} from '../../../lib/personalPreferences';
 import { fieldLabelClass, inputClass } from '../formStyles';
+import { deriveAgeFromBirthDate } from '../validators';
 
 type CsvInputs = {
   allergiesText: string;
@@ -11,6 +16,7 @@ type CsvInputs = {
 
 type StepReviewProps = {
   profile: PatientProfile;
+  personalPreferences: PersonalPreferences;
   csvInputs: CsvInputs;
   onCsvChange: (field: keyof CsvInputs, value: string) => void;
   onGoToStep: (index: number) => void;
@@ -84,94 +90,99 @@ const SummaryCard = ({
 
 export const StepReview = ({
   profile,
+  personalPreferences,
   csvInputs,
   onCsvChange,
   onGoToStep,
-}: StepReviewProps): JSX.Element => (
-  <div className="space-y-4">
-    <div className="grid gap-3 md:grid-cols-2">
-      <label className={fieldLabelClass}>
-        Alergias (coma separada)
-        <input
-          className={inputClass}
-          value={csvInputs.allergiesText}
-          onChange={(event) => onCsvChange('allergiesText', event.target.value)}
-          placeholder="cacahuate, mariscos"
-        />
-      </label>
+}: StepReviewProps): JSX.Element => {
+  const derivedAge = profile.birthDate ? deriveAgeFromBirthDate(profile.birthDate) : null;
 
-      <label className={fieldLabelClass}>
-        Intolerancias (coma separada)
-        <input
-          className={inputClass}
-          value={csvInputs.intolerancesText}
-          onChange={(event) => onCsvChange('intolerancesText', event.target.value)}
-          placeholder="lactosa, gluten"
-        />
-      </label>
-    </div>
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-3 md:grid-cols-2">
+        <label className={fieldLabelClass}>
+          Alergias (coma separada)
+          <input
+            className={inputClass}
+            value={csvInputs.allergiesText}
+            onChange={(event) => onCsvChange('allergiesText', event.target.value)}
+            placeholder="cacahuate, mariscos"
+          />
+        </label>
 
-    <div className="grid gap-3 md:grid-cols-2">
-      <SummaryCard
-        title="Objetivo y meta"
-        stepIndex={0}
-        onGoToStep={onGoToStep}
-        lines={[
-          `Objetivo: ${goalLabelMap[profile.goal]}`,
-          `Meta semanal: ${profile.goalDeltaKgPerWeek.toFixed(2)} kg/semana`,
-          `Formula: ${profile.formulaId}`,
-        ]}
-      />
-      <SummaryCard
-        title="Datos antropometricos"
-        stepIndex={1}
-        onGoToStep={onGoToStep}
-        lines={[
-          `Sexo: ${sexLabelMap[profile.sex]}`,
-          `Edad: ${profile.age} anios`,
-          `Peso: ${profile.weightKg} kg`,
-          `Estatura: ${profile.heightCm} cm`,
-          `Actividad: ${activityLabelMap[profile.activityLevel]}`,
-          `Comidas por dia: ${profile.mealsPerDay}`,
-        ]}
-      />
-      <SummaryCard
-        title="Contexto regional"
-        stepIndex={2}
-        onGoToStep={onGoToStep}
-        lines={[
-          `Pais: ${profile.countryCode}`,
-          `Estado/provincia: ${profile.stateCode}`,
-          `Sistema: ${profile.systemId}`,
-        ]}
-      />
-      <SummaryCard
-        title="Habitos y preferencias"
-        stepIndex={3}
-        onGoToStep={onGoToStep}
-        lines={[
-          `Patron: ${dietPatternLabelMap[profile.dietPattern]}`,
-          `Presupuesto: ${budgetLabelMap[profile.budgetLevel]}`,
-          `Preparacion: ${prepTimeLabelMap[profile.prepTimeLevel]}`,
-          `Likes: ${csvInputs.likesText.trim() || 'Sin preferencias'}`,
-          `Dislikes: ${csvInputs.dislikesText.trim() || 'Sin exclusiones'}`,
-        ]}
-      />
-      <SummaryCard
-        title="Perfil clinico"
-        stepIndex={4}
-        onGoToStep={onGoToStep}
-        lines={[
-          `Nombre completo: ${profile.fullName.trim() || 'Sin capturar'}`,
-          `Nacimiento: ${profile.birthDate || 'Sin dato'}`,
-          `Cintura: ${profile.waistCm ?? 'Sin dato'} cm`,
-          `Ventana entrenamiento: ${profile.trainingWindow}`,
-          `Diabetes: ${profile.hasDiabetes ? 'Si' : 'No'}`,
-          `Hipertension: ${profile.hasHypertension ? 'Si' : 'No'}`,
-          `Dislipidemia: ${profile.hasDyslipidemia ? 'Si' : 'No'}`,
-          `Lacteos en colacion: ${profile.usesDairyInSnacks ? 'Si' : 'No'}`,
-        ]}
-      />
+        <label className={fieldLabelClass}>
+          Intolerancias (coma separada)
+          <input
+            className={inputClass}
+            value={csvInputs.intolerancesText}
+            onChange={(event) => onCsvChange('intolerancesText', event.target.value)}
+            placeholder="lactosa, gluten"
+          />
+        </label>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <SummaryCard
+          title="Objetivo y meta"
+          stepIndex={0}
+          onGoToStep={onGoToStep}
+          lines={[
+            `Nombre completo: ${profile.fullName.trim() || 'Sin capturar'}`,
+            `Objetivo: ${goalLabelMap[profile.goal]}`,
+            `Meta semanal: ${profile.goalDeltaKgPerWeek.toFixed(2)} kg/semana`,
+            `Formula: ${profile.formulaId}`,
+          ]}
+        />
+        <SummaryCard
+          title="Datos antropometricos"
+          stepIndex={1}
+          onGoToStep={onGoToStep}
+          lines={[
+            `Sexo: ${sexLabelMap[profile.sex]}`,
+            `Peso: ${profile.weightKg} kg`,
+            `Estatura: ${profile.heightCm} cm`,
+            `Cintura: ${profile.waistCm ?? 'Sin dato'} cm`,
+            `Actividad: ${activityLabelMap[profile.activityLevel]}`,
+            `Comidas por dia: ${profile.mealsPerDay}`,
+          ]}
+        />
+        <SummaryCard
+          title="Contexto regional"
+          stepIndex={2}
+          onGoToStep={onGoToStep}
+          lines={[
+            `Pais: ${profile.countryCode}`,
+            `Estado/provincia: ${profile.stateCode}`,
+            `Sistema: ${profile.systemId}`,
+          ]}
+        />
+        <SummaryCard
+          title="Habitos y preferencias"
+          stepIndex={3}
+          onGoToStep={onGoToStep}
+          lines={[
+            `Patron: ${dietPatternLabelMap[profile.dietPattern]}`,
+            `Presupuesto: ${budgetLabelMap[profile.budgetLevel]}`,
+            `Preparacion: ${prepTimeLabelMap[profile.prepTimeLevel]}`,
+            `Likes: ${csvInputs.likesText.trim() || 'Sin preferencias'}`,
+            `Dislikes: ${csvInputs.dislikesText.trim() || 'Sin exclusiones'}`,
+          ]}
+        />
+        <SummaryCard
+          title="Perfil clinico"
+          stepIndex={4}
+          onGoToStep={onGoToStep}
+          lines={[
+            `Nacimiento: ${profile.birthDate || 'Sin dato'}`,
+            `Edad calculada: ${derivedAge ?? 'Sin dato'} anios`,
+            `Ventana entrenamiento: ${profile.trainingWindow}`,
+            `Diabetes: ${profile.hasDiabetes ? 'Si' : 'No'}`,
+            `Hipertension: ${profile.hasHypertension ? 'Si' : 'No'}`,
+            `Dislipidemia: ${profile.hasDyslipidemia ? 'Si' : 'No'}`,
+            `Preferencias personales: ${formatPersonalPreferencesSummary(profile.usesDairyInSnacks, personalPreferences)}`,
+          ]}
+        />
+      </div>
     </div>
-  </div>
-);
+  );
+};

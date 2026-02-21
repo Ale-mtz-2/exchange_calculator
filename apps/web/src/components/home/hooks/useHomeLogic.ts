@@ -15,6 +15,7 @@ import { useLocation } from 'react-router-dom';
 import {
     WEEKLY_GOAL_SETTINGS,
     clampWeeklyGoalDelta,
+    deriveAgeFromBirthDate,
     getFirstInvalidStepIndex,
     validateAnthropometryStep,
     validateClinicalStep,
@@ -33,6 +34,11 @@ import {
     type LeadByCidPayload,
 } from '../../../lib/api';
 import { resolveTrackingIdentity } from '../../../lib/trackingIdentity';
+import {
+    applyPersonalPreferencesToLists,
+    defaultPersonalPreferences,
+    type PersonalPreferences,
+} from '../../../lib/personalPreferences';
 import {
     buildBaseExchangesByBucket,
     buildEditableBucketRows,
@@ -88,6 +94,9 @@ export function useHomeLogic() {
         likesText: '',
         dislikesText: '',
     });
+    const [personalPreferences, setPersonalPreferences] = useState<PersonalPreferences>(
+        defaultPersonalPreferences(),
+    );
     const [stepIndex, setStepIndex] = useState(0);
     const [viewPhase, setViewPhase] = useState<ViewPhase>('form');
     const [openTracked, setOpenTracked] = useState(false);
@@ -141,6 +150,7 @@ export function useHomeLogic() {
                     ...prev,
                     fullName: lead.fullName || prev.fullName,
                     birthDate: lead.birthDate ?? prev.birthDate,
+                    age: lead.birthDate ? deriveAgeFromBirthDate(lead.birthDate) ?? prev.age : prev.age,
                     waistCm: lead.waistCm ?? prev.waistCm,
                     hasDiabetes: lead.hasDiabetes,
                     hasHypertension: lead.hasHypertension,
@@ -215,12 +225,10 @@ export function useHomeLogic() {
                 systemOptions.map((system) => system.id),
             ),
             validateHabitsStep(profile),
-            validateClinicalStep(profile, {
-                requireFullName: isGuest && isLeadLookupDone && !leadByCid?.fullName?.trim(),
-            }),
+            validateClinicalStep(profile),
             validateReviewStep(),
         ],
-        [isGuest, isLeadLookupDone, leadByCid?.fullName, profile, stateOptions, systemOptions],
+        [profile, stateOptions, systemOptions],
     );
 
     const firstInvalidStepIndex = getFirstInvalidStepIndex(stepValidations);
@@ -362,11 +370,31 @@ export function useHomeLogic() {
         field: K,
         value: PatientProfile[K],
     ): void => {
+        if (field === 'birthDate') {
+            const birthDate = value as PatientProfile['birthDate'];
+            setProfile((prev) => {
+                const age = birthDate ? deriveAgeFromBirthDate(birthDate) : null;
+                return {
+                    ...prev,
+                    birthDate,
+                    ...(age !== null ? { age } : {}),
+                };
+            });
+            return;
+        }
+
         setProfile((prev) => ({ ...prev, [field]: value }));
     };
 
     const onCsvChange = (field: keyof CsvInputs, value: string): void => {
         setCsvInputs((prev) => ({ ...prev, [field]: value }));
+    };
+
+    const onPersonalPreferenceChange = <K extends keyof PersonalPreferences>(
+        field: K,
+        value: PersonalPreferences[K],
+    ): void => {
+        setPersonalPreferences((prev) => ({ ...prev, [field]: value }));
     };
 
     const onCountryChange = (countryCode: PatientProfile['countryCode']): void => {
@@ -541,14 +569,31 @@ export function useHomeLogic() {
             return;
         }
 
+        const likesInput = parseCsvText(csvInputs.likesText);
+        const dislikesInput = parseCsvText(csvInputs.dislikesText);
+        const listsWithPreferences = applyPersonalPreferencesToLists(
+            likesInput,
+            dislikesInput,
+            personalPreferences,
+        );
+
         const normalizedProfile: PatientProfile = {
             ...profile,
             goalDeltaKgPerWeek: clampWeeklyGoalDelta(profile.goal, profile.goalDeltaKgPerWeek),
             allergies: parseCsvText(csvInputs.allergiesText),
             intolerances: parseCsvText(csvInputs.intolerancesText),
-            likes: parseCsvText(csvInputs.likesText),
-            dislikes: parseCsvText(csvInputs.dislikesText),
+            likes: listsWithPreferences.likes,
+            dislikes: listsWithPreferences.dislikes,
         };
+        const derivedAge = normalizedProfile.birthDate
+            ? deriveAgeFromBirthDate(normalizedProfile.birthDate)
+            : null;
+        if (derivedAge === null) {
+            setError('Ingresa una fecha de nacimiento valida para continuar.');
+            setStepIndex(4);
+            return;
+        }
+        normalizedProfile.age = derivedAge;
 
         setViewPhase('generating');
         setError(null);
@@ -728,6 +773,7 @@ export function useHomeLogic() {
             isLeadLookupDone,
             profile,
             csvInputs,
+            personalPreferences,
         },
         form: {
             countryOptions,
@@ -751,6 +797,7 @@ export function useHomeLogic() {
         handlers: {
             onProfileChange,
             onCsvChange,
+            onPersonalPreferenceChange,
             onCountryChange,
             onGoalChange,
             onGoalDeltaChange,

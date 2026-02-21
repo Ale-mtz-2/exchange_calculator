@@ -48,13 +48,13 @@ export const FORM_STEPS = [
         title: 'Objetivo y meta',
         shortTitle: 'Objetivo',
         description:
-            'Selecciona objetivo, meta semanal en kg/semana y formula para el calculo de kcal.',
+            'Captura nombre completo, objetivo, meta semanal en kg/semana y formula para el calculo de kcal.',
     },
     {
         title: 'Datos antropometricos',
         shortTitle: 'Antropometria',
         description:
-            'Captura sexo, edad, peso, estatura, actividad y numero de comidas por dia.',
+            'Captura sexo, peso, estatura, cintura, actividad y numero de comidas por dia.',
     },
     {
         title: 'Contexto regional',
@@ -72,7 +72,7 @@ export const FORM_STEPS = [
         title: 'Perfil clinico',
         shortTitle: 'Clinico',
         description:
-            'Captura nombre completo y contexto clinico para personalizar mejor la distribucion.',
+            'Captura nacimiento, ventana de entrenamiento, banderas clinicas y preferencias personales.',
     },
     {
         title: 'Restricciones y revision',

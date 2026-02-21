@@ -11,6 +11,7 @@ import { StepRegion } from '../form/steps/StepRegion';
 import { StepReview } from '../form/steps/StepReview';
 import { WEEKLY_GOAL_SETTINGS } from '../form/validators';
 import { CsvInputs, FORM_STEPS } from './constants';
+import type { PersonalPreferences } from '../../lib/personalPreferences';
 
 export type ValidationSummary = {
     valid: boolean;
@@ -29,6 +30,7 @@ interface HomeFormWizardProps {
     isGenerating: boolean;
     error: string | null;
     profile: PatientProfile;
+    personalPreferences: PersonalPreferences;
     csvInputs: CsvInputs;
     countryOptions: { code: string; name: string }[];
     stateOptions: { code: string; name: string }[];
@@ -43,6 +45,10 @@ interface HomeFormWizardProps {
     onGoalChange: (goal: PatientProfile['goal']) => void;
     onGoalDeltaChange: (value: number) => void;
     onCsvChange: (field: keyof CsvInputs, value: string) => void;
+    onPersonalPreferenceChange: <K extends keyof PersonalPreferences>(
+        field: K,
+        value: PersonalPreferences[K],
+    ) => void;
 }
 
 export const HomeFormWizard = ({
@@ -56,6 +62,7 @@ export const HomeFormWizard = ({
     isGenerating,
     error,
     profile,
+    personalPreferences,
     csvInputs,
     countryOptions,
     stateOptions,
@@ -70,6 +77,7 @@ export const HomeFormWizard = ({
     onGoalChange,
     onGoalDeltaChange,
     onCsvChange,
+    onPersonalPreferenceChange,
 }: HomeFormWizardProps): JSX.Element => {
     const currentStep = FORM_STEPS[stepIndex] ?? FORM_STEPS[0];
     const currentStepHasErrors = !currentStepValidation.valid;
@@ -84,6 +92,7 @@ export const HomeFormWizard = ({
                         formulas={formulaOptions}
                         showErrors={currentStepHasErrors}
                         errors={currentStepValidation.fieldErrors}
+                        onFullNameChange={(value) => onProfileChange('fullName', value)}
                         onGoalChange={onGoalChange}
                         onGoalDeltaChange={onGoalDeltaChange}
                         onFormulaChange={(formulaId) => onProfileChange('formulaId', formulaId)}
@@ -130,15 +139,18 @@ export const HomeFormWizard = ({
                 return (
                     <StepClinicalProfile
                         profile={profile}
+                        personalPreferences={personalPreferences}
                         showErrors={currentStepHasErrors}
                         errors={currentStepValidation.fieldErrors}
                         onProfileChange={onProfileChange}
+                        onPersonalPreferenceChange={onPersonalPreferenceChange}
                     />
                 );
             default:
                 return (
                     <StepReview
                         profile={profile}
+                        personalPreferences={personalPreferences}
                         csvInputs={csvInputs}
                         onCsvChange={(field, value) => onCsvChange(field, value)}
                         onGoToStep={(targetIndex) => onStepSelect(targetIndex)}

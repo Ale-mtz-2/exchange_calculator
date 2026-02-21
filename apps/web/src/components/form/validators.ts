@@ -47,6 +47,45 @@ const inRange = (value: number, minValue: number, maxValue: number): boolean =>
   value >= minValue && value <= maxValue;
 
 const isIsoDate = (value: string): boolean => /^\d{4}-\d{2}-\d{2}$/.test(value);
+const MIN_AGE = 15;
+const MAX_AGE = 90;
+const MIN_WAIST_CM = 40;
+const MAX_WAIST_CM = 250;
+
+export const deriveAgeFromBirthDate = (
+  birthDateIso: string,
+  nowDate: Date = new Date(),
+): number | null => {
+  if (!isIsoDate(birthDateIso)) return null;
+  const [yearText, monthText, dayText] = birthDateIso.split('-');
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    return null;
+  }
+
+  const birthDate = new Date(`${birthDateIso}T00:00:00.000Z`);
+  if (
+    Number.isNaN(birthDate.getTime()) ||
+    birthDate.getUTCFullYear() !== year ||
+    birthDate.getUTCMonth() + 1 !== month ||
+    birthDate.getUTCDate() !== day
+  ) {
+    return null;
+  }
+
+  const nowYear = nowDate.getUTCFullYear();
+  const nowMonth = nowDate.getUTCMonth() + 1;
+  const nowDay = nowDate.getUTCDate();
+  let age = nowYear - year;
+
+  if (nowMonth < month || (nowMonth === month && nowDay < day)) {
+    age -= 1;
+  }
+
+  return age;
+};
 
 export const clampWeeklyGoalDelta = (
   goal: PatientProfile['goal'],
@@ -59,6 +98,10 @@ export const clampWeeklyGoalDelta = (
 
 export const validateGoalStep = (profile: PatientProfile): StepValidationResult => {
   const errors: StepFieldErrors = {};
+
+  if (!profile.fullName.trim()) {
+    errors.fullName = 'Ingresa nombre completo para personalizar el plan.';
+  }
 
   if (!profile.goal) {
     errors.goal = 'Selecciona un objetivo.';
@@ -93,10 +136,6 @@ export const validateAnthropometryStep = (
     errors.sex = 'Selecciona el sexo.';
   }
 
-  if (!Number.isInteger(profile.age) || !inRange(profile.age, 15, 90)) {
-    errors.age = 'La edad debe estar entre 15 y 90 anios.';
-  }
-
   if (!isFiniteNumber(profile.weightKg) || !inRange(profile.weightKg, 35, 350)) {
     errors.weightKg = 'El peso debe estar entre 35 y 350 kg.';
   }
@@ -111,6 +150,13 @@ export const validateAnthropometryStep = (
 
   if (![3, 4, 5].includes(profile.mealsPerDay)) {
     errors.mealsPerDay = 'Comidas por dia validas: 3, 4 o 5.';
+  }
+
+  if (
+    profile.waistCm !== null &&
+    (!isFiniteNumber(profile.waistCm) || !inRange(profile.waistCm, MIN_WAIST_CM, MAX_WAIST_CM))
+  ) {
+    errors.waistCm = 'La cintura debe estar entre 40 y 250 cm.';
   }
 
   return toValidationResult(errors);
@@ -160,26 +206,24 @@ export const validateHabitsStep = (profile: PatientProfile): StepValidationResul
   return toValidationResult(errors);
 };
 
-export const validateClinicalStep = (
-  profile: PatientProfile,
-  options?: { requireFullName?: boolean },
-): StepValidationResult => {
+export const validateClinicalStep = (profile: PatientProfile): StepValidationResult => {
   const errors: StepFieldErrors = {};
-  const requireFullName = options?.requireFullName ?? false;
 
-  if (requireFullName && !profile.fullName.trim()) {
-    errors.fullName = 'Ingresa nombre completo para personalizar el plan.';
+  if (!profile.birthDate) {
+    errors.birthDate = 'Ingresa la fecha de nacimiento.';
+    return toValidationResult(errors);
   }
 
-  if (profile.birthDate && !isIsoDate(profile.birthDate)) {
+  if (!isIsoDate(profile.birthDate)) {
     errors.birthDate = 'La fecha debe tener formato YYYY-MM-DD.';
+    return toValidationResult(errors);
   }
 
-  if (
-    profile.waistCm !== null &&
-    (!isFiniteNumber(profile.waistCm) || !inRange(profile.waistCm, 40, 250))
-  ) {
-    errors.waistCm = 'La cintura debe estar entre 40 y 250 cm.';
+  const age = deriveAgeFromBirthDate(profile.birthDate);
+  if (age === null) {
+    errors.birthDate = 'Ingresa una fecha de nacimiento valida.';
+  } else if (!inRange(age, MIN_AGE, MAX_AGE)) {
+    errors.birthDate = `La edad calculada debe estar entre ${MIN_AGE} y ${MAX_AGE} anios.`;
   }
 
   return toValidationResult(errors);

@@ -19,6 +19,7 @@ export const HomePage = (): JSX.Element => {
     isLeadModalOpen,
     leadByCid,
     profile,
+    personalPreferences,
     csvInputs,
   } = state;
 
@@ -54,6 +55,7 @@ export const HomePage = (): JSX.Element => {
     handleNextStep,
     adjustMealCellExchanges,
     submit,
+    onPersonalPreferenceChange,
     handleLeadSuccess,
     handleLeadClose,
     exportEquivalentListExcelFile,
@@ -79,6 +81,7 @@ export const HomePage = (): JSX.Element => {
             isGenerating={isGenerating}
             error={error}
             profile={profile}
+            personalPreferences={personalPreferences}
             csvInputs={csvInputs}
             countryOptions={countryOptions}
             stateOptions={stateOptions}
@@ -93,6 +96,7 @@ export const HomePage = (): JSX.Element => {
             onGoalChange={onGoalChange}
             onGoalDeltaChange={onGoalDeltaChange}
             onCsvChange={onCsvChange}
+            onPersonalPreferenceChange={onPersonalPreferenceChange}
           />
         ) : null}
 
