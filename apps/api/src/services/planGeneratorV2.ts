@@ -38,6 +38,20 @@ const roundHalf = (value: number): number => Math.max(0, Math.round(value * 2) /
 const clamp = (value: number, minValue: number, maxValue: number): number =>
   Math.min(maxValue, Math.max(minValue, value));
 
+const COMBINING_MARKS_REGEX = /[\u0300-\u036f]/g;
+
+const SWEET_PREFERENCE_KEYWORDS = [
+  'nieve',
+  'helado',
+  'postre',
+  'dulce',
+  'chocolate',
+  'cajeta',
+  'miel',
+  'caramelo',
+  'azucar',
+];
+
 const FIXED_GROUP_EXCHANGES: Record<string, number> = {
   vegetable: 3,
   fruit: 2,
@@ -65,6 +79,30 @@ type SubgroupPolicyResolved = {
   targetSharePct: number;
   scoreAdjustment: number;
 };
+
+const normalizeText = (value: string): string =>
+  value
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(COMBINING_MARKS_REGEX, '');
+
+const hasSweetPreferenceSignal = (likes: string[]): boolean => {
+  const normalizedLikes = likes.map(normalizeText).filter(Boolean);
+  return normalizedLikes.some((like) => SWEET_PREFERENCE_KEYWORDS.some((keyword) => like.includes(keyword)));
+};
+
+const shouldApplySugarFloor = (
+  profile: Pick<PatientProfile, 'goal' | 'hasDiabetes' | 'likes'>,
+): boolean => {
+  if (profile.goal !== 'lose_fat') return false;
+  if (profile.hasDiabetes) return false;
+  return hasSweetPreferenceSignal(profile.likes);
+};
+
+const shouldApplyFatFloor = (
+  profile: Pick<PatientProfile, 'goal' | 'hasDyslipidemia'>,
+): boolean => profile.goal === 'lose_fat' && !profile.hasDyslipidemia;
 
 const estimateExchanges = (
   familyCode: ExchangeGroupCode,
@@ -269,6 +307,26 @@ const buildGroupPlan = (
     remainingFat -= used.fatG;
   }
 
+  const minExchangesByFamily = new Map<ExchangeGroupCode, number>();
+  if (shouldApplyFatFloor(profile)) {
+    minExchangesByFamily.set('fat', 1);
+  }
+  if (shouldApplySugarFloor(profile)) {
+    minExchangesByFamily.set('sugar', 0.5);
+  }
+
+  for (const [familyCode, minExchanges] of minExchangesByFamily.entries()) {
+    const group = sorted.find((item) => item.familyCode === familyCode);
+    if (!group || exchangesByGroup.has(group.bucketId)) continue;
+
+    const floor = roundHalf(clamp(minExchanges, 0, 30));
+    exchangesByGroup.set(group.bucketId, floor);
+    const used = contribution(floor, group);
+    remainingCho -= used.choG;
+    remainingPro -= used.proG;
+    remainingFat -= used.fatG;
+  }
+
   for (const group of sorted) {
     if (exchangesByGroup.has(group.bucketId)) continue;
 
@@ -314,6 +372,7 @@ const buildSubgroupPlan = (
   groupPlan: EquivalentBucketPlanV2[],
   subgroupProfiles: ExchangeBucketProfileRow[],
   subgroupPolicies: SubgroupPolicyResolved[],
+  profile: PatientProfile,
 ): EquivalentBucketPlanV2[] => {
   const subgroupProfileById = new Map<number, ExchangeBucketProfileRow>(
     subgroupProfiles.map((profile) => [profile.bucketId, profile]),
@@ -323,15 +382,30 @@ const buildSubgroupPlan = (
   );
 
   const rows: EquivalentBucketPlanV2[] = [];
+  const applyFatOverride = shouldApplyFatFloor(profile);
+  const applySugarOverride = shouldApplySugarFloor(profile);
 
   for (const group of groupPlan) {
     const groupId = group.bucketId;
     const candidates = subgroupProfiles.filter((profile) => profile.parentGroupId === groupId);
     if (candidates.length === 0 || group.exchangesPerDay <= 0) continue;
 
+    const subgroupOverrideByLegacyCode = new Map<string, number>();
+    if (group.legacyCode === 'fat' && applyFatOverride) {
+      subgroupOverrideByLegacyCode.set('grasa_sin_proteina', 60);
+      subgroupOverrideByLegacyCode.set('grasa_con_proteina', 40);
+    }
+    if (group.legacyCode === 'sugar' && applySugarOverride) {
+      subgroupOverrideByLegacyCode.set('azucar_sin_grasa', 100);
+      subgroupOverrideByLegacyCode.set('azucar_con_grasa', 0);
+    }
+
     const weightedCandidates = candidates.map((candidate) => {
       const policy = subgroupPoliciesById.get(candidate.bucketId);
-      const weight = policy?.targetSharePct ?? candidate.sampleSize;
+      const overrideWeight = candidate.legacyCode
+        ? subgroupOverrideByLegacyCode.get(candidate.legacyCode)
+        : undefined;
+      const weight = overrideWeight ?? policy?.targetSharePct ?? candidate.sampleSize;
       return { subgroupId: candidate.bucketId, weight };
     });
 
@@ -440,7 +514,7 @@ export const generateEquivalentPlanV2 = async (
 
   const subgroupPolicies = await loadSubgroupPolicies(profile, subgroupProfiles);
   const groupPlan = buildGroupPlan(targets, groupProfiles, profile);
-  const subgroupPlan = buildSubgroupPlan(groupPlan, subgroupProfiles, subgroupPolicies);
+  const subgroupPlan = buildSubgroupPlan(groupPlan, subgroupProfiles, subgroupPolicies, profile);
   const bucketPlan = [...groupPlan, ...subgroupPlan];
 
   const subgroupScoreAdjustments = subgroupPolicies.reduce<Record<string, number>>((acc, policy) => {
@@ -545,4 +619,12 @@ export const generateEquivalentPlanV2 = async (
     extendedFoods,
     mealDistribution,
   };
+};
+
+export const __testables = {
+  buildGroupPlan,
+  buildSubgroupPlan,
+  hasSweetPreferenceSignal,
+  shouldApplySugarFloor,
+  shouldApplyFatFloor,
 };

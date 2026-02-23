@@ -73,6 +73,13 @@ export const StepClinicalProfile = ({
           <option value="hybrid_sport">Clinico + Deportivo (simetrico)</option>
         </select>
       </label>
+
+      {profile.mealsPerDay === 3 ? (
+        <p className="md:col-span-2 text-xs text-slate-600">
+          Nota: Con 3 comidas por dia no se generan colaciones separadas. Las preferencias de colacion se
+          redistribuyen entre desayuno, comida y cena.
+        </p>
+      ) : null}
     </div>
 
     <div className="grid gap-2 rounded-xl border border-sky/15 bg-sky-50/30 p-3">

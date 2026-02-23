@@ -126,6 +126,13 @@ export const StepReview = ({
         </label>
       </div>
 
+      {profile.mealsPerDay === 3 ? (
+        <p className="rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2 text-xs text-amber-900">
+          Nota: Con 3 comidas por dia no se generan colaciones separadas. Las preferencias orientadas a
+          colacion se redistribuyen entre desayuno, comida y cena.
+        </p>
+      ) : null}
+
       <div className="grid gap-3 md:grid-cols-2">
         <SummaryCard
           title="Objetivo y meta"
